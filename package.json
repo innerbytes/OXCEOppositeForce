@@ -1,0 +1,12 @@
+{
+  "name": "oxce-opposite-force",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts-of/build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.20.0"
+}
