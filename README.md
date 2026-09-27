@@ -4,9 +4,15 @@ OXCE Opposite Force is a strictly additive modification of the OpenXcom Extended
 
 The goal is to extend OXCE without changing existing behavior. The fork is designed to remain fully backwards compatible with standard OXCE rulesets and mods.
 
+Ruleset authors can find the added properties in [Opposite Force rules](OppositeForce.md).
+
 ## Demo
 
 [![X-COM: Opposite Force Demo](https://img.youtube.com/vi/UejqRzjD9r0/maxresdefault.jpg)](https://www.youtube.com/watch?v=UejqRzjD9r0)
+
+## Rules
+
+See [Opposite Force extended rules](OppositeForce.md) for the full list of added properties and their usage.
 
 ## Extra files
 
@@ -17,6 +23,7 @@ Those files are not to be merged to the upstream OXCE repository.
 - `package.json` - automation targets
 - `.vscode` - vscode settings
 - `AGENTS.md` - agents documentation
+- [OppositeForce.md](OppositeForce.md) - Opposite Force ruleset properties
 - `todo.md` - list of tasks and planned improvements
 
 ## References
