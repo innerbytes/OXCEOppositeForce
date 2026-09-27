@@ -41,6 +41,8 @@
 #include "../Mod/RuleInterface.h"
 #include <climits>
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -521,6 +523,32 @@ void ManufactureInfoState::lessEngineerClick(Action *action)
 void ManufactureInfoState::moreUnit(int change)
 {
 	if (change <= 0) return;
+
+	// OF - Handle typed craft production with compatible reservations.
+	if (HangarCompatibility::shouldApplyForCraft(*_base, _production->getRules()->getProducedCraft()))
+	{
+		int freeHangarsCount = HangarCompatibility::getFreeHangarsCount(*_base, _production->getRules()->getProducedCraft());
+		if (freeHangarsCount <= 0)
+		{
+			_timerMoreUnit->stop();
+			_game->pushState(new ErrorMessageState(tr("STR_NO_FREE_HANGARS_FOR_CRAFT_PRODUCTION"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK17.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
+		}
+		else
+		{
+			int units = _production->getAmountTotal();
+			if (units == 1 && change > 1)
+			{
+				--change;
+			}
+			change = std::min(INT_MAX - units, change);
+			change = std::min(freeHangarsCount, change);
+			_production->setAmountTotal(units+change);
+			setAssignedEngineer();
+		}
+		return;
+	}
+	// End OF
+
 	if (_production->getRules()->getProducedCraft() && _base->getAvailableHangars() - _base->getUsedHangars() <= 0)
 	{
 		_timerMoreUnit->stop();

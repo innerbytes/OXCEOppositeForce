@@ -156,6 +156,10 @@ public:
 	int getMarker() const override;
 	/// Gets the base's facilities.
 	std::vector<BaseFacility*> *getFacilities();
+
+	// OF - Let hangar matching inspect facilities without changing the base.
+	const std::vector<BaseFacility*> *ofGetFacilities() const { return &_facilities; }
+
 	/// Gets the base's soldiers.
 	std::vector<Soldier*> *getSoldiers();
 	/// Pre-calculates soldier stats with various bonuses.

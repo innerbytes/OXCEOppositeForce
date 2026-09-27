@@ -88,6 +88,9 @@ void RuleCraft::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript
 	mod->loadBaseFunction(_type, _requiresBuyBaseFunc, reader["requiresBuyBaseFunc"]);
 	reader.tryRead("requiresBuyCountry", _requiresBuyCountry);
 
+	// OF - Load the craft's optional list of compatible hangar types.
+	HangarRules::loadCraft(_ofHangarCompatibilityRule, reader["allowedHangarTypes"], _type);
+
 	if (reader["sprite"])
 	{
 		// used in
@@ -841,4 +844,3 @@ void RuleCraft::ScriptRegister(ScriptParserBase* parser)
 }
 
 }
-

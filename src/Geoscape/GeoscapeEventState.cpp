@@ -46,6 +46,8 @@
 #include "../Savegame/Transfer.h"
 #include "../Ufopaedia/Ufopaedia.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -411,6 +413,15 @@ void GeoscapeEventState::eventLogic()
 
 	// 3b. spawn craft into the HQ
 	const RuleCraft* craftRule = mod->getCraft(rule.getSpawnedCraftType(), true);
+
+	// OF - Skip a craft reward that has no compatible hangar.
+	if (HangarCompatibility::lacksCompatibleSlot(*hq, craftRule))
+	{
+		_ofCraftRewardSkippedForHangars = true;
+		craftRule = nullptr;
+	}
+	// End OF
+
 	if (craftRule)
 	{
 		Craft* craft = new Craft(craftRule, hq, save->getId(craftRule->getType()));
@@ -572,6 +583,15 @@ void GeoscapeEventState::btnOkClick(Action *)
 	{
 		Ufopaedia::openArticle(_game, _researchName);
 	}
+
+	// OF - Tell the player when an event craft reward was skipped.
+	if (_ofCraftRewardSkippedForHangars)
+	{
+		_game->pushState(new ErrorMessageState(tr("STR_OF_EVENT_CRAFT_SKIPPED").arg(tr(_eventRule.getSpawnedCraftType())),
+			_palette, _game->getMod()->getInterface("debriefing")->getElement("errorMessage")->color,
+			"BACK01.SCR", _game->getMod()->getInterface("debriefing")->getElement("errorPalette")->color));
+	}
+	// End OF
 }
 
 /**

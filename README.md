@@ -15,6 +15,9 @@ Those files are not to be merged to the upstream OXCE repository.
 - This `README.md`. The original OXCE README is moved to `README-OXCE.md` and must follow the upstream.
 - `scripts-of` - automation helpers folder
 - `package.json` - automation targets
+- `.vscode` - vscode settings
+- `AGENTS.md` - agents documentation
+- `todo.md` - list of tasks and planned improvements
 
 ## References
 
