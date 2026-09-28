@@ -37,6 +37,10 @@ class RuleCountry
 {
 private:
 	std::string _type;
+
+	// OF - Optional localization key for the country as a funding actor.
+	std::string _ofFundingName;
+
 	std::string _signedPactEventName, _rejoinedXcomEventName;
 	int _fundingBase, _fundingCap;
 	double _labelLon, _labelLat;
@@ -65,6 +69,10 @@ public:
 	void afterLoad(const Mod* mod);
 	/// Gets the country's type.
 	const std::string& getType() const;
+
+	// OF - Expose the optional funding actor name without changing country identity.
+	const std::string& ofGetFundingName() const { return _ofFundingName; }
+
 	/// Gets the event triggered after the country leaves Xcom.
 	const RuleEvent* getSignedPactEvent() const { return _signedPactEvent; }
 	/// Gets the event triggered after the country rejoins Xcom.

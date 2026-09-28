@@ -455,6 +455,7 @@ set ( cxx_src
     ${rapidyaml_src}
 
     # OF - Build Opposite Force modules.
+    OppositeForce/Geoscape/FundingNames.cpp
     OppositeForce/Mod/HangarRules.cpp
     OppositeForce/Savegame/HangarCompatibility.cpp
     # End OF
