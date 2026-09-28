@@ -53,6 +53,8 @@
 #include "../fmath.h"
 #include <algorithm>
 
+#include "../OppositeForce/Geoscape/FundingNames.h"
+
 namespace OpenXcom
 {
 
@@ -783,6 +785,23 @@ void StatsForNerdsState::addSingleString(std::ostringstream &ss, const std::stri
 	{
 		ss << id;
 	}
+
+	// OF - Purchase alliances display actor names but keep the actual rule ID.
+	if (translate && propertyName == "requiresBuyCountry")
+	{
+		const auto& nameKey = FundingNames::getNameKey(*_game->getMod(), id);
+		if (nameKey != id)
+		{
+			resetStream(ss);
+			ss << tr(nameKey);
+			if (_showIds)
+			{
+				ss << " [" << id << "]";
+			}
+		}
+	}
+	// End OF
+
 	_lstRawData->addRow(2, trp(propertyName).c_str(), ss.str().c_str());
 	++_counter;
 	if (id != defaultId)

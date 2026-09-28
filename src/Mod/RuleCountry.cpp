@@ -52,6 +52,9 @@ void RuleCountry::load(const YAML::YamlNodeReader& reader, const ModScript& pars
 		load(parent, parsers, mod);
 	}
 
+	// OF - Load the funding actor name after inherited values.
+	reader.tryRead("fundingName", _ofFundingName);
+
 	reader.tryRead("signedPactEvent", _signedPactEventName);
 	reader.tryRead("rejoinedXcomEvent", _rejoinedXcomEventName);
 	reader.tryRead("fundingBase", _fundingBase);

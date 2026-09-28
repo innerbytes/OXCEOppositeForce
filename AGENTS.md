@@ -39,3 +39,11 @@ else {
 - If integration point is just one line, no "End OF" comment is necessary, but the new lines before and after the integration point should still be there.
 
 - #include and using directives for our code modules do not require any "OF -" comments, but should be still separated by new lines from the existing code.
+
+## Run and Test
+
+- You can build, but do not try to start the play. You cannot interact with the UI of the game due to SDL limitations.
+
+## Documentation
+
+- All the documentation regarding the extended rules we implemented should go to `OppositeForce.md` file in the root directory.

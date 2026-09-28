@@ -39,6 +39,8 @@
 #include "../Engine/Unicode.h"
 #include "../Mod/RuleInterface.h"
 
+#include "../OppositeForce/Geoscape/FundingNames.h"
+
 namespace OpenXcom
 {
 
@@ -705,6 +707,20 @@ void GraphsState::drawLines()
  */
 void GraphsState::drawCountryLines()
 {
+
+	// OF - Income names represent actors; activity names represent geography.
+	const auto& countries = *_game->getSavedGame()->getCountries();
+	for (size_t index = 0; index < countries.size(); ++index)
+	{
+		const auto* rules = countries[index]->getRules();
+		_countryToggles[index]->_name = tr(_income ? FundingNames::getNameKey(*rules) : rules->getType());
+	}
+	for (size_t index = 0; index < _btnCountries.size(); ++index)
+	{
+		_btnCountries[index]->setText(_countryToggles[_butCountriesOffset + index]->_name);
+	}
+	// End OF
+
 	//calculate the totals, and set up our upward maximum
 	int upperLimit = 0;
 	int lowerLimit = 0;

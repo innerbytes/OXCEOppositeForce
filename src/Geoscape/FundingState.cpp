@@ -32,6 +32,8 @@
 #include "../Savegame/SavedGame.h"
 #include "../Engine/Options.h"
 
+#include "../OppositeForce/Geoscape/FundingNames.h"
+
 namespace OpenXcom
 {
 
@@ -135,6 +137,14 @@ FundingState::FundingState()
 			country->getFunding().back(),
 			country->getFunding().size() > 1 ? country->getFunding().back() - country->getFunding().at(country->getFunding().size() - 2) : 0)
 		);
+
+		// OF - Display the funding actor while retaining the original country data.
+		if (!country->getRules()->ofGetFundingName().empty())
+		{
+			_fundingCountryList.back().name = tr(FundingNames::getNameKey(*country->getRules()));
+		}
+		// End OF
+
 	}
 }
 
