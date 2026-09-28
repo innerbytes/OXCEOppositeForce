@@ -17,24 +17,24 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MainMenuState.h"
-#include <sstream>
-#include "../version.h"
+#include "../Engine/FileMap.h"
 #include "../Engine/Game.h"
-#include "../Mod/Mod.h"
 #include "../Engine/LocalizedText.h"
+#include "../Engine/Options.h"
+#include "../Engine/SDL2Helpers.h"
 #include "../Engine/Screen.h"
+#include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
-#include "../Interface/Text.h"
-#include "NewGameState.h"
-#include "NewBattleState.h"
+#include "../Mod/Mod.h"
+#include "../version.h"
 #include "ListLoadState.h"
-#include "OptionsVideoState.h"
 #include "ModListState.h"
-#include "../Engine/Options.h"
-#include "../Engine/FileMap.h"
-#include "../Engine/SDL2Helpers.h"
+#include "NewBattleState.h"
+#include "NewGameState.h"
+#include "OptionsVideoState.h"
 #include <fstream>
+#include <sstream>
 
 namespace OpenXcom
 {
@@ -116,7 +116,7 @@ MainMenuState::MainMenuState(bool updateCheck)
 	_btnQuit->onMouseClick((ActionHandler)&MainMenuState::btnQuitClick);
 
 	_btnUpdate->setText(tr("STR_UPDATE"));
-	_btnUpdate->onMouseClick((ActionHandler)& MainMenuState::btnUpdateClick);
+	_btnUpdate->onMouseClick((ActionHandler)&MainMenuState::btnUpdateClick);
 	_btnUpdate->setVisible(false);
 
 	_txtUpdateInfo->setAlign(ALIGN_CENTER);
@@ -179,7 +179,7 @@ MainMenuState::MainMenuState(bool updateCheck)
 							}
 							CrossPlatform::deleteFile(updateMetadataFilename);
 						}
-						catch (YAML::Exception &e)
+						catch (YAML::Exception& e)
 						{
 							Log(LOG_ERROR) << e.what();
 						}
@@ -235,7 +235,14 @@ MainMenuState::MainMenuState(bool updateCheck)
 	_txtTitle->setBig();
 	std::ostringstream title;
 	title << tr("STR_OPENXCOM").arg(Options::getActiveMasterInfo()->getVersionDisplay()) << Unicode::TOK_NL_SMALL;
-	title << "OpenXcom " << OPENXCOM_VERSION_SHORT << OPENXCOM_VERSION_GIT;
+
+	// OF - Changing the subtitle of the game
+	// title << "OpenXcom " << OPENXCOM_VERSION_SHORT << OPENXCOM_VERSION_GIT;
+	std::string openxcomVersionShort = OPENXCOM_VERSION_SHORT;
+	openxcomVersionShort.replace(0, std::string(OPENXCOM_VERSION_ENGINE).size(), "Opposite Force");
+	title << "OXCE " << openxcomVersionShort << OPENXCOM_VERSION_GIT;
+	// End OF
+
 	_txtTitle->setText(title.str());
 }
 
@@ -259,14 +266,13 @@ void MainMenuState::init()
  */
 MainMenuState::~MainMenuState()
 {
-
 }
 
 /**
  * Opens the New Game window.
  * @param action Pointer to an action.
  */
-void MainMenuState::btnNewGameClick(Action *)
+void MainMenuState::btnNewGameClick(Action*)
 {
 	_game->pushState(new NewGameState);
 }
@@ -275,7 +281,7 @@ void MainMenuState::btnNewGameClick(Action *)
  * Opens the New Battle screen.
  * @param action Pointer to an action.
  */
-void MainMenuState::btnNewBattleClick(Action *)
+void MainMenuState::btnNewBattleClick(Action*)
 {
 	_game->pushState(new NewBattleState);
 }
@@ -284,7 +290,7 @@ void MainMenuState::btnNewBattleClick(Action *)
  * Opens the Load Game screen.
  * @param action Pointer to an action.
  */
-void MainMenuState::btnLoadClick(Action *)
+void MainMenuState::btnLoadClick(Action*)
 {
 	_game->pushState(new ListLoadState(OPT_MENU));
 }
@@ -293,17 +299,17 @@ void MainMenuState::btnLoadClick(Action *)
  * Opens the Options screen.
  * @param action Pointer to an action.
  */
-void MainMenuState::btnOptionsClick(Action *)
+void MainMenuState::btnOptionsClick(Action*)
 {
 	Options::backupDisplay();
 	_game->pushState(new OptionsVideoState(OPT_MENU));
 }
 
 /**
-* Opens the Mods screen.
-* @param action Pointer to an action.
-*/
-void MainMenuState::btnModsClick(Action *)
+ * Opens the Mods screen.
+ * @param action Pointer to an action.
+ */
+void MainMenuState::btnModsClick(Action*)
 {
 	_game->pushState(new ModListState);
 }
@@ -312,7 +318,7 @@ void MainMenuState::btnModsClick(Action *)
  * Quits the game.
  * @param action Pointer to an action.
  */
-void MainMenuState::btnQuitClick(Action *)
+void MainMenuState::btnQuitClick(Action*)
 {
 	_game->quit();
 }
@@ -371,7 +377,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::copyFile(exeFilenameFullPath, exeFilenameFullPath + "-" + now + ".bak"))
 			Log(LOG_INFO) << "Update step 0 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 1. backup common dir
@@ -379,7 +386,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::moveFile(commonDirFilename, commonDirFilename + "-" + now))
 			Log(LOG_INFO) << "Update step 1 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 2. backup common zip
@@ -387,7 +395,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::moveFile(commonZipFilename, commonZipFilename + "-" + now + ".bak"))
 			Log(LOG_INFO) << "Update step 2 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 3. backup standard dir
@@ -395,7 +404,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::moveFile(standardDirFilename, standardDirFilename + "-" + now))
 			Log(LOG_INFO) << "Update step 3 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 4. backup standard zip
@@ -403,7 +413,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::moveFile(standardZipFilename, standardZipFilename + "-" + now + ".bak"))
 			Log(LOG_INFO) << "Update step 4 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 5. delete exe zip
@@ -411,7 +422,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::deleteFile(exeZipFilename))
 			Log(LOG_INFO) << "Update step 5 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 6. delete unpacked exe zip
@@ -419,7 +431,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::deleteFile(exeNewFilename))
 			Log(LOG_INFO) << "Update step 6 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 7. download common zip
@@ -427,52 +440,62 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		Log(LOG_INFO) << "Update step 7 done.";
 	}
-	else return;
+	else
+		return;
 
 	// 8. download standard zip
 	if (CrossPlatform::downloadFile(standardZipUrl, standardZipFilename))
 	{
 		Log(LOG_INFO) << "Update step 8 done.";
 	}
-	else return;
+	else
+		return;
 
 	// 9. download exe zip
 	if (CrossPlatform::downloadFile(exeZipUrl, exeZipFilename))
 	{
 		Log(LOG_INFO) << "Update step 9 done.";
 	}
-	else return;
+	else
+		return;
 
 	// 10. extract exe zip
 	if (CrossPlatform::fileExists(exeZipFilename) && CrossPlatform::fileExists(relativeExeZipFileName))
 	{
 		const std::string file_to_extract = "OpenXcomEx.exe.new";
-		SDL_RWops *rwo_read = FileMap::zipGetFileByName(relativeExeZipFileName, file_to_extract);
-		if (!rwo_read) {
+		SDL_RWops* rwo_read = FileMap::zipGetFileByName(relativeExeZipFileName, file_to_extract);
+		if (!rwo_read)
+		{
 			Log(LOG_ERROR) << "Step 10a: failed to unzip file.";
 			return;
 		}
 		size_t size = 0;
 		auto data = SDL_LoadFile_RW(rwo_read, &size, SDL_TRUE);
-		if (!data) {
+		if (!data)
+		{
 			Log(LOG_ERROR) << "Step 10b: failed to unzip file." << SDL_GetError(); // out of memory for a copy ?
 			return;
 		}
-		SDL_RWops *rwo_write = SDL_RWFromFile(relativeExeNewFileName.c_str(), "wb");
-		if (!rwo_write) {
+		SDL_RWops* rwo_write = SDL_RWFromFile(relativeExeNewFileName.c_str(), "wb");
+		if (!rwo_write)
+		{
 			Log(LOG_ERROR) << "Step 10c: failed to open exe.new file for writing." << SDL_GetError();
 			return;
 		}
 		auto wsize = SDL_RWwrite(rwo_write, data, size, 1);
-		if (wsize != 1) {
+		if (wsize != 1)
+		{
 			Log(LOG_ERROR) << "Step 10d: failed to write exe.new file." << SDL_GetError();
 			return;
 		}
-		if (SDL_RWclose(rwo_write)) {
+		if (SDL_RWclose(rwo_write))
+		{
 			Log(LOG_ERROR) << "Step 10e: failed to write exe.new file." << SDL_GetError();
 			return;
 		}
-	} else {
+	}
+	else
+	{
 		Log(LOG_ERROR) << "Update step 10 failed."; // exe dir and working dir not the same
 		return;
 	}
@@ -489,7 +512,8 @@ void MainMenuState::btnUpdateClick(Action*)
 	{
 		if (CrossPlatform::deleteFile(exeZipFilename))
 			Log(LOG_INFO) << "Update step 12 done.";
-		else return;
+		else
+			return;
 	}
 
 	// 13. create the update batch file
@@ -533,7 +557,7 @@ void MainMenuState::btnUpdateClick(Action*)
  * @param dX delta of X;
  * @param dY delta of Y;
  */
-void MainMenuState::resize(int &dX, int &dY)
+void MainMenuState::resize(int& dX, int& dY)
 {
 	dX = Options::baseXResolution;
 	dY = Options::baseYResolution;
