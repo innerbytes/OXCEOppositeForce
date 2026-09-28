@@ -27,11 +27,11 @@ crafts:
     allowedHangarTypes: [C_LARGE]
 ```
 
-These are partial rule entries; supply the other fields each facility and craft normally needs. Each typed hangar must declare `crafts: 1`. Each hangar still holds at most one craft.
+These are partial rule entries; supply the other fields each facility and craft normally needs. Each typed hangar must have an effective `crafts` capacity of 1, either declared here or inherited from an existing facility rule. Each hangar still holds at most one craft.
 
 | Property             | Location       | Requirements                                                                   |
 | -------------------- | -------------- | ------------------------------------------------------------------------------ |
-| `hangarType`         | `facilities[]` | A non-empty string. A facility with this property must have `crafts: 1`.       |
+| `hangarType`         | `facilities[]` | A non-empty string. The facility's effective `crafts` capacity must be 1.      |
 | `allowedHangarTypes` | `crafts[]`     | A non-empty list of non-empty strings. Repeated names are treated as one type. |
 
 If either side omits its property, that craft–hangar pairing is unrestricted. For example, a typed craft can use an untyped hangar, and an untyped craft can use a typed hangar. Omitting both properties preserves ordinary OXCE behavior.
