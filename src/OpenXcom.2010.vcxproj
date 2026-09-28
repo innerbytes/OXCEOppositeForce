@@ -1257,4 +1257,14 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+
+  <!-- OF - Build Opposite Force modules. -->
+  <ItemGroup>
+    <ClCompile Include="OppositeForce\Mod\HangarRules.cpp" />
+    <ClCompile Include="OppositeForce\Savegame\HangarCompatibility.cpp" />
+    <ClInclude Include="OppositeForce\Mod\HangarRules.h" />
+    <ClInclude Include="OppositeForce\Savegame\HangarCompatibility.h" />
+  </ItemGroup>
+  <!-- End OF -->
+
 </Project>

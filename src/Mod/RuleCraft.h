@@ -25,6 +25,8 @@
 #include "RuleBaseFacilityFunctions.h"
 #include "ModScript.h"
 
+#include "../OppositeForce/Mod/HangarRules.h"
+
 namespace OpenXcom
 {
 
@@ -196,6 +198,10 @@ public:
 
 private:
 	std::string _type;
+
+	// OF - Store the hangar types this craft can use when specified.
+	HangarRules::Craft _ofHangarCompatibilityRule;
+
 	std::vector<std::string> _requireNames;
 	std::vector<const RuleResearch*> _requires;
 	RuleBaseFacilityFunctions _requiresBuyBaseFunc;
@@ -254,6 +260,10 @@ public:
 	void afterLoad(const Mod* mod);
 	/// Gets the craft's type.
 	const std::string &getType() const;
+
+	// OF - Expose craft hangar restrictions to compatibility matching.
+	const HangarRules::Craft& ofGetHangarCompatibilityRule() const { return _ofHangarCompatibilityRule; }
+
 	/// Gets the craft's requirements.
 	const std::vector<const RuleResearch*>& getRequirements() const { return _requires; }
 	/// Gets the base functions required to buy craft.

@@ -47,6 +47,8 @@
 #include "../Engine/Sound.h"
 #include "../Ufopaedia/Ufopaedia.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -417,21 +419,32 @@ void ConfirmDestinationState::btnTransferClick(Action *)
 	std::string errorMessage;
 	
 	Base *targetBase = dynamic_cast<Base*>(_target);
-	if ((targetBase->getAvailableHangars() - targetBase->getUsedHangars()) <= 0) // don't know how you'd get less than 0 available hangars, but want to handle that just in case
+
+	// OF - Reject direct transfers without a compatible destination hangar.
+	if (HangarCompatibility::lacksCompatibleSlot(*targetBase, _crafts.front()->getRules()))
 	{
 		errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
 	}
-	else if (_crafts.front()->getNumTotalSoldiers() > targetBase->getAvailableQuarters() - targetBase->getUsedQuarters())
+	// End OF
+
+	else
 	{
-		errorMessage = tr("STR_NO_FREE_ACCOMODATION_CREW");
-	}
-	else if (Options::storageLimitsEnforced && targetBase->storesOverfull(_crafts.front()->getTotalItemStorageSize()))
-	{
-		errorMessage = tr("STR_NOT_ENOUGH_STORE_SPACE_FOR_CRAFT");
-	}
-	else if (_crafts.front()->getFuel() < _crafts.front()->getFuelLimit(targetBase))
-	{
-		errorMessage = tr("STR_NOT_ENOUGH_FUEL_TO_REACH_TARGET");
+		if ((targetBase->getAvailableHangars() - targetBase->getUsedHangars()) <= 0) // don't know how you'd get less than 0 available hangars, but want to handle that just in case
+		{
+			errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
+		}
+		else if (_crafts.front()->getNumTotalSoldiers() > targetBase->getAvailableQuarters() - targetBase->getUsedQuarters())
+		{
+			errorMessage = tr("STR_NO_FREE_ACCOMODATION_CREW");
+		}
+		else if (Options::storageLimitsEnforced && targetBase->storesOverfull(_crafts.front()->getTotalItemStorageSize()))
+		{
+			errorMessage = tr("STR_NOT_ENOUGH_STORE_SPACE_FOR_CRAFT");
+		}
+		else if (_crafts.front()->getFuel() < _crafts.front()->getFuelLimit(targetBase))
+		{
+			errorMessage = tr("STR_NOT_ENOUGH_FUEL_TO_REACH_TARGET");
+		}
 	}
 
 	// clicking transfer will start the craft moving or make us need to pick a new destination

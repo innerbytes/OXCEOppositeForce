@@ -1,4 +1,12 @@
 en-GB:
+
+# OF - OppositeForce extension localization strings
+#GeoscapeState.cpp
+  STR_OF_INCOMPATIBLE_HANGARS: "HANGAR TYPES DO NOT MATCH!{SMALLLINE}Some craft at {0} have no compatible hangar. Transfer craft or build a suitable hangar before adding more."
+#GeoscapeEventState.cpp
+  STR_OF_EVENT_CRAFT_SKIPPED: "CRAFT REWARD NOT DELIVERED!{SMALLLINE}No compatible hangar is available for {0}."
+# End OF
+
 #=================== Basescape ===================
 #BasescapeState.cpp
   STR_CANNOT_DISMANTLE_FACILITY_UPGRADING: "CANNOT DISMANTLE FACILITY!{SMALLLINE}Facility cannot be removed during upgrading."

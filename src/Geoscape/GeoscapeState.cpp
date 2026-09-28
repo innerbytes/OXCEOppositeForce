@@ -135,6 +135,8 @@
 #include "../fmath.h"
 #include "../fallthrough.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -710,6 +712,18 @@ void GeoscapeState::init()
 	State::init();
 	timeDisplay();
 	updateSlackingIndicator();
+
+	// OF - Report incompatible craft once until the base becomes valid again.
+	for (auto* base : *_game->getSavedGame()->getBases())
+	{
+		if (HangarCompatibility::shouldWarn(*base))
+		{
+			popup(new ErrorMessageState(tr("STR_OF_INCOMPATIBLE_HANGARS").arg(base->getName()), _palette,
+				_game->getMod()->getInterface("geoscape")->getElement("errorMessage")->color, "BACK14.SCR",
+				_game->getMod()->getInterface("geoscape")->getElement("errorPalette")->color));
+		}
+	}
+	// End OF
 
 	_globe->onMouseClick((ActionHandler)&GeoscapeState::globeClick);
 	_globe->onMouseOver(0);

@@ -48,6 +48,9 @@ private:
 	std::string _bonusResearchName;
 	const RuleEvent &_eventRule;
 
+	// OF - Remember when an event craft reward has no compatible hangar.
+	bool _ofCraftRewardSkippedForHangars = false;
+
 	/// Helper performing event logic.
 	void eventLogic();
 public:

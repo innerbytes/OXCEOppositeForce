@@ -52,6 +52,8 @@
 #include "../Savegame/Country.h"
 #include "../Mod/RuleCountry.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -1110,6 +1112,15 @@ void PurchaseState::increaseByValue(int change)
 			break;
 		case TRANSFER_CRAFT:
 			ruleC = (RuleCraft*)getRow().rule;
+
+			// OF - Reject buying a craft without a compatible hangar.
+			if (HangarCompatibility::lacksCompatibleSlot(*_base, ruleC, &_items))
+			{
+				errorMessage = tr("STR_NO_FREE_HANGARS_FOR_PURCHASE");
+				break;
+			}
+			// End OF
+
 			if (_cQty + 1 > _base->getAvailableHangars() - _base->getUsedHangars())
 			{
 				errorMessage = tr("STR_NO_FREE_HANGARS_FOR_PURCHASE");
@@ -1196,6 +1207,14 @@ void PurchaseState::increaseByValue(int change)
 					int maxByLimit = std::max(0, ruleC->getMonthlyBuyLimit() - craftPurchaseLimitLog[ruleC->getType()] - getRow().amount);
 					change = std::min(maxByLimit, change);
 				}
+
+				// OF - Cap bulk purchases by compatible free hangars.
+				if (HangarCompatibility::shouldApplyForCraft(*_base, ruleC))
+				{
+					change = std::min(change, HangarCompatibility::getFreeHangarsCount(*_base, ruleC, &_items));
+				}
+				// End OF
+
 				int maxByHangars = _base->getAvailableHangars() - _base->getUsedHangars() - _cQty;
 				change = std::min(maxByHangars, change);
 				_cQty += change;

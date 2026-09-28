@@ -2794,4 +2794,31 @@
       <Filter>Engine\rapidyaml\c4</Filter>
     </Natvis>
   </ItemGroup>
+
+  <!-- OF - Group Opposite Force modules by subsystem. -->
+  <ItemGroup>
+    <Filter Include="OppositeForce">
+      <UniqueIdentifier>{4B7B1A69-23C2-42E7-B0B1-1F6E68AC6C39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OppositeForce\Mod">
+      <UniqueIdentifier>{E470D7C2-9828-4C12-AE90-18B8AC78D21F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OppositeForce\Savegame">
+      <UniqueIdentifier>{40C761B3-6479-480C-BD02-65098E694762}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="OppositeForce\Mod\HangarRules.cpp">
+      <Filter>OppositeForce\Mod</Filter>
+    </ClCompile>
+    <ClCompile Include="OppositeForce\Savegame\HangarCompatibility.cpp">
+      <Filter>OppositeForce\Savegame</Filter>
+    </ClCompile>
+    <ClInclude Include="OppositeForce\Mod\HangarRules.h">
+      <Filter>OppositeForce\Mod</Filter>
+    </ClInclude>
+    <ClInclude Include="OppositeForce\Savegame\HangarCompatibility.h">
+      <Filter>OppositeForce\Savegame</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <!-- End OF -->
+
 </Project>

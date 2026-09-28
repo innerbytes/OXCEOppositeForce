@@ -453,6 +453,12 @@ set ( cxx_src
     ${savegame_src}
     ${ufopedia_src}
     ${rapidyaml_src}
+
+    # OF - Build Opposite Force modules.
+    OppositeForce/Mod/HangarRules.cpp
+    OppositeForce/Savegame/HangarCompatibility.cpp
+    # End OF
+
 )
 
 set ( c_src

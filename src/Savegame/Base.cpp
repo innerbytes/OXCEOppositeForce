@@ -52,6 +52,8 @@
 #include "Region.h"
 #include "../Mod/RuleRegion.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -1746,6 +1748,9 @@ int Base::damageFacility(BaseFacility *toBeDamaged)
 {
 	int result = 0;
 
+	// OF - Resolve typed hangar occupancy before damage replaces the facility.
+	HangarCompatibility::prepareDamage(*this, *toBeDamaged);
+
 	// 1. Create the new "damaged facility" first, so that when we destroy the original facility we don't lose "too much"
 	if (toBeDamaged->getRules()->getDestroyedFacility())
 	{
@@ -1756,10 +1761,25 @@ int Base::damageFacility(BaseFacility *toBeDamaged)
 		_facilities.push_back(fac);
 
 		// move the craft from the original hangar to the damaged hangar
-		if (fac->getRules()->getCrafts() > 0)
+
+		// OF - Retain only craft compatible with the damaged hangar.
+		if (HangarCompatibility::isEnabledForBase(*this))
 		{
-			fac->setCraftForDrawing(toBeDamaged->getCraftForDrawing());
-			toBeDamaged->setCraftForDrawing(0);
+			if (fac->getRules()->getCrafts() > 0 && HangarCompatibility::canKeepAfterDamage(*this, *toBeDamaged, *fac))
+			{
+				fac->setCraftForDrawing(toBeDamaged->getCraftForDrawing());
+				toBeDamaged->setCraftForDrawing(0);
+			}
+		}
+		// End OF
+
+		else
+		{
+			if (fac->getRules()->getCrafts() > 0)
+			{
+				fac->setCraftForDrawing(toBeDamaged->getCraftForDrawing());
+				toBeDamaged->setCraftForDrawing(0);
+			}
 		}
 	}
 	else if (_mod->getDestroyedFacility())
@@ -1901,6 +1921,10 @@ std::list<BASEFACILITIESITERATOR> Base::getDisconnectedFacilities(BaseFacility *
  */
 void Base::destroyFacility(BASEFACILITIESITERATOR facility)
 {
+
+	// OF - Refresh the assigned craft before a typed hangar is destroyed.
+	HangarCompatibility::prepareDestruction(*this, **facility);
+
 	if ((*facility)->getRules()->getCrafts() > 0)
 	{
 		// hangar destruction - destroy crafts and any production of crafts
@@ -2377,6 +2401,13 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 	{
 		return BPE_Used_Gyms;
 	}
+
+	// OF - Require the remaining hangars to fit the reserved craft mix.
+	if (removed.hangars > 0 && !HangarCompatibility::fitsAfterChange(*this, area, replacement))
+	{
+		return BPE_Used_Hangars;
+	}
+	// End OF
 
 	return BPE_None;
 }

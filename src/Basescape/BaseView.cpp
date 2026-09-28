@@ -32,6 +32,8 @@
 #include <climits>
 #include "../Mod/Texture.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -502,6 +504,9 @@ void BaseView::draw()
 
 	auto craftIt = _base->getCrafts()->begin();
 
+	// OF - Resolve typed assignments once for the base display.
+	const auto assignment = HangarCompatibility::calculateDisplayAssignment(*_base);
+
 	for (const auto* fac : *_base->getFacilities())
 	{
 		// Draw facility shape
@@ -591,17 +596,36 @@ void BaseView::draw()
 		fac->setCraftForDrawing(0);
 		if (fac->getBuildTime() == 0 && fac->getRules()->getCrafts() > 0)
 		{
-			if (craftIt != _base->getCrafts()->end())
+
+			// OF - Draw craft assigned to compatible hangars.
+			if (assignment.hangarCompatibilityEnabled)
 			{
-				if ((*craftIt)->getStatus() != "STR_OUT")
+				Craft *drawCraft = assignment.getCraftForFacility(fac);
+				if (drawCraft && drawCraft->getStatus() != "STR_OUT")
 				{
-					Surface *frame = _texture->getFrame((*craftIt)->getSkinSprite() + 33);
+					Surface *frame = _texture->getFrame(drawCraft->getSkinSprite() + 33);
 					int fx = (fac->getX() * GRID_SIZE + (fac->getRules()->getSizeX() - 1) * GRID_SIZE / 2 + 2);
 					int fy = (fac->getY() * GRID_SIZE + (fac->getRules()->getSizeY() - 1) * GRID_SIZE / 2 - 4);
 					frame->blitNShade(this, fx, fy);
-					fac->setCraftForDrawing(*craftIt);
+					fac->setCraftForDrawing(drawCraft);
 				}
-				++craftIt;
+			}
+			// End OF
+
+			else
+			{
+				if (craftIt != _base->getCrafts()->end())
+				{
+					if ((*craftIt)->getStatus() != "STR_OUT")
+					{
+						Surface *frame = _texture->getFrame((*craftIt)->getSkinSprite() + 33);
+						int fx = (fac->getX() * GRID_SIZE + (fac->getRules()->getSizeX() - 1) * GRID_SIZE / 2 + 2);
+						int fy = (fac->getY() * GRID_SIZE + (fac->getRules()->getSizeY() - 1) * GRID_SIZE / 2 - 4);
+						frame->blitNShade(this, fx, fy);
+						fac->setCraftForDrawing(*craftIt);
+					}
+					++craftIt;
+				}
 			}
 		}
 

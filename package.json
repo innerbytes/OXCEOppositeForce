@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts-of/build.js"
+    "build": "node scripts-of/build.js",
+    "prettier": "node scripts-of/prettier.js"
   },
   "engines": {
     "node": ">=18"

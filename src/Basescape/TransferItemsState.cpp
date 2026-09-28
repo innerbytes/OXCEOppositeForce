@@ -51,6 +51,8 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Battlescape/DebriefingState.h"
 
+#include "../OppositeForce/Savegame/HangarCompatibility.h"
+
 namespace OpenXcom
 {
 
@@ -914,6 +916,15 @@ void TransferItemsState::increaseByValue(int change)
 		break;
 	case TRANSFER_CRAFT:
 		craft = (Craft*)getRow().rule;
+
+		// OF - Reject a selected craft without a compatible destination hangar.
+		if (HangarCompatibility::lacksCompatibleSlot(*_baseTo, craft->getRules(), &_items, true))
+		{
+			errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
+			break;
+		}
+		// End OF
+
 		if (_cQty + 1 > _baseTo->getAvailableHangars() - _baseTo->getUsedHangars())
 		{
 			errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
