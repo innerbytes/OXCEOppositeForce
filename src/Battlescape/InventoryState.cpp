@@ -861,6 +861,13 @@ void InventoryState::btnArmorClickRight(Action *action)
 	BattleUnit *unit = _battleGame->getSelectedUnit();
 	Soldier *s = unit->getGeoscapeSoldier();
 
+	// OF - Block manual avatar selection for soldier types that disable it.
+	if (s->getRules()->ofGetDisableAvatarSelection())
+	{
+		return;
+	}
+	// End OF
+
 	if (!(s->getCraft() && s->getCraft()->getStatus() == "STR_OUT"))
 	{
 		_game->pushState(new SoldierAvatarState(unit));

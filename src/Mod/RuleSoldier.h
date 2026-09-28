@@ -97,6 +97,10 @@ private:
 	std::string _armorForAvatar;
 	int _avatarOffsetX, _avatarOffsetY, _flagOffset;
 	bool _allowPromotion, _allowPiloting, _showTypeInInventory;
+
+	// OF - Keep manual avatar selection enabled unless explicitly disabled.
+	bool _ofDisableAvatarSelection = false;
+
 	std::vector<StatString*> _statStrings;
 	std::vector<std::string> _rankStrings;
 	int _rankSprite, _rankSpriteBattlescape, _rankSpriteTiny;
@@ -171,6 +175,10 @@ public:
 	Armor* getDefaultArmor() const;
 	/// Gets the armor for avatar display.
 	const std::string& getArmorForAvatar() const;
+
+	// OF - Expose the soldier type's manual avatar selection restriction.
+	bool ofGetDisableAvatarSelection() const { return _ofDisableAvatarSelection; }
+
 	/// Gets the X offset used for avatar.
 	int getAvatarOffsetX() const;
 	/// Gets the Y offset used for avatar.

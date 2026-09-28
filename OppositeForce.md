@@ -2,6 +2,12 @@
 
 This document describes ruleset properties added by OXCE Opposite Force. Standard OXCE properties remain documented in the upstream ruleset reference. The properties below are optional: rulesets that do not use them retain the original behavior.
 
+## Supported Features
+
+- [Hangar compatibility](#hangar-compatibility)
+- [Funding actor names](#funding-actor-names)
+- [Disable avatar selection](#disable-avatar-selection)
+
 ## Hangar compatibility
 
 Add `hangarType` to a base facility to give its hangar a type. Add `allowedHangarTypes` to a craft to list the types it can use. Type names are arbitrary strings; they are not limited to built-in sizes. Matching is exact and case-sensitive.
@@ -77,16 +83,16 @@ country labels.
 
 ### Where the name is displayed
 
-| Context | Name used |
-| --- | --- |
-| Funding screen, including name sorting | Funding actor |
-| Monthly report: pleased, unhappy, signed pact, cancelled pact | Funding actor |
-| Income graph country buttons | Funding actor |
-| Stats for Nerds: `requiresBuyCountry` for items, craft, and soldiers | Funding actor |
-| UFO and XCOM activity graphs by country | Geographic country |
-| Earth Map labels and country-boundary debug selector | Geographic country |
-| Alien-base location popup | Geographic country |
-| Soldier diary mission location | Geographic country |
+| Context                                                              | Name used          |
+| -------------------------------------------------------------------- | ------------------ |
+| Funding screen, including name sorting                               | Funding actor      |
+| Monthly report: pleased, unhappy, signed pact, cancelled pact        | Funding actor      |
+| Income graph country buttons                                         | Funding actor      |
+| Stats for Nerds: `requiresBuyCountry` for items, craft, and soldiers | Funding actor      |
+| UFO and XCOM activity graphs by country                              | Geographic country |
+| Earth Map labels and country-boundary debug selector                 | Geographic country |
+| Alien-base location popup                                            | Geographic country |
+| Soldier diary mission location                                       | Geographic country |
 
 Stats for Nerds still shows the original country rule ID when “show IDs” is
 selected. Purchase restrictions, political events, funding calculations, scripts,
@@ -107,3 +113,25 @@ countries:
 The feature only changes individual actor names. Generic headings and sentences
 such as “Country,” “International Relations,” and “Countries Lost” can be changed
 using their existing localization keys. No save migration is required.
+
+## Disable avatar selection
+
+Set `disableAvatarSelection: true` on a soldier type to disable the inventory's
+manual avatar selector, both through right-click and the avatar keyboard shortcut.
+The action silently does nothing; armor selection is unaffected.
+
+```yaml
+soldiers:
+  - type: STR_SECTOID
+    disableAvatarSelection: true
+  - type: STR_FLOATER
+    disableAvatarSelection: true
+```
+
+The optional boolean defaults to `false`, preserving normal avatar selection for
+all soldier types that do not opt in, including humans. It follows `refNode`
+inheritance and ruleset layering: omission preserves an inherited or previously
+loaded value, and explicit `false` re-enables selection.
+
+The restriction applies to all existing and new soldiers of that type. It does
+not change their stored gender or appearance, and no save migration is required.

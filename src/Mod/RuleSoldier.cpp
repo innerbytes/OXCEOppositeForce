@@ -81,6 +81,9 @@ void RuleSoldier::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScri
 
 	reader.tryRead("prefix", _prefix);
 
+	// OF - Load the avatar selection restriction after inherited values.
+	reader.tryRead("disableAvatarSelection", _ofDisableAvatarSelection);
+
 	//requires
 	mod->loadUnorderedNames(_type, _requireNames, reader["requires"]);
 	mod->loadBaseFunction(_type, _requiresBuyBaseFunc, reader["requiresBuyBaseFunc"]);
