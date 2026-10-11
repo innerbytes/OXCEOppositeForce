@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts-of/build.js",
+    "test": "node scripts-of/test.js",
     "prettier": "node scripts-of/prettier.js"
   },
   "engines": {
