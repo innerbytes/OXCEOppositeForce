@@ -65,13 +65,10 @@ if(NOT OPPOSITE_FORCE_FIXTURE_ACCESS_WORKS)
 endif()
 target_compile_options(opposite_force_test_fixtures PRIVATE "${fixture_access_flag}")
 
+file(GLOB test_sources CONFIGURE_DEPENDS "${test_source_directory}/*Tests.cpp")
 add_executable(opposite_force_tests
     "${test_source_directory}/TestEnvironment.cpp"
-    "${test_source_directory}/HiddenUfoTests.cpp"
-    "${test_source_directory}/HangarTests.cpp"
-    "${test_source_directory}/FundingNamesTests.cpp"
-    "${test_source_directory}/AvatarTests.cpp"
-    "${test_source_directory}/TerrainSpawnTests.cpp")
+    ${test_sources})
 target_link_libraries(opposite_force_tests PRIVATE opposite_force_test_fixtures opposite_force_catch2)
 set_target_properties(opposite_force_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
 
