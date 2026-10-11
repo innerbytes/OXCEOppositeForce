@@ -172,18 +172,43 @@ namespace
     };
 }  // namespace
 
-TEST_CASE("Terrain spawn rules preserve block selection and attach to duplicate names", "[terrain-spawns][rules]")
+TEST_CASE("TerrainSpawnRules_CustomPoints_PreservesBlockSelectionAndLoadsDefaults", "[terrain-spawns][rules]")
 {
+    // Arrange
     TerrainFixture fixture;
     auto *original = &fixture.getBlock();
+
+    // Act
     fixture.loadLayer("mapBlockSpawnPoints:\n  BLOCK:\n    - {position: [2, 3, 0], unitSize: 2}\n");
+    attachRules(fixture.terrain);
+
+    // Assert
     REQUIRE(fixture.terrain.getMapBlocks()->size() == 1);
     REQUIRE(&fixture.getBlock() == original);
     REQUIRE(original->isInGroup(0));
     REQUIRE(original->isInGroup(9));
     REQUIRE(original->getSizeX() == 10);
+    REQUIRE(original->ofGetSpawnPoints().points.size() == 1);
+    const auto &point = original->ofGetSpawnPoints().points.front();
+    REQUIRE(point.unitSize == 2);
+    REQUIRE(point.rank == 0);
+    REQUIRE(point.priority == 1);
+    REQUIRE(point.position == Position(2, 3, 0));
+    REQUIRE(point.source.find("test-spawns.rul:3:") != std::string::npos);
+}
+
+TEST_CASE("TerrainSpawnRules_DuplicateFragmentNames_AttachesPointsToEveryMatchingBlock", "[terrain-spawns][rules]")
+{
+    // Arrange
+    TerrainFixture fixture;
+    fixture.loadLayer("mapBlockSpawnPoints:\n  BLOCK:\n    - {position: [2, 3, 0], unitSize: 2}\n");
     fixture.loadLayer("addOnly: true\nmapBlocks: [{name: BLOCK, width: 10, length: 10}]\n");
+
+    // Act
     attachRules(fixture.terrain);
+
+    // Assert
+    REQUIRE(fixture.terrain.getMapBlocks()->size() == 2);
     for (const auto *block : *fixture.terrain.getMapBlocks())
     {
         REQUIRE(block->ofGetSpawnPoints().points.size() == 1);
@@ -196,26 +221,40 @@ TEST_CASE("Terrain spawn rules preserve block selection and attach to duplicate 
     }
 }
 
-TEST_CASE("Terrain spawn rules inherit, replace and clear per fragment", "[terrain-spawns][rules]")
+TEST_CASE("TerrainSpawnRules_LayeredFragmentDefinitions_PreservesReplacesOrClearsInheritedPoints",
+          "[terrain-spawns][rules]")
 {
+    // Arrange
+    const auto [layer, count, position, size, rank, priority] =
+        GENERATE(table<const char *, int, Position, int, int, int>({
+            {"ambientVolume: 0.5\n", 1, Position(1, 2, 0), 1, 8, 255},
+            {"mapBlockSpawnPoints:\n  BLOCK: [{position: [4, 5, 0], unitSize: 2}]\n", 1, Position(4, 5, 0), 2, 0, 1},
+            {"mapBlockSpawnPoints: {BLOCK: []}\n", 0, Position(), 0, 0, 0},
+        }));
+    CAPTURE(layer);
     TerrainFixture fixture;
     fixture.loadLayer(
         "refNode:\n  mapBlockSpawnPoints:\n    BLOCK: [{position: [1, 2, 0], unitSize: 1, rank: 8, priority: 255}]\n");
-    fixture.loadLayer("ambientVolume: 0.5\n");
+
+    // Act
+    fixture.loadLayer(layer);
     attachRules(fixture.terrain);
-    REQUIRE(fixture.getBlock().ofGetSpawnPoints().points.front().rank == 8);
-    REQUIRE(fixture.getBlock().ofGetSpawnPoints().points.front().priority == 255);
-    fixture.loadLayer("mapBlockSpawnPoints:\n  BLOCK: [{position: [4, 5, 0], unitSize: 2}]\n");
-    attachRules(fixture.terrain);
-    REQUIRE(fixture.getBlock().ofGetSpawnPoints().points.size() == 1);
-    REQUIRE(fixture.getBlock().ofGetSpawnPoints().points.front().position == Position(4, 5, 0));
-    fixture.loadLayer("mapBlockSpawnPoints: {BLOCK: []}\n");
-    attachRules(fixture.terrain);
-    REQUIRE(fixture.getBlock().ofGetSpawnPoints().points.empty());
+
+    // Assert
+    const auto &points = fixture.getBlock().ofGetSpawnPoints().points;
+    REQUIRE(points.size() == count);
+    if (!points.empty())
+    {
+        REQUIRE(points.front().position == position);
+        REQUIRE(points.front().unitSize == size);
+        REQUIRE(points.front().rank == rank);
+        REQUIRE(points.front().priority == priority);
+    }
 }
 
-TEST_CASE("Terrain spawn rules reject malformed entries", "[terrain-spawns][rules]")
+TEST_CASE("TerrainSpawnRules_MalformedDefinitions_ThrowsValidationException", "[terrain-spawns][rules]")
 {
+    // Arrange
     const auto yaml = GENERATE("mapBlockSpawnPoints: []", "mapBlockSpawnPoints: {BLOCK: {}}",
                                "mapBlockSpawnPoints: {BLOCK: [{unitSize: 1}]}",
                                "mapBlockSpawnPoints: {BLOCK: [{position: [1, 2], unitSize: 1}]}",
@@ -225,99 +264,155 @@ TEST_CASE("Terrain spawn rules reject malformed entries", "[terrain-spawns][rule
                                "mapBlockSpawnPoints: {BLOCK: [{position: [1, 2, 0], unitSize: 1, rank: 9}]}",
                                "mapBlockSpawnPoints: {BLOCK: [{position: [1, 2, 0], unitSize: 1, priority: 0}]}",
                                "mapBlockSpawnPoints: {BLOCK: [{position: [1, 2, 0], unitSize: 1, priority: 256}]}");
+    CAPTURE(yaml);
     TerrainFixture fixture;
-    REQUIRE_THROWS(fixture.loadLayer(yaml));
+
+    // Act
+    const auto load = [&] { fixture.loadLayer(yaml); };
+
+    // Assert
+    REQUIRE_THROWS(load());
 }
 
-TEST_CASE("Terrain startup rejects unknown fragments with source context", "[terrain-spawns][startup]")
+TEST_CASE("TerrainSpawnValidation_UnknownFragment_ThrowsWithRuleSource", "[terrain-spawns][startup]")
 {
+    // Arrange
     TerrainFixture fixture;
     fixture.loadLayer("mapBlockSpawnPoints: {TYPO: [{position: [1, 2, 0], unitSize: 1}]}");
-    REQUIRE_THROWS_WITH(validateAllTerrains(fixture.rules.getMod()),
-                        Catch::Matchers::ContainsSubstring("test-spawns.rul") &&
-                            Catch::Matchers::ContainsSubstring("unknown spawn fragment TYPO"));
+
+    // Act
+    const auto validate = [&] { validateAllTerrains(fixture.rules.getMod()); };
+
+    // Assert
+    REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("test-spawns.rul") &&
+                                        Catch::Matchers::ContainsSubstring("unknown spawn fragment TYPO"));
 }
 
-TEST_CASE("Terrain footprints reject bounds and overlaps", "[terrain-spawns][startup]")
+TEST_CASE("TerrainSpawnValidation_OutOfBoundsFootprints_ThrowsWithDimensionReason", "[terrain-spawns][startup]")
 {
+    // Arrange
     TerrainFixture fixture;
     const auto position = GENERATE(Position(-1, 0, 0), Position(9, 0, 0), Position(0, 9, 0), Position(0, 0, 2));
+    CAPTURE(position);
     fixture.setPoints({createPoint(position, 2)});
-    REQUIRE_THROWS_WITH(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()),
-                        Catch::Matchers::ContainsSubstring("outside the MAP dimensions"));
-    fixture.setPoints({createPoint(Position(1, 1, 0), 2), createPoint(Position(2, 2, 0))});
-    REQUIRE_THROWS_WITH(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()),
-                        Catch::Matchers::ContainsSubstring("overlaps another custom point"));
+
+    // Act
+    const auto validate = [&] { validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()); };
+
+    // Assert
+    REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("outside the MAP dimensions"));
 }
 
-TEST_CASE("Terrain startup uses actual MAP height, logs contextual failures and preserves RNG",
+TEST_CASE("TerrainSpawnValidation_OverlappingFootprints_ThrowsWithOverlapReason", "[terrain-spawns][startup]")
+{
+    // Arrange
+    TerrainFixture fixture;
+    fixture.setPoints({createPoint(Position(1, 1, 0), 2), createPoint(Position(2, 2, 0))});
+
+    // Act
+    const auto validate = [&] { validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()); };
+
+    // Assert
+    REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("overlaps another custom point"));
+}
+
+TEST_CASE("TerrainSpawnValidation_ActualMapHeight_ReportsInvalidCoordinatesWithoutConsumingRandomness",
           "[terrain-spawns][startup]")
 {
+    // Arrange
     TerrainFixture fixture;
     const bool valid = GENERATE(true, false);
+    CAPTURE(valid);
     fixture.loadLayer(valid ? "mapBlockSpawnPoints: {BLOCK: [{position: [2, 2, 0], unitSize: 2}]}"
                             : "mapBlockSpawnPoints: {BLOCK: [{position: [2, 2, 0], unitSize: 1}, "
                               "{position: [2, 2, 1], unitSize: 2}]}");
     ResourceFixture resources(createMapBytes(1));
     const auto seed = RNG::getSeed();
+
+    // Act
+    const auto validate = [&] { validateAllTerrains(fixture.rules.getMod()); };
+
+    // Assert
     if (valid)
     {
-        REQUIRE_NOTHROW(validateAllTerrains(fixture.rules.getMod()));
+        REQUIRE_NOTHROW(validate());
         REQUIRE(fixture.getBlock().getSizeZ() == 1);
         REQUIRE(fixture.data.getSize() == 4);  // temporary maps must not unload shared terrain objects
     }
     else
     {
-        REQUIRE_THROWS_WITH(validateAllTerrains(fixture.rules.getMod()),
-                            Catch::Matchers::ContainsSubstring("test-spawns.rul") &&
-                                Catch::Matchers::ContainsSubstring("fragment BLOCK") &&
-                                Catch::Matchers::ContainsSubstring("position [2, 2, 1]") &&
-                                !Catch::Matchers::ContainsSubstring("position [2, 2, 0]") &&
-                                Catch::Matchers::ContainsSubstring("unitSize 2") &&
-                                Catch::Matchers::ContainsSubstring("outside the MAP dimensions"));
+        REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("test-spawns.rul") &&
+                                            Catch::Matchers::ContainsSubstring("fragment BLOCK") &&
+                                            Catch::Matchers::ContainsSubstring("position [2, 2, 1]") &&
+                                            !Catch::Matchers::ContainsSubstring("position [2, 2, 0]") &&
+                                            Catch::Matchers::ContainsSubstring("unitSize 2") &&
+                                            Catch::Matchers::ContainsSubstring("outside the MAP dimensions"));
     }
     REQUIRE(RNG::getSeed() == seed);
 }
 
-TEST_CASE("Terrain MAP loading rejects truncated and inconsistent files", "[terrain-spawns][startup]")
+TEST_CASE("TerrainSpawnValidation_TruncatedOrInconsistentMap_ThrowsLoadingException", "[terrain-spawns][startup]")
 {
+    // Arrange
     TerrainFixture fixture;
     const auto bytes = GENERATE(std::string("\x0a\x0a", 2), std::string("\x09\x0a\x01", 3),
                                 createMapBytes().substr(0, 30), createMapBytes() + "extra");
     std::istringstream stream(bytes);
-    REQUIRE_THROWS(loadFragment(fixture.rules.getMod(), stream, fixture.save, fixture.terrain, fixture.getBlock()));
+
+    // Act
+    const auto load = [&] {
+        loadFragment(fixture.rules.getMod(), stream, fixture.save, fixture.terrain, fixture.getBlock());
+    };
+
+    // Assert
+    REQUIRE_THROWS(load());
 }
 
-TEST_CASE("Terrain startup rejects blocked footprints and missing upper floors", "[terrain-spawns][paths]")
+TEST_CASE("TerrainSpawnValidation_BlockedFootprintOrMissingFloor_ThrowsPlacementReason", "[terrain-spawns][paths]")
 {
+    // Arrange
     TerrainFixture fixture;
     const auto mode = GENERATE(0, 1, 2, 3);
+    CAPTURE(mode);
     fixture.setPoints({createPoint(Position(2, 2, mode == 1 ? 1 : 0), 2)});
     if (mode == 0) fixture.setPart(Position(5, 5, 0), O_OBJECT, 2);
     if (mode == 2) fixture.setPart(Position(5, 4, 0), O_WESTWALL, 2);
     if (mode == 3) fixture.setPart(Position(4, 4, 0), O_FLOOR, -1);
-    REQUIRE_THROWS_WITH(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()),
-                        Catch::Matchers::ContainsSubstring("footprint cannot stand"));
+
+    // Act
+    const auto validate = [&] { validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()); };
+
+    // Assert
+    REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("footprint cannot stand"));
 }
 
-TEST_CASE("Terrain paths distinguish open terrain, enclosed rooms and usable doors", "[terrain-spawns][paths]")
+TEST_CASE("TerrainSpawnValidation_EnclosedRoomWithOptionalDoor_AcceptsOnlySizesWithWalkingExit",
+          "[terrain-spawns][paths]")
 {
+    // Arrange
     TerrainFixture fixture;
     const auto [door, size, valid] =
         GENERATE(table<bool, int, bool>({{false, 1, false}, {false, 2, false}, {true, 1, true}, {true, 2, false}}));
+    CAPTURE(door, size);
     fixture.encloseRoom(door);
     fixture.setPoints({createPoint(Position(2, 2, 0), size)});
+
+    // Act
+    const auto validate = [&] { validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()); };
+
+    // Assert
     if (valid)
-        REQUIRE_NOTHROW(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()));
+        REQUIRE_NOTHROW(validate());
     else
-        REQUIRE_THROWS_WITH(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()),
-                            Catch::Matchers::ContainsSubstring("no walking route"));
+        REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("no walking route"));
 }
 
-TEST_CASE("Upper-floor terrain spawns require a walking connection to ground", "[terrain-spawns][paths]")
+TEST_CASE("TerrainSpawnValidation_UpperFloorPlatform_RequiresWalkingConnectionToGround", "[terrain-spawns][paths]")
 {
+    // Arrange
     TerrainFixture fixture;
     const bool connected = GENERATE(true, false);
+    CAPTURE(connected);
     fixture.setPart(Position(4, 4, 1), O_FLOOR, 1);
     fixture.setPart(Position(4, 5, 1), O_FLOOR, 1);
     if (connected)
@@ -343,20 +438,31 @@ TEST_CASE("Upper-floor terrain spawns require a walking connection to ground", "
     fixture.setPart(Position(4, 4, 1), O_NORTHWALL, 2);
     if (!connected) fixture.setPart(Position(4, 6, 1), O_NORTHWALL, 2);
     fixture.setPoints({createPoint(Position(2, 2, 1))});
+
+    // Act
+    const auto validate = [&] { validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()); };
+
+    // Assert
     if (connected)
-        REQUIRE_NOTHROW(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()));
+        REQUIRE_NOTHROW(validate());
     else
-        REQUIRE_THROWS(validateFragment(fixture.rules.getMod(), fixture.save, fixture.getBlock()));
+        REQUIRE_THROWS(validate());
 }
 
-TEST_CASE("Terrain nodes use repeated placement offsets without changing original IDs", "[terrain-spawns][nodes]")
+TEST_CASE("TerrainSpawnPoints_RepeatedFragmentPlacements_AppliesOffsetsWithoutChangingOriginalNodes",
+          "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
     fixture.setPoints({createPoint(Position(2, 2, 0))});
     auto &original = fixture.addNode(Position(1, 1, 0));
     original.getNodeLinks()->push_back(-1);
+
+    // Act
     addSpawnNodes(fixture.rules.getMod(), fixture.save,
                   {{&fixture.getBlock(), Position(0, 0, 0), 3}, {&fixture.getBlock(), Position(10, 0, 0), 4}});
+
+    // Assert
     REQUIRE(original.getID() == 0);
     REQUIRE(original.getNodeLinks()->front() == -1);
     REQUIRE(fixture.save.getNodes()->size() == 3);
@@ -367,32 +473,43 @@ TEST_CASE("Terrain nodes use repeated placement offsets without changing origina
     REQUIRE(fixture.save.getNodes()->at(1)->getID() == 1);
 }
 
-TEST_CASE("Terrain node offsets include vertical placement", "[terrain-spawns][nodes]")
+TEST_CASE("TerrainSpawnPoints_VerticalFragmentPlacement_TranslatesSpawnFloor", "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
     fixture.setPart(Position(4, 4, 1), O_FLOOR, 1);
     fixture.setPoints({createPoint(Position(2, 2, 0))});
+
+    // Act
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(2, 2, 1), 7}});
+
+    // Assert
     REQUIRE(fixture.save.getNodes()->size() == 1);
     REQUIRE(fixture.save.getNodes()->front()->getPosition() == Position(4, 4, 1));
 }
 
-TEST_CASE("Map-specific overlays and boundary-only exits reject custom nodes", "[terrain-spawns][nodes]")
+TEST_CASE("TerrainSpawnPoints_BlockedFootprintOrExit_OmitsCustomNode", "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
     const int mode = GENERATE(0, 1, 2);
+    CAPTURE(mode);
     if (mode == 0) fixture.setPart(Position(4, 4, 0), O_OBJECT, 2);
     if (mode == 1) fixture.encloseRoom(false);
     if (mode == 2) fixture.initMap(10, 10, 2);
     fixture.setPoints({createPoint(Position(2, 2, 0))});
+
+    // Act
     addSpawnNodes(fixture.rules.getMod(), fixture.save,
                   {{&fixture.getBlock(), mode == 2 ? Position(0, 0, 0) : Position(2, 2, 0), 0}});
+
+    // Assert
     REQUIRE(fixture.save.getNodes()->empty());
 }
 
-TEST_CASE("Terrain spawn selection respects ranks priorities sizes reservations and occupancy",
-          "[terrain-spawns][nodes]")
+TEST_CASE("SavedBattleGame_CustomSpawnSizesAndRanks_ReservesWholeLargeFootprintAcrossRanks", "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
     fixture.setPoints({createPoint(Position(2, 2, 0), 2, 0, 100), createPoint(Position(6, 6, 0), 1, 2, 20)});
     for (int x = 2; x < 4; ++x)
@@ -400,35 +517,85 @@ TEST_CASE("Terrain spawn selection respects ranks priorities sizes reservations 
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
     WalkingProbe small(fixture.rules.getMod(), 1);
     WalkingProbe large(fixture.rules.getMod(), 2);
-    REQUIRE(fixture.save.getSpawnNode(0, &small.getUnit()) == nullptr);
-    REQUIRE(fixture.save.getSpawnNode(2, &small.getUnit())->getPosition() == Position(6, 6, 0));
-    REQUIRE(fixture.save.getSpawnNode(0, &large.getUnit())->getPosition() == Position(2, 2, 0));
-    REQUIRE_FALSE(canUseNode(*fixture.save.getNodes()->at(5), large.getUnit()));
-    auto &higherPriority = fixture.addNode(Position(8, 8, 0), 2, 30);
-    REQUIRE(fixture.save.getSpawnNode(2, &small.getUnit()) == &higherPriority);
-    higherPriority.setDummy(true);
-    WalkingProbe occupant(fixture.rules.getMod(), 1);
-    REQUIRE(fixture.save.setUnitPosition(&occupant.getUnit(), Position(6, 6, 0)));
-    REQUIRE(fixture.save.getSpawnNode(2, &small.getUnit()) == nullptr);
-    occupant.getUnit().setTile(nullptr, &fixture.save);
+
+    // Act
+    const auto *smallRankZero = fixture.save.getSpawnNode(0, &small.getUnit());
+    const auto *smallRankTwo = fixture.save.getSpawnNode(2, &small.getUnit());
+    const auto *largeRankZero = fixture.save.getSpawnNode(0, &large.getUnit());
+    const bool acceptsLarge = canUseNode(*fixture.save.getNodes()->at(5), large.getUnit());
+
+    // Assert
+    REQUIRE(smallRankZero == nullptr);
+    REQUIRE(smallRankTwo != nullptr);
+    REQUIRE(smallRankTwo->getPosition() == Position(6, 6, 0));
+    REQUIRE(largeRankZero != nullptr);
+    REQUIRE(largeRankZero->getPosition() == Position(2, 2, 0));
+    REQUIRE_FALSE(acceptsLarge);
 }
 
-TEST_CASE("Terrain patrol selection enforces dedicated sizes without reserving movement", "[terrain-spawns][nodes]")
+TEST_CASE("SavedBattleGame_EligibleSpawnPriorities_SelectsHighestPriorityNode", "[terrain-spawns][nodes]")
 {
+    // Arrange
+    TerrainFixture fixture;
+    fixture.setPoints({createPoint(Position(6, 6, 0), 1, 2, 20)});
+    addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
+    auto &higherPriority = fixture.addNode(Position(8, 8, 0), 2, 30);
+    WalkingProbe small(fixture.rules.getMod(), 1);
+
+    // Act
+    const auto *selected = fixture.save.getSpawnNode(2, &small.getUnit());
+
+    // Assert
+    REQUIRE(selected == &higherPriority);
+}
+
+TEST_CASE("SavedBattleGame_OccupiedCustomSpawn_ReturnsNoAvailableNode", "[terrain-spawns][nodes]")
+{
+    // Arrange
+    TerrainFixture fixture;
+    fixture.setPoints({createPoint(Position(6, 6, 0), 1, 2, 20)});
+    addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
+    auto &higherPriority = fixture.addNode(Position(8, 8, 0), 2, 30);
+    higherPriority.setDummy(true);
+    WalkingProbe small(fixture.rules.getMod(), 1);
+    WalkingProbe occupant(fixture.rules.getMod(), 1);
+    const bool placed = fixture.save.setUnitPosition(&occupant.getUnit(), Position(6, 6, 0));
+
+    // Act
+    const auto *selected = fixture.save.getSpawnNode(2, &small.getUnit());
+    occupant.getUnit().setTile(nullptr, &fixture.save);
+
+    // Assert
+    REQUIRE(placed);
+    REQUIRE(selected == nullptr);
+}
+
+TEST_CASE("SavedBattleGame_CustomPatrolSizes_SelectsMatchingNodesWithoutRestrictingMovement", "[terrain-spawns][nodes]")
+{
+    // Arrange
     TerrainFixture fixture;
     auto &start = fixture.addNode(Position(1, 1, 0));
     fixture.setPoints({createPoint(Position(3, 3, 0), 2, 4), createPoint(Position(7, 7, 0), 1)});
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
     WalkingProbe small(fixture.rules.getMod(), 1);
     WalkingProbe large(fixture.rules.getMod(), 2);
-    REQUIRE(fixture.save.getPatrolNode(false, &small.getUnit(), &start)->getPosition() == Position(7, 7, 0));
-    REQUIRE(fixture.save.getPatrolNode(false, &large.getUnit(), &start)->getPosition() == Position(3, 3, 0));
-    // Reservations restrict spawning, but the original placement API still permits ordinary movement.
-    REQUIRE(fixture.save.setUnitPosition(&small.getUnit(), Position(4, 4, 0), true));
+
+    // Act
+    const auto *smallPatrol = fixture.save.getPatrolNode(false, &small.getUnit(), &start);
+    const auto *largePatrol = fixture.save.getPatrolNode(false, &large.getUnit(), &start);
+    const bool canMove = fixture.save.setUnitPosition(&small.getUnit(), Position(4, 4, 0), true);
+
+    // Assert
+    REQUIRE(smallPatrol != nullptr);
+    REQUIRE(smallPatrol->getPosition() == Position(7, 7, 0));
+    REQUIRE(largePatrol != nullptr);
+    REQUIRE(largePatrol->getPosition() == Position(3, 3, 0));
+    REQUIRE(canMove);
 }
 
-TEST_CASE("Terrain reservations include original nodes raised to another floor", "[terrain-spawns][nodes]")
+TEST_CASE("SavedBattleGame_OriginalNodeRaisedIntoLargeFootprint_RejectsSmallSpawn", "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
     fixture.addNode(Position(2, 2, 0), 1);
     auto *raised = new MapData(&fixture.data);
@@ -440,14 +607,21 @@ TEST_CASE("Terrain reservations include original nodes raised to another floor",
         for (int y = 2; y < 4; ++y) fixture.setPart(Position(x, y, 1), O_FLOOR, 1);
     fixture.setPoints({createPoint(Position(2, 2, 1), 2)});
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
-    REQUIRE(fixture.save.getNodes()->size() == 2);
     WalkingProbe small(fixture.rules.getMod(), 1);
-    REQUIRE(fixture.save.setUnitPosition(&small.getUnit(), Position(2, 2, 0), true));
-    REQUIRE(fixture.save.getSpawnNode(1, &small.getUnit()) == nullptr);
+
+    // Act
+    const bool canPlace = fixture.save.setUnitPosition(&small.getUnit(), Position(2, 2, 0), true);
+    const auto *selected = fixture.save.getSpawnNode(1, &small.getUnit());
+
+    // Assert
+    REQUIRE(fixture.save.getNodes()->size() == 2);
+    REQUIRE(canPlace);
+    REQUIRE(selected == nullptr);
 }
 
-TEST_CASE("Terrain nodes connect to five nearest compatible reachable candidates", "[terrain-spawns][nodes]")
+TEST_CASE("TerrainSpawnPoints_PatrolCandidates_LinksFiveNearestCompatibleReachableNodes", "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
     fixture.setPoints({createPoint(Position(5, 5, 0), 2)});
     for (int x = 1; x <= 7; ++x) fixture.addNode(Position(x, 1, 0));
@@ -455,7 +629,11 @@ TEST_CASE("Terrain nodes connect to five nearest compatible reachable candidates
     fixture.addNode(Position(5, 4, 0), 0, 1, Node::TYPE_FLYING);
     auto &blocked = fixture.addNode(Position(1, 10, 0));
     fixture.setPart(blocked.getPosition(), O_OBJECT, 2);
+
+    // Act
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
+
+    // Assert
     auto &custom = *fixture.save.getNodes()->back();
     REQUIRE(*custom.getNodeLinks() == std::vector<int>{4, 3, 5, 2, 6});
     REQUIRE(custom.getFlags() == 1);
@@ -464,16 +642,22 @@ TEST_CASE("Terrain nodes connect to five nearest compatible reachable candidates
     REQUIRE(blocked.getNodeLinks()->empty());
 }
 
-TEST_CASE("Custom node size and links survive saves while legacy nodes stay unrestricted", "[terrain-spawns][save]")
+TEST_CASE("Node_CustomOrLegacySave_PreservesSizeAndLinksWithoutRequiringMetadata", "[terrain-spawns][save]")
 {
+    // Arrange
     const int size = GENERATE(0, 1, 2);
+    CAPTURE(size);
     Node original(5, Position(3, 4, 0), 0, size == 1 ? Node::TYPE_SMALL : 0, 8, 1, 0, 12);
     original.ofSetSpawnSize(size);
     *original.getNodeLinks() = {1, 2, 3};
     YAML::YamlRootNodeWriter writer;
-    original.save(writer);
     Node restored;
+
+    // Act
+    original.save(writer);
     restored.load(writer.toReader());
+
+    // Assert
     REQUIRE(restored.getID() == 5);
     REQUIRE(restored.getPosition() == Position(3, 4, 0));
     REQUIRE(restored.ofGetSpawnSize() == size);
@@ -481,15 +665,24 @@ TEST_CASE("Custom node size and links survive saves while legacy nodes stay unre
     REQUIRE(static_cast<bool>(writer.toReader()["ofSpawnSize"]) == (size != 0));
 }
 
-TEST_CASE("Unconfigured terrains require no resources and preserve normal spawn behavior", "[terrain-spawns][nodes]")
+TEST_CASE("TerrainSpawnPoints_UnconfiguredTerrain_PreservesOrdinaryNodesWithoutLoadingResources",
+          "[terrain-spawns][nodes]")
 {
+    // Arrange
     TerrainFixture fixture;
-    REQUIRE_NOTHROW(validateAllTerrains(fixture.rules.getMod()));
     auto &ordinary = fixture.addNode(Position(2, 2, 0), 0, 5);
     WalkingProbe small(fixture.rules.getMod(), 1);
     WalkingProbe large(fixture.rules.getMod(), 2);
-    REQUIRE(fixture.save.getSpawnNode(0, &small.getUnit()) == &ordinary);
-    REQUIRE(fixture.save.getSpawnNode(0, &large.getUnit()) == &ordinary);
+
+    // Act
+    const auto validate = [&] { validateAllTerrains(fixture.rules.getMod()); };
+    const auto *smallSpawn = fixture.save.getSpawnNode(0, &small.getUnit());
+    const auto *largeSpawn = fixture.save.getSpawnNode(0, &large.getUnit());
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {});
+
+    // Assert
+    REQUIRE_NOTHROW(validate());
+    REQUIRE(smallSpawn == &ordinary);
+    REQUIRE(largeSpawn == &ordinary);
     REQUIRE(fixture.save.getNodes()->size() == 1);
 }
