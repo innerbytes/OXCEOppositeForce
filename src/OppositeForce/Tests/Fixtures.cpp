@@ -5,8 +5,10 @@
 #include <random>
 #include <stdexcept>
 
+#include "Engine/SurfaceSet.h"
 #include "Mod/ExtraStrings.h"
 #include "Mod/ModScript.h"
+#include "Mod/RuleInventory.h"
 
 namespace OpenXcom::OppositeForceTests
 {
@@ -123,6 +125,30 @@ namespace OpenXcom::OppositeForceTests
     {
         auto rule = std::make_unique<Armor>(type, 0);
         return registerRule(getMod()._armors, type, std::move(rule));
+    }
+
+    RuleTerrain &RulesFixture::createTerrain(const std::string &type, const std::string &yaml)
+    {
+        auto rule = std::make_unique<RuleTerrain>(type);
+        YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test terrain");
+        rule->load(reader, &getMod());
+        getMod()._terrainIndex.push_back(type);
+        return registerRule(getMod()._terrains, type, std::move(rule));
+    }
+
+    MapDataSet &RulesFixture::createMapDataSet(const std::string &type)
+    {
+        auto rule = std::make_unique<MapDataSet>(type);
+        // Synthetic objects are already loaded; their normal destructor owns and deletes them.
+        rule->_loaded = true;
+        rule->_surfaceSet = new SurfaceSet(32, 40);
+        rule->_surfaceSet->addFrame(0);
+        return registerRule(getMod()._mapDataSets, type, std::move(rule));
+    }
+
+    void RulesFixture::createInventoryGround()
+    {
+        registerRule(getMod()._invs, "STR_GROUND", std::make_unique<RuleInventory>("STR_GROUND", 0));
     }
 
     void RulesFixture::loadRule(RuleUfo &rule, const std::string &yaml)

@@ -71,6 +71,16 @@ Armor::~Armor()
 
 }
 
+// OF - Use default movement rules without loading or registering probe rules.
+std::unique_ptr<Armor> Armor::ofCreateSpawnProbe(int size)
+{
+	auto armor = std::make_unique<Armor>("OF_SPAWN_PROBE", 0);
+	armor->_size = size;
+	armor->_loftempsSet.assign(size * size, 0);
+	return armor;
+}
+// End OF
+
 /**
  * Loads the armor from a YAML file.
  * @param node YAML node.

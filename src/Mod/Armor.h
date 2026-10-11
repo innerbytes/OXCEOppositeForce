@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <memory>
 #include <string>
 #include <vector>
 #include "../Engine/Yaml.h"
@@ -203,6 +204,10 @@ private:
 public:
 	/// Creates a blank armor ruleset.
 	Armor(const std::string &type, int listOrder);
+
+	// OF - Create an isolated walking armor for spawn-path validation.
+	static std::unique_ptr<Armor> ofCreateSpawnProbe(int size);
+
 	/// Cleans up the armor ruleset.
 	~Armor();
 

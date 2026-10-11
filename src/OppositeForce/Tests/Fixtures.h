@@ -8,6 +8,7 @@
 #include "Engine/RNG.h"
 #include "Mod/AlienDeployment.h"
 #include "Mod/Armor.h"
+#include "Mod/MapDataSet.h"
 #include "Mod/Mod.h"
 #include "Mod/RuleAlienMission.h"
 #include "Mod/RuleBaseFacility.h"
@@ -16,6 +17,7 @@
 #include "Mod/RuleManufacture.h"
 #include "Mod/RuleRegion.h"
 #include "Mod/RuleSoldier.h"
+#include "Mod/RuleTerrain.h"
 #include "Mod/RuleUfo.h"
 #include "OppositeForce/Savegame/HangarCompatibility.h"
 #include "Savegame/AlienMission.h"
@@ -46,6 +48,9 @@ namespace OpenXcom::OppositeForceTests
         RuleAlienMission &createAlienMission(const std::string &type, const std::string &yaml);
         AlienDeployment &createDeployment(const std::string &type, const std::string &yaml = "{}");
         Armor &createArmor(const std::string &type);
+        RuleTerrain &createTerrain(const std::string &type, const std::string &yaml);
+        MapDataSet &createMapDataSet(const std::string &type);
+        void createInventoryGround();
         void loadRule(RuleUfo &rule, const std::string &yaml);
         void loadRule(RuleCraft &rule, const std::string &yaml);
         void loadRule(RuleBaseFacility &rule, const std::string &yaml);

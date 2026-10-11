@@ -70,7 +70,8 @@ add_executable(opposite_force_tests
     "${test_source_directory}/HiddenUfoTests.cpp"
     "${test_source_directory}/HangarTests.cpp"
     "${test_source_directory}/FundingNamesTests.cpp"
-    "${test_source_directory}/AvatarTests.cpp")
+    "${test_source_directory}/AvatarTests.cpp"
+    "${test_source_directory}/TerrainSpawnTests.cpp")
 target_link_libraries(opposite_force_tests PRIVATE opposite_force_test_fixtures opposite_force_catch2)
 set_target_properties(opposite_force_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
 

@@ -43,6 +43,10 @@ private:
 	int _priority;  // 23 = Spawn weight in Mapview 2
 	bool _allocated;
 	bool _dummy;
+
+	// OF - Zero identifies an ordinary RMP node; custom points reserve their exact size.
+	int _ofSpawnSize = 0;
+
 public:
 	static const int CRAFTSEGMENT = 1000;
 	static const int UFOSEGMENT = 2000;
@@ -51,6 +55,12 @@ public:
 	static const int TYPE_DANGEROUS = 0x04; // an alien was shot here, stop patrolling to it like an idiot with a death wish
 	static const int nodeRank[8][7]; // maps alien ranks to node (.RMP) ranks
 	/// Creates a Node.
+
+	// OF - Preserve custom node size through spawn selection and saves.
+	int ofGetSpawnSize() const { return _ofSpawnSize; }
+	void ofSetSpawnSize(int size) { _ofSpawnSize = size; }
+	// End OF
+
 	Node();
 	Node(int id, Position pos, int segment, int type, int rank, int flags, int reserved, int priority);
 	/// Cleans up the Node.

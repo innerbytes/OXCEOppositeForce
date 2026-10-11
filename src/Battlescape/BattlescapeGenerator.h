@@ -21,6 +21,8 @@
 #include "../Mod/RuleTerrain.h"
 #include "../Mod/MapScript.h"
 
+#include "../OppositeForce/Battlescape/TerrainSpawnPoints.h"
+
 namespace OpenXcom
 {
 
@@ -90,6 +92,10 @@ private:
 	std::map<RuleTerrain*, int> _loadedTerrains;
 	std::vector<std::pair<MapBlock*, Position> > _verticalLevelSegments;
 	std::vector<Tile*> _backupInventoryTiles;
+
+	// OF - Defer custom nodes until map overlays and original route links are complete.
+	std::vector<TerrainSpawnPoints::Placement> _ofSpawnPlacements;
+
 
 	/// sets the map size and associated vars
 	void init(bool resetTerrain);

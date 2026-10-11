@@ -8,6 +8,7 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 - [Funding actor names](#funding-actor-names)
 - [Disable avatar selection](#disable-avatar-selection)
 - [Hidden UFOs](#hidden-ufos)
+- [Custom terrain spawn points](#custom-terrain-spawn-points)
 
 ## Hangar compatibility
 
@@ -161,3 +162,77 @@ existing land checks and fallback behavior are unchanged.
 The debug **Ctrl+7** command can still reveal hidden UFOs and their hyperwave
 information. Loading a save clears their detection flags, including debug
 reveals.
+
+
+## Custom terrain spawn points
+
+Use `mapBlockSpawnPoints` on a terrain to add spawn points to existing fragments.
+Definitions apply wherever the terrain is used, including repeated fragments.
+No replacement terrain files or extra `mapBlocks` entries are needed.
+
+```yaml
+terrains:
+  - name: FOREST
+    mapBlockSpawnPoints:
+      FOREST00:
+        - position: [3, 4, 0]
+          unitSize: 1
+          rank: 0
+          priority: 1
+        - position: [6, 6, 0]
+          unitSize: 2
+          rank: 0
+          priority: 1
+```
+
+The fragment name must match an existing terrain block. These example coordinates
+illustrate syntax; they are **not verified locations** in FOREST00.
+
+| Property | Default | Meaning |
+| --- | --- | --- |
+| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`. |
+| `unitSize` | Required | `1` for a 1×1 point or `2` for a dedicated 2×2 point. Each point accepts only its declared size. |
+| `rank` | `0` | OXCE node rank, from `0` through `8`; see below. |
+| `priority` | `1` | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank. |
+
+A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
+`[x, y+1]`, and `[x+1, y+1]` on the same floor. Its four tiles are reserved against
+1×1 spawning across all ranks, including through original nodes. Normal movement
+is unaffected. Choose non-overlapping footprints inside the fragment with a
+walkable route to its ground-level exterior; upper floors can use stairs.
+
+| Rank | Spawn usage |
+| --- | --- |
+| `0` | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
+| `1` | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
+| `2` | AI opponent spawn category: Soldier. |
+| `3` | AI opponent spawn category: Navigator. |
+| `4` | AI opponent spawn category: Leader; preferred by both commanders and leaders. |
+| `5` | AI opponent spawn category: Engineer. |
+| `6` | AI opponent spawn category: Miscellaneous 1. |
+| `7` | AI opponent spawn category: Medic. |
+| `8` | AI opponent spawn category: Miscellaneous 2. |
+
+These are **location categories**, not faction IDs or deployment `alienRank`
+values. They use the same numbers as vanilla `.RMP` spawn nodes. There is no
+separate commander location category: commanders and leaders both try node ranks
+`4, 3, 5, 8, 7, 2, 0`, in that order. Category names describe preferences rather
+than restricting points to one unit role. AI opponents try categories in an order
+determined by their deployment rank, with rank `0` as the final fallback. Their identity—police, human soldiers,
+aliens, or tanks—does not determine the spawn-node rank.
+
+Use `rank: 0` (or omit it) if any AI opponent should be able to use a point.
+Use `unitSize: 1` for small units and `unitSize: 2` for large units; both can use
+rank `0`. Ranks `2–8` are useful when you want preferred locations for particular
+AI opponent roles. Neutral AI deployment can specify a different node rank.
+
+`refNode` inheritance and later rule layers preserve omitted fragment definitions.
+Supplying a fragment's list replaces its previous custom points. Use `[]` to clear
+that fragment's custom points:
+
+```yaml
+terrains:
+  - name: FOREST
+    mapBlockSpawnPoints:
+      FOREST00: []
+```

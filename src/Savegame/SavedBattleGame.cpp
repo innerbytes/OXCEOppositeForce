@@ -53,6 +53,9 @@
 #include "../Mod/RuleWeaponSet.h"
 #include "../fallthrough.h"
 #include "../fmath.h"
+
+#include "../OppositeForce/Battlescape/TerrainSpawnPoints.h"
+
 #include "../Engine/Language.h"
 
 namespace OpenXcom
@@ -2264,6 +2267,10 @@ int *SavedBattleGame::getCurrentItemId()
  */
 Node *SavedBattleGame::getSpawnNode(int nodeRank, BattleUnit *unit)
 {
+
+	// OF - Collect reserved large-unit footprints once per spawn search.
+	const auto reservations = TerrainSpawnPoints::getReservedFootprints(*this, *unit);
+
 	int highestPriority = -1;
 	std::vector<Node*> compliantNodes;
 
@@ -2273,6 +2280,10 @@ Node *SavedBattleGame::getSpawnNode(int nodeRank, BattleUnit *unit)
 		{
 			continue;
 		}
+
+		// OF - Enforce exact custom sizes and reserved large-unit footprints.
+		if (!TerrainSpawnPoints::canSpawnAtNode(*this, *node, *unit, reservations)) continue;
+
 		if (node->getRank() == nodeRank								// ranks must match
 			&& (!(node->getType() & Node::TYPE_SMALL)
 				|| unit->isSmallUnit())								// the small unit bit is not set or the unit is small
@@ -2330,6 +2341,10 @@ Node *SavedBattleGame::getPatrolNode(bool scout, BattleUnit *unit, Node *fromNod
 		if (!scout && fromNode->getNodeLinks()->at(i) < 1) continue;
 
 		Node *n = getNodes()->at(scout ? i : fromNode->getNodeLinks()->at(i));
+
+		// OF - Custom patrol nodes accept only their declared unit size.
+		if (!TerrainSpawnPoints::canUseNode(*n, *unit)) continue;
+
 		if ( !n->isDummy()																				// don't consider dummy nodes.
 			&& (n->getFlags() > 0 || n->getRank() > 0 || scout)											// for non-scouts we find a node with a desirability above 0
 			&& (!(n->getType() & Node::TYPE_SMALL) || unit->isSmallUnit())								// the small unit bit is not set or the unit is small

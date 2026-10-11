@@ -457,6 +457,9 @@ set ( cxx_src
     # OF - Build Opposite Force modules.
     OppositeForce/Geoscape/FundingNames.cpp
     OppositeForce/Mod/HangarRules.cpp
+    OppositeForce/Mod/TerrainSpawnRules.cpp
+    OppositeForce/Battlescape/TerrainSpawnValidation.cpp
+    OppositeForce/Battlescape/TerrainSpawnPoints.cpp
     OppositeForce/Savegame/HangarCompatibility.cpp
     # End OF
 

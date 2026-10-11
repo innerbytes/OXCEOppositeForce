@@ -85,6 +85,9 @@ void RuleTerrain::load(const YAML::YamlNodeReader& node, Mod *mod)
 		}
 	}
 
+	// OF - Load custom spawn definitions without adding map blocks.
+	TerrainSpawnRules::loadRules(_ofSpawnRules, reader["mapBlockSpawnPoints"], _name);
+
 	reader.tryRead("enviroEffects", _enviroEffects);
 	mod->loadUnorderedNames(_name, _civilianTypes, reader["civilianTypes"]);
 	mod->loadUnorderedNames(_name, _music, reader["music"]);

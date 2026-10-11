@@ -106,6 +106,9 @@ void BattlescapeGenerator::init(bool resetTerrain)
 	_loadedTerrains.clear();
 	_verticalLevelSegments.clear();
 
+	// OF - Reset custom fragment placements for each generated stage.
+	_ofSpawnPlacements.clear();
+
 	_markAsReinforcementsBlock = 0;
 	_save->getReinforcementsBlocks().clear();
 	_save->getReinforcementsBlocks().resize((_mapsize_x / 10), std::vector<int>((_mapsize_y / 10), 0));
@@ -2352,6 +2355,12 @@ int BattlescapeGenerator::loadMAP(MapBlock *mapblock, int xoff, int yoff, int zo
  */
 void BattlescapeGenerator::loadRMP(MapBlock *mapblock, int xoff, int yoff, int zoff, int segment)
 {
+
+	// OF - Record every loaded fragment occurrence using its actual node offsets.
+	if (!mapblock->ofGetSpawnPoints().points.empty())
+		_ofSpawnPlacements.push_back({mapblock, Position(xoff, yoff, zoff), segment});
+	// End OF
+
 	unsigned char value[24];
 	std::string filename = "ROUTES/" + mapblock->getName() +".RMP";
 	// Load file
@@ -3349,6 +3358,9 @@ void BattlescapeGenerator::generateMap(const std::vector<MapScript*> *script, co
 	}
 
 	attachNodeLinks();
+
+	// OF - Append safe custom spawn nodes after all original nodes and geometry.
+	TerrainSpawnPoints::addSpawnNodes(*_mod, *_save, _ofSpawnPlacements);
 
 	if (_save->getMissionType() == "STR_BASE_DEFENSE" && _mod->getBaseDefenseMapFromLocation() == 1)
 	{

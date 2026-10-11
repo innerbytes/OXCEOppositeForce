@@ -83,6 +83,10 @@ void Node::load(const YAML::YamlNodeReader& reader)
 	reader.tryRead("allocated", _allocated);
 	reader.tryRead("links", _nodeLinks);
 	reader.tryRead("dummy", _dummy);
+
+	// OF - Older saves have no custom-size metadata.
+	_ofSpawnSize = reader["ofSpawnSize"].readVal(0);
+
 }
 
 /**
@@ -106,6 +110,12 @@ void Node::save(YAML::YamlNodeWriter writer) const
 	writer.write("links", _nodeLinks);
 	if (_dummy)
 		writer.write("dummy", _dummy);
+
+	// OF - Persist only custom node metadata.
+	if (_ofSpawnSize)
+		writer.write("ofSpawnSize", _ofSpawnSize);
+	// End OF
+
 }
 
 /**

@@ -22,6 +22,8 @@
 #include "../Engine/Yaml.h"
 #include "../Battlescape/Position.h"
 
+#include "../OppositeForce/Mod/TerrainSpawnRules.h"
+
 namespace OpenXcom
 {
 
@@ -66,7 +68,20 @@ private:
 	std::map<std::string, std::pair<int, int> > _itemsFuseTimer;
 	std::vector<RandomizedItems> _randomizedItems;
 	std::vector<ExtendedItems> _extendedItems;
+
+	// OF - Attach custom spawn points after final terrain rules are resolved.
+	TerrainSpawnRules::Block _ofSpawnPoints;
+	std::string _ofSpawnTerrain;
+	// End OF
+
 public:
+
+	// OF - Access definitions for each placed occurrence of this fragment.
+	const TerrainSpawnRules::Block& ofGetSpawnPoints() const { return _ofSpawnPoints; }
+	const std::string& ofGetSpawnTerrain() const { return _ofSpawnTerrain; }
+	void ofSetSpawnPoints(const TerrainSpawnRules::Block& points, const std::string& terrain) { _ofSpawnPoints = points; _ofSpawnTerrain = terrain; }
+	// End OF
+
 	MapBlock(const std::string &name);
 	~MapBlock();
 	/// Loads the map block from YAML.
