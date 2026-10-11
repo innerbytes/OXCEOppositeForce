@@ -73,6 +73,9 @@ void AlienDeployment::load(const YAML::YamlNodeReader& node, Mod *mod)
 		load(parent, mod);
 	}
 
+	// OF - Preserve inherited geographic terrain selection when this layer omits it.
+	reader.tryRead("useGlobalTerrain", _ofUseGlobalTerrain);
+
 	reader.tryRead("customUfo", _customUfo);
 	reader.tryRead("enviroEffects", _enviroEffects);
 	reader.tryRead("startingCondition", _startingCondition);

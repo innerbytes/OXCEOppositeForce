@@ -138,6 +138,10 @@ private:
 	std::string _upgradeRace;
 	std::vector<std::tuple<size_t, std::string, std::string> > _alienRaceEvolution;
 	bool _noWeaponPile;
+
+	// OF - Opt into geographic terrain selection on initial mission entry.
+	bool _ofUseGlobalTerrain = false;
+
 public:
 	/// Creates a blank Alien Deployment ruleset.
 	AlienDeployment(const std::string &type);
@@ -203,6 +207,10 @@ public:
 	const std::map<std::string, int> &getCiviliansByType() const;
 	/// Gets the terrain for battlescape generation.
 	std::vector<std::string> getTerrains() const;
+
+	// OF - Expose geographic terrain selection to the initial map generator.
+	bool ofGetUseGlobalTerrain() const { return _ofUseGlobalTerrain; }
+
 	/// Gets the shade level for battlescape generation.
 	int getShade() const;
 	/// Gets the min shade level for battlescape generation.

@@ -63,6 +63,8 @@
 #include "../Mod/Texture.h"
 #include "Pathfinding.h"
 
+#include "../OppositeForce/Battlescape/GlobalTerrain.h"
+
 namespace OpenXcom
 {
 
@@ -783,6 +785,17 @@ void BattlescapeGenerator::run()
 	ruleDeploy->getDimensions(&_mapsize_x, &_mapsize_y, &_mapsize_z);
 
 	_unitSequence = BattleUnit::MAX_SOLDIER_ID; // geoscape soldier IDs should stay below this number
+
+	// OF - Resolve geographic terrain before choosing its normal map script.
+	{
+		Target *target = _ufo;
+		if (_mission) target = _mission;
+		if (!target) target = _alienBase;
+		if (!target) target = _base;
+		if (!target) target = _craft;
+		_terrain = GlobalTerrain::selectTerrain(*_mod, *ruleDeploy, _terrain, _globeTexture, target);
+	}
+	// End OF
 
 	if (_terrain == 0)
 	{

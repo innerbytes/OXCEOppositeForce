@@ -458,6 +458,7 @@ set ( cxx_src
     OppositeForce/Geoscape/FundingNames.cpp
     OppositeForce/Mod/HangarRules.cpp
     OppositeForce/Mod/TerrainSpawnRules.cpp
+    OppositeForce/Battlescape/GlobalTerrain.cpp
     OppositeForce/Battlescape/TerrainSpawnValidation.cpp
     OppositeForce/Battlescape/TerrainSpawnPoints.cpp
     OppositeForce/Savegame/HangarCompatibility.cpp

@@ -7,6 +7,7 @@
 
 #include "Engine/SurfaceSet.h"
 #include "Mod/ExtraStrings.h"
+#include "Mod/MapScript.h"
 #include "Mod/ModScript.h"
 #include "Mod/RuleInventory.h"
 
@@ -121,6 +122,21 @@ namespace OpenXcom::OppositeForceTests
         return registerRule(getMod()._alienDeployments, type, std::move(rule));
     }
 
+    const std::vector<MapScript *> &RulesFixture::createMapScript(const std::string &type, const std::string &yaml)
+    {
+        if (getMod()._mapScripts.find(type) != getMod()._mapScripts.end())
+            throw std::logic_error("Duplicate fixture map script: " + type);
+        YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test map script");
+        auto &commands = getMod()._mapScripts[type];
+        for (const auto &entry : reader.children())
+        {
+            auto command = std::make_unique<MapScript>();
+            command->load(entry);
+            commands.push_back(command.release());
+        }
+        return commands;
+    }
+
     Armor &RulesFixture::createArmor(const std::string &type)
     {
         auto rule = std::make_unique<Armor>(type, 0);
@@ -179,6 +195,12 @@ namespace OpenXcom::OppositeForceTests
     {
         YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test soldier rule");
         rule.load(reader, &getMod(), _implementation->getParsers());
+    }
+
+    void RulesFixture::loadRule(AlienDeployment &rule, const std::string &yaml)
+    {
+        YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test deployment");
+        rule.load(reader, &getMod());
     }
 
     void RulesFixture::setDestroyedFacility(RuleBaseFacility &rule, const RuleBaseFacility &replacement)
