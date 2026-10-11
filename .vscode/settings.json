@@ -17,5 +17,6 @@
   },
   "files.associations": {
     "src/OppositeForce/**/*.h": "cpp"
-  }
+  },
+  "oxcYamlHelper.prompts.noRecommendImagePreview": true
 }
