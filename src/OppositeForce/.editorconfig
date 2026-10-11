@@ -1,4 +1,4 @@
-[*.{cpp,h,hpp,cc,cxx,hh,hxx,ipp,tpp}]
+[*.{c,cpp,h,hpp,cc,cxx,hh,hxx,ipp,tpp}]
 indent_style = space
 indent_size = 4
 tab_width = 4

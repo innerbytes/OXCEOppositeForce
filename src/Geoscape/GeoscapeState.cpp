@@ -1688,7 +1688,7 @@ void GeoscapeState::ufoHuntingAndEscorting()
 					// set new target
 					ufo->setTargetedXcomCraft(newTarget);
 
-					// OF - Keep hunting, but skip automatic reveals and notifications.
+					// OF - If this UFO is hidden, keep hunting but skip automatic reveals and notifications.
 					if (ufo->getRules()->ofIsHidden())
 					{
 						continue;
@@ -2113,7 +2113,7 @@ void GeoscapeState::time30Minutes()
 void GeoscapeState::ufoDetection(Ufo* ufo, const std::vector<Craft*>* activeCrafts)
 {
 
-	// OF - Skip normal detection and tracking while preserving debug reveals.
+	// OF - If this UFO is hidden, skip normal detection and tracking while preserving debug reveals.
 	if (ufo->getRules()->ofIsHidden())
 	{
 		return;

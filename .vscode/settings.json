@@ -2,9 +2,17 @@
   "oxcYamlHelper.rulesetDocumentationSettings": 0,
   "C_Cpp.formatting": "clangFormat",
   "C_Cpp.clang_format_style": "file",
+  "C_Cpp.clang_format_path": "${workspaceFolder}/scripts-of/clang-format-vscode.js",
+  "[c]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.tabSize": 4
+  },
   "[cpp]": {
     "editor.defaultFormatter": "ms-vscode.cpptools",
     "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
     "editor.tabSize": 4
   },
   "files.associations": {

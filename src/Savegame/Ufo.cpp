@@ -517,8 +517,9 @@ void Ufo::setDetected(bool detected)
 {
 
 	// OF - Only the explicit debug reveal may expose a hidden UFO.
-	if (_rules->ofIsHidden() && detected)
+	if (_rules->ofIsHidden())
 	{
+		_detected = false;
 		return;
 	}
 	// End OF
@@ -868,8 +869,9 @@ void Ufo::setHyperDetected(bool hyperdetected)
 {
 
 	// OF - Only the explicit debug reveal may hyper-detect a hidden UFO.
-	if (_rules->ofIsHidden() && hyperdetected)
+	if (_rules->ofIsHidden())
 	{
+		_hyperDetected = false;
 		return;
 	}
 	// End OF
