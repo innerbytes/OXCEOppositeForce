@@ -67,6 +67,9 @@ void RuleUfo::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript &
 		load(parent, mod, parsers);
 	}
 
+	// OF - Load hiding after inherited values, allowing an explicit false override.
+	reader.tryRead("isHidden", _ofIsHidden);
+
 	reader.tryRead("size", _size);
 	// sigh
 	if (_size == "STR_MEDIUM")

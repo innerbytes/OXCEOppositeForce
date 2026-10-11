@@ -79,6 +79,10 @@ private:
 	bool _unmanned;
 	bool _instaHyper;
 	bool _noAlert;
+
+	// OF - Optional UFO hiding, independent of radar visibility and alerts.
+	bool _ofIsHidden = false;
+
 	int _splashdownSurvivalChance;
 	int _fakeWaterLandingChance;
 	int _fireSound;
@@ -175,6 +179,10 @@ public:
 	bool isInstaHyper() const { return _instaHyper; }
 	/// Suppress UFO detection alerts?
 	bool isNoAlert() const { return _noAlert; }
+
+	// OF - Expose whether normal detection and automatic reveals are disabled.
+	bool ofIsHidden() const { return _ofIsHidden; }
+
 	/// Gets the chance of surviving a splashdown on fake water.
 	int getSplashdownSurvivalChance() const { return _splashdownSurvivalChance; }
 	/// Gets the chance for deciding to land on fake water texture.

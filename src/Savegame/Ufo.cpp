@@ -121,6 +121,15 @@ void Ufo::load(const YAML::YamlNodeReader& node, const ScriptGlobal *shared, con
 	reader.tryRead("direction", _direction);
 	reader.tryRead("detected", _detected);
 	reader.tryRead("hyperDetected", _hyperDetected);
+
+	// OF - Hidden rules also apply to old saves and reset debug reveals on reload.
+	if (_rules->ofIsHidden())
+	{
+		_detected = false;
+		_hyperDetected = false;
+	}
+	// End OF
+
 	reader.tryRead("secondsRemaining", _secondsRemaining);
 	reader.tryRead("inBattlescape", _inBattlescape);
 	_dest = new Waypoint();
@@ -506,8 +515,24 @@ bool Ufo::getDetected() const
  */
 void Ufo::setDetected(bool detected)
 {
+
+	// OF - Only the explicit debug reveal may expose a hidden UFO.
+	if (_rules->ofIsHidden() && detected)
+	{
+		return;
+	}
+	// End OF
+
 	_detected = detected;
 }
+
+// OF - Bypass normal detection restrictions for debug inspection.
+void Ufo::ofRevealForDebug()
+{
+	_detected = true;
+	_hyperDetected = true;
+}
+// End OF
 
 /**
  * Returns the amount of remaining seconds the UFO has left on the ground.
@@ -713,6 +738,14 @@ void Ufo::think()
 		_secondsRemaining -= 5;
 		break;
 	case CRASHED:
+
+		// OF - Crashing must not automatically reveal hidden UFOs.
+		if (_rules->ofIsHidden())
+		{
+			break;
+		}
+		// End OF
+
 		if (!_detected)
 		{
 			_detected = true;
@@ -833,6 +866,14 @@ bool Ufo::getHyperDetected() const
  */
 void Ufo::setHyperDetected(bool hyperdetected)
 {
+
+	// OF - Only the explicit debug reveal may hyper-detect a hidden UFO.
+	if (_rules->ofIsHidden() && hyperdetected)
+	{
+		return;
+	}
+	// End OF
+
 	_hyperDetected = hyperdetected;
 }
 

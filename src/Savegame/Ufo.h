@@ -133,6 +133,10 @@ public:
 	bool getDetected() const;
 	/// Sets the UFO's detection status.
 	void setDetected(bool detected);
+
+	// OF - Explicitly reveal even hidden UFOs for the debug reveal command.
+	void ofRevealForDebug();
+
 	/// Gets the UFO's seconds left on the ground.
 	size_t getSecondsRemaining() const;
 	/// Sets the UFO's seconds left on the ground.

@@ -1174,6 +1174,14 @@ void Craft::checkup()
  */
 UfoDetection Craft::detect(const Ufo *target, const SavedGame *save, bool alreadyTracked) const
 {
+
+	// OF - Hidden UFOs bypass all craft detection, including scripts.
+	if (target->getRules()->ofIsHidden())
+	{
+		return DETECTION_NONE;
+	}
+	// End OF
+
 	int distance = XcomDistance(getDistance(target));
 
 	int detectionChance = 0;

@@ -497,6 +497,14 @@ void Base::setEngineers(int engineers)
  */
 UfoDetection Base::detect(const Ufo *target, const SavedGame *save, bool alreadyTracked) const
 {
+
+	// OF - Hidden UFOs bypass all base detection, including scripts.
+	if (target->getRules()->ofIsHidden())
+	{
+		return DETECTION_NONE;
+	}
+	// End OF
+
 	int distance = XcomDistance(getDistance(target));
 	bool hyperwave = false;
 	int hyperwave_max_range = 0;

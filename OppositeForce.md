@@ -7,6 +7,7 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 - [Hangar compatibility](#hangar-compatibility)
 - [Funding actor names](#funding-actor-names)
 - [Disable avatar selection](#disable-avatar-selection)
+- [Hidden UFOs](#hidden-ufos)
 
 ## Hangar compatibility
 
@@ -135,3 +136,41 @@ loaded value, and explicit `false` re-enables selection.
 
 The restriction applies to all existing and new soldiers of that type. It does
 not change their stored gender or appearance, and no save migration is required.
+
+## Hidden UFOs
+
+Set `isHidden: true` on a UFO type to prevent normal detection and automatic
+reveals of UFOs of that type:
+
+```yaml
+ufos:
+  - type: CRAFT_HIDDEN
+    isHidden: true
+```
+
+This is a partial rule entry; supply the other fields the UFO normally needs.
+The optional boolean defaults to `false`. It follows `refNode` inheritance and
+ruleset layering: omission preserves an inherited or previously loaded value,
+and explicit `false` restores normal detection.
+
+Hidden UFOs cannot be detected by base radar, hyperwave decoders, or craft radar,
+including guaranteed detection and tracking of previously detected targets.
+Detection scripts are skipped for hidden UFOs, so they cannot override this
+restriction. Crashing or acquiring a hunter-killer target also does not reveal
+the UFO; hunting target assignment continues, but its reveal notification and
+sound are suppressed. This differs from `visibility`, which modifies detection
+chances, and `noAlert`, which only suppresses detection alerts.
+
+The UFO continues its mission waves, movement, landing, and mission activity
+normally. During normal play it has no globe marker or UFO tracker entry. The
+flag applies only to the UFO: a mission site created when it lands retains its
+normal visibility and mission alert. Use the existing mission, trajectory, and
+`objectiveOnTheLandingSite` rules to place the site at the UFO's landing point.
+Existing land checks and their fallback behavior are unchanged.
+
+The debug **Ctrl+7** reveal command can still show hidden UFOs, including their
+hyperwave information. Normal detection updates do not remove that debug
+reveal; ordinary lifecycle cleanup can remove it. Loading a save clears both
+detection flags for hidden UFOs, including old saved flags and debug reveals.
+The property is read from the UFO rule, so no new save field or migration is
+required.
