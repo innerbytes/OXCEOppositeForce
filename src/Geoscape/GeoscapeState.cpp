@@ -639,6 +639,15 @@ void GeoscapeState::handle(Action *action)
 				_txtDebug->setText("BIG BROTHER SEES ALL");
 				for (auto* ufo : *_game->getSavedGame()->getUfos())
 				{
+
+					// OF - Allow explicit debug inspection of hidden UFOs.
+					if (ufo->getRules()->ofIsHidden())
+					{
+						ufo->ofRevealForDebug();
+						continue;
+					}
+					// End OF
+
 					ufo->setDetected(true);
 					ufo->setHyperDetected(true);
 				}
@@ -1678,6 +1687,14 @@ void GeoscapeState::ufoHuntingAndEscorting()
 				{
 					// set new target
 					ufo->setTargetedXcomCraft(newTarget);
+
+					// OF - Keep hunting, but skip automatic reveals and notifications.
+					if (ufo->getRules()->ofIsHidden())
+					{
+						continue;
+					}
+					// End OF
+
 					// TODO: rethink: always reveal the hunting UFO (even outside of radar range?)
 					ufo->setDetected(true);
 					if (ufo->getId() == 0)
@@ -2095,6 +2112,14 @@ void GeoscapeState::time30Minutes()
  */
 void GeoscapeState::ufoDetection(Ufo* ufo, const std::vector<Craft*>* activeCrafts)
 {
+
+	// OF - Skip normal detection and tracking while preserving debug reveals.
+	if (ufo->getRules()->ofIsHidden())
+	{
+		return;
+	}
+	// End OF
+
 	auto maskTest = [](UfoDetection value, UfoDetection mask)
 	{
 		return (value & mask) == mask;
