@@ -2,25 +2,20 @@
 
 #include <cstddef>
 #include <utility>
-#include <vector>
 
 namespace OpenXcom
 {
     class Globe;
+    class RuleAlienMission;
     class RuleRegion;
+    class Ufo;
 
     namespace LandingTextures
     {
-        struct Selection
-        {
-            bool found = false;
-            std::pair<double, double> position{};
-            int area = -1;
-        };
-
-        Selection selectLandingPoint(const Globe &globe, const RuleRegion &region, size_t zone, int initialArea,
-                                     int fakeWaterChance, bool forMissionSite,
-                                     const std::vector<int> &excludedTextures);
+        std::pair<double, double> selectLandingPoint(const Globe &globe, const RuleRegion &region, size_t zone,
+                                                     int initialArea, const Ufo &ufo,
+                                                     const RuleAlienMission &missionRule, bool &selectionFailed,
+                                                     int &missionSiteArea);
 
         int findLandingArea(const RuleRegion &region, size_t zone, const std::pair<double, double> &position,
                             int preferredArea);

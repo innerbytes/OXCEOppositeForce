@@ -210,14 +210,18 @@ TEST_CASE("LandingTextures_ExcludedInitialArea_SelectsAllowedAreaUsingActualText
 {
     // Arrange
     LandingFixture fixture;
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = true;
+    int selectedArea = 0;
 
     // Act
-    const auto result = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, 0, true, {9, 12});
+    const auto position = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, ufo, fixture.rule,
+                                                              failed, selectedArea);
 
     // Assert
-    REQUIRE(result.found);
-    REQUIRE(result.area == 1);
-    REQUIRE(fixture.getTexture(result.position) == 1);
+    REQUIRE_FALSE(failed);
+    REQUIRE(selectedArea == 1);
+    REQUIRE(fixture.getTexture(position) == 1);
     REQUIRE(fixture.region.getMissionZones()[0].areas[0].texture == 0);
 }
 
@@ -226,60 +230,74 @@ TEST_CASE("LandingTextures_MixedTextureArea_RejectsIceCoordinates", "[landing-te
     // Arrange
     LandingFixture fixture;
     fixture.loadRegion("[[1, 12, 1, 2]]");
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = true;
+    int selectedArea = 0;
 
     // Act
-    const auto result = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, 0, true, {9, 12});
+    const auto position = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, ufo, fixture.rule,
+                                                              failed, selectedArea);
 
     // Assert
-    REQUIRE(result.found);
-    REQUIRE(result.area == 0);
-    REQUIRE(fixture.getTexture(result.position) == 1);
+    REQUIRE_FALSE(failed);
+    REQUIRE(selectedArea == 0);
+    REQUIRE(fixture.getTexture(position) == 1);
 }
 
 TEST_CASE("LandingTextures_AllAreasExcluded_ReturnsFailureWithoutForcedLanding", "[landing-textures]")
 {
     // Arrange
-    LandingFixture fixture;
+    LandingFixture fixture("excludedLandingTextures: [1, 9, 12]");
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = false;
+    int selectedArea = 0;
 
     // Act
-    const auto result = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, 0, true, {1, 9, 12});
+    LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, ufo, fixture.rule, failed, selectedArea);
 
     // Assert
-    REQUIRE_FALSE(result.found);
-    REQUIRE(result.area == -1);
+    REQUIRE(failed);
+    REQUIRE(selectedArea == 0);
 }
 
-TEST_CASE("LandingTextures_PointAreas_RejectsExcludedPointAndChecksEachOnce", "[landing-textures]")
+TEST_CASE("LandingTextures_PointAreas_RejectsExcludedPointAndPreservesMissionSiteArea", "[landing-textures]")
 {
     // Arrange
     LandingFixture fixture;
     fixture.loadRegion("[[1, 1, 1, 1], [11, 11, 1, 1]]");
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = true;
+    int selectedArea = 37;
 
     // Act
-    const auto result = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, 0, false, {9, 12});
+    const auto position = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, -1, ufo, fixture.rule,
+                                                              failed, selectedArea);
 
     // Assert
-    REQUIRE(result.found);
-    REQUIRE(result.area == 1);
-    REQUIRE(fixture.getTexture(result.position) == 1);
+    REQUIRE_FALSE(failed);
+    REQUIRE(selectedArea == 37);
+    REQUIRE(fixture.getTexture(position) == 1);
 }
 
 TEST_CASE("LandingTextures_FakeWaterPreference_PreservesChosenSurfaceAcrossAreas", "[landing-textures]")
 {
     // Arrange
     const bool wantsFakeWater = GENERATE(false, true);
-    LandingFixture fixture;
+    LandingFixture fixture("excludedLandingTextures: [12]");
     fixture.loadGlobe("textures: [{id: 1, fakeUnderwater: true}]");
+    fixture.rules.loadRule(fixture.ufoRule, "fakeWaterLandingChance: " + std::to_string(wantsFakeWater ? 100 : 0));
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = true;
+    int selectedArea = 0;
 
     // Act
-    const auto result =
-        LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, wantsFakeWater ? 100 : 0, true, {12});
+    const auto position = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, ufo, fixture.rule,
+                                                              failed, selectedArea);
 
     // Assert
-    REQUIRE(result.found);
-    REQUIRE(fixture.globe->insideFakeUnderwaterTexture(result.position.first, result.position.second) ==
-            wantsFakeWater);
-    REQUIRE(result.area == (wantsFakeWater ? 1 : 0));
+    REQUIRE_FALSE(failed);
+    REQUIRE(fixture.globe->insideFakeUnderwaterTexture(position.first, position.second) == wantsFakeWater);
+    REQUIRE(selectedArea == (wantsFakeWater ? 1 : 0));
 }
 
 TEST_CASE("LandingTextures_RegionBoundary_OnlyMissionSiteLandingCanIgnoreIt", "[landing-textures]")
@@ -288,12 +306,16 @@ TEST_CASE("LandingTextures_RegionBoundary_OnlyMissionSiteLandingCanIgnoreIt", "[
     const bool forSite = GENERATE(false, true);
     LandingFixture fixture;
     fixture.loadRegion("[[11, 12, 1, 2]]", "[[0, 5, 0, 5]]");
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = false;
+    int selectedArea = 0;
 
     // Act
-    const auto result = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, 0, forSite, {9});
+    LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, forSite ? 0 : -1, ufo, fixture.rule, failed,
+                                        selectedArea);
 
     // Assert
-    REQUIRE(result.found == forSite);
+    REQUIRE(failed == !forSite);
 }
 
 TEST_CASE("LandingTextures_AreaFallback_RollsFakeWaterPreferenceOnlyOnce", "[landing-textures]")
@@ -308,16 +330,20 @@ TEST_CASE("LandingTextures_AreaFallback_RollsFakeWaterPreferenceOnlyOnce", "[lan
         "  - [1, 10, 0, 15, 0, 15, 5, 10, 5]\n"
         "  - [2, 20, 0, 25, 0, 25, 5, 20, 5]\n"
         "textures: [{id: 1, fakeUnderwater: true}]");
+    fixture.rules.loadRule(fixture.ufoRule, "fakeWaterLandingChance: 50");
+    Ufo ufo(&fixture.ufoRule, 1);
+    bool failed = true;
+    int selectedArea = 0;
     RNG::setSeed(seed);
     const bool wantsFakeWater = RNG::percent(50);
     RNG::setSeed(seed);
 
     // Act
-    const auto result = LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, 50, true, {9, 12});
+    LandingTextures::selectLandingPoint(*fixture.globe, fixture.region, 0, 0, ufo, fixture.rule, failed, selectedArea);
 
     // Assert
-    REQUIRE(result.found);
-    REQUIRE(result.area == (wantsFakeWater ? 1 : 2));
+    REQUIRE_FALSE(failed);
+    REQUIRE(selectedArea == (wantsFakeWater ? 1 : 2));
 }
 
 TEST_CASE("AlienMission_OrdinaryLanding_UsesTextureFilter", "[landing-textures][integration]")

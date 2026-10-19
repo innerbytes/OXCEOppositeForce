@@ -51,8 +51,6 @@ private:
 
 	// OF - Transient result of the current landing search; never serialized.
 	bool ofLandingSelectionFailed = false;
-	std::pair<double, double> ofSelectLandingPoint(const Globe &globe, const RuleRegion &region, size_t zone, int area, const Ufo &ufo);
-	// End OF
 
 	const RuleAlienMission &_rule;
 	std::string _region, _race;

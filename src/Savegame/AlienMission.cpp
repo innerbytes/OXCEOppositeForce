@@ -1367,26 +1367,6 @@ std::pair<double, double> AlienMission::getWaypoint(const MissionWave &wave, con
 	return region.getRandomPoint(trajectory.getZone(nextWaypoint));
 }
 
-// OF - Adapt bounded landing searches to the existing coordinate interfaces.
-std::pair<double, double> AlienMission::ofSelectLandingPoint(const Globe &globe, const RuleRegion &region, size_t zone, int area, const Ufo &ufo)
-{
-	auto selection = LandingTextures::selectLandingPoint(globe, region, zone, area,
-		ufo.getRules()->getFakeWaterLandingChance(), area != -1, _rule.ofGetExcludedLandingTextures());
-	ofLandingSelectionFailed = !selection.found;
-	if (selection.found)
-	{
-		if (area != -1) _missionSiteZoneArea = selection.area;
-		return selection.position;
-	}
-	std::ostringstream exclusions;
-	for (int texture : _rule.ofGetExcludedLandingTextures()) exclusions << texture << ' ';
-	Log(LOG_WARNING) << "Mission: " << _rule.getType() << " Region: " << region.getType()
-		<< " zone: " << zone << " no permissible landing point found; excluded textures: ["
-		<< exclusions.str() << "]; skipping UFO landing.";
-	return {};
-}
-// End OF
-
 /**
  * Get a random point inside the given region zone.
  * The point will be used to land a UFO, so it HAS to be on land (UNLESS it's landing on a city).
@@ -1406,7 +1386,8 @@ std::pair<double, double> AlienMission::getLandPoint(const Globe &globe, const R
 	// OF - Restrict actual globe textures without changing the unrestricted path.
 	if (!_rule.ofGetExcludedLandingTextures().empty())
 	{
-		return ofSelectLandingPoint(globe, region, zone, -1, ufo);
+		return LandingTextures::selectLandingPoint(globe, region, zone, -1, ufo, _rule,
+			ofLandingSelectionFailed, _missionSiteZoneArea);
 	}
 	// End OF
 
@@ -1490,7 +1471,8 @@ std::pair<double, double> AlienMission::getLandPointForMissionSite(const Globe& 
 	// OF - Retry the selected area, then other areas in the same mission-site zone.
 	if (!_rule.ofGetExcludedLandingTextures().empty())
 	{
-		return ofSelectLandingPoint(globe, region, zone, area, ufo);
+		return LandingTextures::selectLandingPoint(globe, region, zone, area, ufo, _rule,
+			ofLandingSelectionFailed, _missionSiteZoneArea);
 	}
 	// End OF
 
