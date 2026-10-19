@@ -28,13 +28,15 @@ Those files are not to be merged to the upstream OXCE repository.
 
 ## Build And Test
 
-Run these commands from the repository root with Node.js 18+, pnpm, CMake, and the engine's build dependencies installed (see [upstream instructions](README-OXCE.md)).
+Run these commands from the repository root with Node.js 18+ and pnpm.
 
 ```sh
 pnpm build
 ```
 
-Builds the Release application at `build/openxcom.app`. The build helper currently supports macOS only and expects dependencies installed through MacPorts under `/opt/local`.
+Builds in Release configuration on macOS and Linux. Use `pnpm build --debug` for Debug configuration. Both configurations use the `build` directory; the output is `build/openxcom.app` on macOS and `build/bin/openxcom` on Linux.
+
+The helper checks build tools, compilers, and engine libraries before configuring the engine. If dependencies are missing, follow the installation instructions printed by `pnpm build`, then run it again.
 
 ```sh
 pnpm test
