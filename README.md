@@ -26,6 +26,24 @@ Those files are not to be merged to the upstream OXCE repository.
 - [OppositeForce.md](OppositeForce.md) - Opposite Force ruleset properties
 - `todo.md` - list of tasks and planned improvements
 
+## Build And Test
+
+Run these commands from the repository root with Node.js 18+, pnpm, CMake, and the engine's build dependencies installed (see [upstream instructions](README-OXCE.md)).
+
+```sh
+pnpm build
+```
+
+Builds the Release application at `build/openxcom.app`. The build helper currently supports macOS only and expects dependencies installed through MacPorts under `/opt/local`.
+
+```sh
+pnpm test
+```
+
+Builds and runs the headless test suite without launching gameplay. Tests require CMake 3.19 or newer; the test helper supports macOS, Linux, and Windows.
+
+Windows builds still need work: add Windows support to the build helper and either switch the Windows nightly workflow to CMake or add all OF modules to the legacy Visual Studio project, which currently omits newer modules. Windows tests use Clang/clang-cl; MSVC's `cl.exe` cannot compile the test fixtures.
+
 ## References
 
 - [OpenXcom Extended (OXCE)](https://github.com/MeridianOXC/OpenXcom)
