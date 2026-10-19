@@ -167,9 +167,10 @@ reveals.
 
 ## Geographic mission terrain
 
-Set `useGlobalTerrain: true` on an `alienDeployments` entry to select battlefield
-terrain from the globe texture at the mission coordinates. This is useful for
-mission sites whose stored regional texture differs from the actual biome.
+Set `useGlobalTerrain: true` on an `alienDeployments` entry used by a mission site
+to select battlefield terrain from the globe texture at that site's coordinates.
+This is useful for mission sites whose stored regional texture differs from the
+actual biome.
 
 ```yaml
 alienDeployments:
@@ -187,8 +188,10 @@ normal placement. `width`, `length`, and `height` still control battlefield size
 Explicit `terrains`, `script`, and `mapScripts` overrides retain their normal
 precedence. A terrain already selected by the caller also takes precedence.
 
-The boolean defaults to `false` and affects initial mission entry only. `refNode`
-inheritance and later rule layers preserve omitted values; set
+The boolean defaults to `false` and affects initial entry into **mission sites only**.
+Direct UFO encounters, base assaults, base defense, and later mission stages keep
+their ordinary terrain selection. `refNode` inheritance and later rule layers
+preserve omitted values; set
 `useGlobalTerrain: false` to disable an inherited value. The site's stored texture
 and starting-condition rules remain unchanged.
 

@@ -786,16 +786,8 @@ void BattlescapeGenerator::run()
 
 	_unitSequence = BattleUnit::MAX_SOLDIER_ID; // geoscape soldier IDs should stay below this number
 
-	// OF - Resolve geographic terrain before choosing its normal map script.
-	{
-		Target *target = _ufo;
-		if (_mission) target = _mission;
-		if (!target) target = _alienBase;
-		if (!target) target = _base;
-		if (!target) target = _craft;
-		_terrain = GlobalTerrain::selectTerrain(*_mod, *ruleDeploy, _terrain, _globeTexture, target);
-	}
-	// End OF
+	// OF - Resolve mission-site terrain before choosing its normal map script.
+	_terrain = GlobalTerrain::selectTerrain(*_mod, *ruleDeploy, _terrain, _globeTexture, _mission);
 
 	if (_terrain == 0)
 	{

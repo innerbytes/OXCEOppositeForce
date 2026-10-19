@@ -231,9 +231,10 @@ TEST_CASE("GlobalTerrain_NoAvailableTerrains_ThrowsGeneratorError", "[global-ter
     // Arrange
     RulesFixture fixture;
     auto &deployment = fixture.createDeployment("EMPTY", "useGlobalTerrain: true");
+    MissionSite site(nullptr, &deployment, nullptr);
 
     // Act
-    const auto select = [&] { GlobalTerrain::selectTerrain(fixture.getMod(), deployment, nullptr, nullptr, nullptr); };
+    const auto select = [&] { GlobalTerrain::selectTerrain(fixture.getMod(), deployment, nullptr, nullptr, &site); };
 
     // Assert
     REQUIRE_THROWS_WITH(select(), "Map generator encountered an error: No valid terrain found.");
@@ -272,20 +273,24 @@ TEST_CASE("GlobalTerrain_NoMatchingGeographicCriteria_ThrowsWithoutUsingStoredSi
     REQUIRE_THROWS_WITH(select(), "Map generator encountered an error: No valid terrain found.");
 }
 
-TEST_CASE("GlobalTerrain_MissingMissionTarget_ThrowsInsteadOfDereferencingNull", "[global-terrain][selection]")
+TEST_CASE("GlobalTerrain_NoMissionSite_PreservesTerrainWithoutConsumingRandomness", "[global-terrain][selection]")
 {
     // Arrange
     GlobalTerrainFixture fixture;
+    const bool preselected = GENERATE(false, true);
+    const bool missingTexture = GENERATE(false, true);
+    CAPTURE(preselected, missingTexture);
+    auto *terrain = preselected ? &fixture.urban : nullptr;
+    loadTexture(fixture.globeTexture, fixture.rules.getMod(), "terrain: [{name: UNKNOWN}]");
+    const auto seed = RNG::getSeed();
 
     // Act
-    const auto select = [&] {
-        GlobalTerrain::selectTerrain(fixture.rules.getMod(), fixture.deployment, nullptr, &fixture.globeTexture,
-                                     nullptr);
-    };
+    const auto *selected = GlobalTerrain::selectTerrain(fixture.rules.getMod(), fixture.deployment, terrain,
+                                                        missingTexture ? nullptr : &fixture.globeTexture, nullptr);
 
     // Assert
-    REQUIRE_THROWS_WITH(select(), Catch::Matchers::ContainsSubstring("No mission target") &&
-                                      Catch::Matchers::ContainsSubstring("RESEARCH"));
+    REQUIRE(selected == terrain);
+    REQUIRE(RNG::getSeed() == seed);
 }
 
 TEST_CASE("GlobalTerrain_DeploymentScriptOverrides_RetainsScriptAndMapScriptsPrecedence", "[global-terrain][scripts]")

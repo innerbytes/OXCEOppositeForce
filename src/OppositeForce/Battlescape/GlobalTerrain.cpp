@@ -5,13 +5,14 @@
 #include "../../Mod/AlienDeployment.h"
 #include "../../Mod/Mod.h"
 #include "../../Mod/Texture.h"
+#include "../../Savegame/MissionSite.h"
 
 namespace OpenXcom::GlobalTerrain
 {
     RuleTerrain *selectTerrain(Mod &mod, const AlienDeployment &deployment, RuleTerrain *selectedTerrain,
-                               Texture *globeTexture, Target *target)
+                               Texture *globeTexture, MissionSite *missionSite)
     {
-        if (selectedTerrain || !deployment.ofGetUseGlobalTerrain() || !deployment.getTerrains().empty())
+        if (!missionSite || selectedTerrain || !deployment.ofGetUseGlobalTerrain() || !deployment.getTerrains().empty())
             return selectedTerrain;
 
         if (!globeTexture || globeTexture->getTerrain()->empty())
@@ -23,11 +24,7 @@ namespace OpenXcom::GlobalTerrain
             return mod.getTerrain(mod.getTerrainList().front(), true);
         }
 
-        if (!target)
-            throw Exception("Map generator encountered an error: No mission target for global terrain selection in " +
-                            deployment.getType() + ".");
-
-        auto *terrain = mod.getTerrain(globeTexture->getRandomTerrain(target), true);
+        auto *terrain = mod.getTerrain(globeTexture->getRandomTerrain(missionSite), true);
         if (!terrain) throw Exception("Map generator encountered an error: No valid terrain found.");
         return terrain;
     }
