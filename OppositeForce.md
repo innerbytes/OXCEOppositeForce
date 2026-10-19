@@ -9,6 +9,7 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 - [Disable avatar selection](#disable-avatar-selection)
 - [Hidden UFOs](#hidden-ufos)
 - [Geographic mission terrain](#geographic-mission-terrain)
+- [Excluded landing textures](#excluded-landing-textures)
 - [Custom terrain spawn points](#custom-terrain-spawn-points)
 
 ## Hangar compatibility
@@ -194,6 +195,38 @@ their ordinary terrain selection. `refNode` inheritance and later rule layers
 preserve omitted values; set
 `useGlobalTerrain: false` to disable an inherited value. The site's stored texture
 and starting-condition rules remain unchanged.
+
+## Excluded landing textures
+
+Set `excludedLandingTextures` on an `alienMissions` entry to prevent its standard
+UFO landing procedure from choosing coordinates on the listed globe texture IDs:
+
+```yaml
+alienMissions:
+  - type: STR_SMALL_RESEARCH_GROUND
+    spawnZone: 1
+    excludedLandingTextures: [9, 12]
+```
+
+The optional array defaults to empty, preserving the original landing behavior.
+Each value is an actual globe texture ID at the sampled coordinates.
+
+Exclusions apply to ordinary UFO landings and also when both
+`objectiveOnTheLandingSite: true` on the wave and `useGlobalTerrain: true` on the
+site deployment are enabled. The landing coordinates are checked before creating
+the site and selecting its battlefield terrain.
+
+The search checks up to 100 random coordinates in the selected area, then tries
+the remaining areas in the same zone in random order, once each. Fixed-point
+areas are checked once. Existing landing requirements still apply. The bounded
+search can miss small valid patches.
+
+If every area fails, the engine logs a warning and skips that UFO spawn or removes
+the in-flight UFO. It creates no site and allows later waves to proceed. Excluded
+textures are never accepted as a forced fallback.
+
+Directly spawned sites without a UFO, fixed XCOM/alien base targets, crashes, and
+separate alien-base placement procedures are not filtered.
 
 ## Custom terrain spawn points
 

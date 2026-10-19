@@ -48,6 +48,10 @@ class Base;
 class AlienMission
 {
 private:
+
+	// OF - Transient result of the current landing search; never serialized.
+	bool ofLandingSelectionFailed = false;
+
 	const RuleAlienMission &_rule;
 	std::string _region, _race;
 	size_t _nextWave;
