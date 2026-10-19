@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -214,7 +214,7 @@ function getMacBuildSettings(environment, cache) {
   const sdk = getMacSdk(childEnvironment, cache);
   if (sdk) {
     childEnvironment.SDKROOT = sdk;
-    settings.configureArguments.push(`-DCMAKE_OSX_SYSROOT=${sdk}`);
+    settings.configureArguments.push(`-DCMAKE_OSX_SYSROOT=${sdk}`, ...getMacFrameworkCacheArguments(sdk, cache));
     settings.compilerArguments.push("-isysroot", sdk);
   } else {
     settings.missing.push({ name: "macOS SDK with C++ headers", apple: true });
@@ -257,6 +257,22 @@ function getMacSdk(environment, cache) {
   }
 
   return sdk && existsSync(path.join(sdk, "usr", "include", "c++", "v1", "vector")) ? sdk : undefined;
+}
+
+function getMacFrameworkCacheArguments(sdk, cache) {
+  const selectedSdk = realpathSync(sdk);
+  const argumentsToRefresh = [];
+
+  // CMake retains SDK-dependent discovery results when the sysroot changes.
+  for (const entry of cache.matchAll(/^(OPENGL_[^:\r\n]+):(?:PATH|FILEPATH)=(.+)$/gm)) {
+    const cachedSdk = entry[2].match(/^(.*?\.sdk)(?:\/|$)/)?.[1];
+    if (!cachedSdk) continue;
+
+    const resolvedSdk = existsSync(cachedSdk) ? realpathSync(cachedSdk) : path.resolve(cachedSdk);
+    if (resolvedSdk !== selectedSdk) argumentsToRefresh.push("-U", entry[1]);
+  }
+
+  return argumentsToRefresh;
 }
 
 // Linux: keep system tool discovery and choose distro-appropriate installation guidance.
