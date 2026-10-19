@@ -147,6 +147,10 @@ public:
 	bool skipScoutingPhase() const { return _skipScoutingPhase; }
 	/// Gets the zone for spawning an alien site or base.
 	int getSpawnZone() const { return _spawnZone; }
+
+	// OF - Globe textures excluded from standard landing selection.
+	const std::vector<int> &ofGetExcludedLandingTextures() const { return ofExcludedLandingTextures; }
+
 	/// Gets the chances of this mission based on the game time.
 	int getWeight(const size_t monthsPassed) const;
 	/// Gets the inherent odds of this mission spawning a retaliation mission.
@@ -184,6 +188,10 @@ public:
 	/// Gets a region based on the game time and the region distribution. Works only for "gen missions" spawned by an alien base.
 	std::string generateRegion(const size_t monthsPassed) const;
 private:
+
+	// OF - Optional landing texture restrictions.
+	std::vector<int> ofExcludedLandingTextures;
+
 	/// The mission's type ID.
 	std::string _type;
 	/// The UFO to use for spawning.

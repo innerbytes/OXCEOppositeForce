@@ -65,6 +65,10 @@ void RuleAlienMission::load(const YAML::YamlNodeReader& node)
 	reader.tryRead("spawnUfo", _spawnUfo);
 	reader.tryRead("skipScoutingPhase", _skipScoutingPhase);
 	reader.tryRead("spawnZone", _spawnZone);
+
+	// OF - Load landing texture restrictions, preserving omitted inherited values.
+	reader.tryRead("excludedLandingTextures", ofExcludedLandingTextures);
+
 	reader.tryRead("missionWeights", _weights);
 	reader.tryRead("retaliationOdds", _retaliationOdds);
 	reader.tryRead("endlessInfiltration", _endlessInfiltration);

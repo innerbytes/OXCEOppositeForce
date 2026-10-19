@@ -45,6 +45,8 @@
 #include <functional>
 #include "../Mod/AlienDeployment.h"
 
+#include "../OppositeForce/Geoscape/LandingTextures.h"
+
 namespace OpenXcom
 {
 
@@ -186,8 +188,20 @@ void AlienMission::think(Game &engine, const Globe &globe)
 	}
 	const MissionWave &wave = _rule.getWave(_nextWave);
 	const UfoTrajectory &trajectory = *mod.getUfoTrajectory(wave.trajectory, true);
+
+	// OF - Reset the transient landing result for this spawn attempt.
+	ofLandingSelectionFailed = false;
+
 	Ufo *ufo = spawnUfo(game, mod, globe, wave, trajectory);
-	if (ufo)
+
+	// OF - Count a failed UFO spawn normally, without falling back to a direct site.
+	if (ofLandingSelectionFailed)
+	{
+		delete ufo;
+	}
+	// End OF
+
+	else if (ufo)
 	{
 		//Some missions may not spawn a UFO!
 		ufo->setMissionWaveNumber(_nextWave);
@@ -547,6 +561,15 @@ Ufo *AlienMission::spawnUfo(SavedGame &game, const Mod &mod, const Globe &globe,
 			else if (trajectory.getAltitude(0) == "STR_GROUND")
 			{
 				pos = getLandPoint(globe, regionRules, trajectory.getZone(0), *ufo);
+
+				// OF - Discard a UFO with no permissible landing point.
+				if (ofLandingSelectionFailed)
+				{
+					delete ufo;
+					return 0;
+				}
+				// End OF
+
 			}
 			else
 			{
@@ -598,6 +621,15 @@ Ufo *AlienMission::spawnUfo(SavedGame &game, const Mod &mod, const Globe &globe,
 		else if (trajectory.getAltitude(0) == "STR_GROUND")
 		{
 			pos = getLandPoint(globe, regionRules, trajectory.getZone(0), *ufo);
+
+			// OF - Discard a UFO with no permissible landing point.
+			if (ofLandingSelectionFailed)
+			{
+				delete ufo;
+				return 0;
+			}
+			// End OF
+
 		}
 		else
 		{
@@ -620,6 +652,16 @@ Ufo *AlienMission::spawnUfo(SavedGame &game, const Mod &mod, const Globe &globe,
 			{
 				// Other ships can land where they want.
 				pos = getLandPoint(globe, regionRules, trajectory.getZone(1), *ufo);
+
+				// OF - Release the pending waypoint and UFO after a failed landing search.
+				if (ofLandingSelectionFailed)
+				{
+					delete wp;
+					delete ufo;
+					return 0;
+				}
+				// End OF
+
 			}
 		}
 		else
@@ -661,6 +703,15 @@ Ufo *AlienMission::spawnUfo(SavedGame &game, const Mod &mod, const Globe &globe,
 	ufo->setMissionInfo(this, &trajectory);
 	const RuleRegion &regionRules = *mod.getRegion(_region, true);
 	std::pair<double, double> pos = getWaypoint(wave, trajectory, 0, globe, regionRules, *ufo);
+
+	// OF - Discard a UFO with no permissible landing point.
+	if (ofLandingSelectionFailed)
+	{
+		delete ufo;
+		return 0;
+	}
+	// End OF
+
 	ufo->setAltitude(trajectory.getAltitude(0));
 	if (trajectory.getAltitude(0) == "STR_GROUND")
 	{
@@ -679,6 +730,16 @@ Ufo *AlienMission::spawnUfo(SavedGame &game, const Mod &mod, const Globe &globe,
 	if (trajectory.getWaypointCount() > 1)
 	{
 		pos = getWaypoint(wave, trajectory, 1, globe, regionRules, *ufo);
+
+		// OF - Release the pending waypoint and UFO after a failed landing search.
+		if (ofLandingSelectionFailed)
+		{
+			delete wp;
+			delete ufo;
+			return 0;
+		}
+		// End OF
+
 	}
 	else
 	{
@@ -871,8 +932,22 @@ void AlienMission::ufoReachedWaypoint(Ufo &ufo, Game &engine, const Globe &globe
 	ufo.setTrajectoryPoint(nextWaypoint);
 	const RuleRegion &regionRules = *mod.getRegion(_region, true);
 
+	// OF - Keep arrival metadata separate from the next landing search.
+	const int arrivalArea = _missionSiteZoneArea;
+	ofLandingSelectionFailed = false;
+	// End OF
+
 	{
 		std::pair<double, double> pos = getWaypoint(wave, trajectory, nextWaypoint, globe, regionRules, ufo);
+
+		// OF - Remove an in-flight UFO when its landing search is exhausted.
+		if (ofLandingSelectionFailed)
+		{
+			ufo.setDetected(false);
+			ufo.setStatus(Ufo::DESTROYED);
+			return;
+		}
+		// End OF
 
 		Waypoint *wp = new Waypoint();
 		wp->setLongitude(pos.first);
@@ -898,6 +973,16 @@ void AlienMission::ufoReachedWaypoint(Ufo &ufo, Game &engine, const Globe &globe
 			addScore(ufo.getLongitude(), ufo.getLatitude(), game);
 
 			MissionArea area = regionRules.getMissionZones().at(trajectory.getZone(curWaypoint)).areas.at(_missionSiteZoneArea);
+
+			// OF - Use the area belonging to the arriving landing, not its next destination.
+			if (!_rule.ofGetExcludedLandingTextures().empty() && wave.objectiveOnTheLandingSite && arrivalArea != -1)
+			{
+				const int landingArea = LandingTextures::findLandingArea(regionRules, trajectory.getZone(curWaypoint),
+					std::make_pair(ufo.getLongitude(), ufo.getLatitude()), arrivalArea);
+				area = regionRules.getMissionZones().at(trajectory.getZone(curWaypoint)).areas.at(landingArea);
+			}
+			// End OF
+
 			if (wave.objectiveOnTheLandingSite)
 			{
 				// Note: 'area' is a local variable; we're not changing the ruleset
@@ -1282,6 +1367,26 @@ std::pair<double, double> AlienMission::getWaypoint(const MissionWave &wave, con
 	return region.getRandomPoint(trajectory.getZone(nextWaypoint));
 }
 
+// OF - Adapt bounded landing searches to the existing coordinate interfaces.
+std::pair<double, double> AlienMission::ofSelectLandingPoint(const Globe &globe, const RuleRegion &region, size_t zone, int area, const Ufo &ufo)
+{
+	auto selection = LandingTextures::selectLandingPoint(globe, region, zone, area,
+		ufo.getRules()->getFakeWaterLandingChance(), area != -1, _rule.ofGetExcludedLandingTextures());
+	ofLandingSelectionFailed = !selection.found;
+	if (selection.found)
+	{
+		if (area != -1) _missionSiteZoneArea = selection.area;
+		return selection.position;
+	}
+	std::ostringstream exclusions;
+	for (int texture : _rule.ofGetExcludedLandingTextures()) exclusions << texture << ' ';
+	Log(LOG_WARNING) << "Mission: " << _rule.getType() << " Region: " << region.getType()
+		<< " zone: " << zone << " no permissible landing point found; excluded textures: ["
+		<< exclusions.str() << "]; skipping UFO landing.";
+	return {};
+}
+// End OF
+
 /**
  * Get a random point inside the given region zone.
  * The point will be used to land a UFO, so it HAS to be on land (UNLESS it's landing on a city).
@@ -1297,6 +1402,13 @@ std::pair<double, double> AlienMission::getLandPoint(const Globe &globe, const R
 	{
 		logMissionError(zone, region);
 	}
+
+	// OF - Restrict actual globe textures without changing the unrestricted path.
+	if (!_rule.ofGetExcludedLandingTextures().empty())
+	{
+		return ofSelectLandingPoint(globe, region, zone, -1, ufo);
+	}
+	// End OF
 
 	std::pair<double, double> pos;
 
@@ -1374,6 +1486,13 @@ std::pair<double, double> AlienMission::getLandPointForMissionSite(const Globe& 
 		ss << ", but this zone only has areas valid up to " << region.getMissionZones().at(zone).areas.size() - 1 << ".";
 		throw Exception(ss.str());
 	}
+
+	// OF - Retry the selected area, then other areas in the same mission-site zone.
+	if (!_rule.ofGetExcludedLandingTextures().empty())
+	{
+		return ofSelectLandingPoint(globe, region, zone, area, ufo);
+	}
+	// End OF
 
 	std::pair<double, double> pos;
 	{
