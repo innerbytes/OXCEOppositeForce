@@ -47,6 +47,7 @@ namespace OpenXcom::OppositeForceTests
         RuleManufacture &createManufacture(const std::string &type, const std::string &craftType);
         RuleAlienMission &createAlienMission(const std::string &type, const std::string &yaml);
         AlienDeployment &createDeployment(const std::string &type, const std::string &yaml = "{}");
+        const std::vector<MapScript *> &createMapScript(const std::string &type, const std::string &yaml);
         Armor &createArmor(const std::string &type);
         RuleTerrain &createTerrain(const std::string &type, const std::string &yaml);
         MapDataSet &createMapDataSet(const std::string &type);
@@ -56,6 +57,7 @@ namespace OpenXcom::OppositeForceTests
         void loadRule(RuleBaseFacility &rule, const std::string &yaml);
         void loadRule(RuleCountry &rule, const std::string &yaml);
         void loadRule(RuleSoldier &rule, const std::string &yaml);
+        void loadRule(AlienDeployment &rule, const std::string &yaml);
         void setDestroyedFacility(RuleBaseFacility &rule, const RuleBaseFacility &replacement);
         MissionSite *spawnMissionSite(AlienMission &mission, SavedGame &save, const MissionArea &area, const Ufo *ufo);
 
