@@ -44,6 +44,8 @@
 #include "MeleeAttackBState.h"
 #include "../fmath.h"
 
+#include "../OppositeForce/Battlescape/UnitCombatRules.h"
+
 namespace OpenXcom
 {
 namespace
@@ -2675,7 +2677,14 @@ TileEngine::ReactionScore *TileEngine::getReactor(std::vector<TileEngine::Reacti
 	{
 		if (best->unit->getOriginalFaction() == FACTION_PLAYER)
 		{
-			best->unit->addReactionExp();
+
+			// OF - Excluded targets grant no reaction experience.
+			if (!UnitCombatRules::shouldDisableKillRecords(unit))
+			{
+				best->unit->addReactionExp();
+			}
+			// End OF
+
 		}
 	}
 	else
@@ -3174,7 +3183,14 @@ bool TileEngine::hitUnit(BattleActionAttack attack, BattleUnit *target, const Po
 	// single place for firing/throwing/melee experience training
 	if (attack.attacker && attack.attacker->getOriginalFaction() == FACTION_PLAYER)
 	{
-		awardExperience(attack, target, rangeAtack);
+
+		// OF - Excluded damage targets grant no skill or mana experience.
+		if (!UnitCombatRules::shouldDisableKillRecords(target))
+		{
+			awardExperience(attack, target, rangeAtack);
+		}
+		// End OF
+
 	}
 
 	// Use case: an xcom soldier throwing a smoke grenade on a dying unit should not override the previously remembered murderer

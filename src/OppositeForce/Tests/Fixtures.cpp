@@ -143,6 +143,33 @@ namespace OpenXcom::OppositeForceTests
         return registerRule(getMod()._armors, type, std::move(rule));
     }
 
+    Unit &RulesFixture::createUnit(const std::string &type, const std::string &yaml)
+    {
+        auto rule = std::make_unique<Unit>(type);
+        loadRule(*rule, yaml);
+        return registerRule(getMod()._units, type, std::move(rule));
+    }
+
+    RuleItem &RulesFixture::createItem(const std::string &type, const std::string &yaml)
+    {
+        auto rule = std::make_unique<RuleItem>(type, 0);
+        YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test item rule");
+        rule->load(reader, &getMod(), _implementation->getParsers());
+        return registerRule(getMod()._items, type, std::move(rule));
+    }
+
+    void RulesFixture::loadRule(Unit &rule, const std::string &yaml)
+    {
+        YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test unit rule");
+        rule.load(reader, &getMod());
+    }
+
+    void RulesFixture::loadRule(Armor &rule, const std::string &yaml)
+    {
+        YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test armor rule");
+        rule.load(reader, &getMod(), _implementation->getParsers());
+    }
+
     RuleTerrain &RulesFixture::createTerrain(const std::string &type, const std::string &yaml)
     {
         auto rule = std::make_unique<RuleTerrain>(type);

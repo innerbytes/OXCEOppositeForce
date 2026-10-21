@@ -60,6 +60,8 @@
 #include "ConfirmEndMissionState.h"
 #include "../fmath.h"
 
+#include "../OppositeForce/Battlescape/UnitCombatRules.h"
+
 namespace OpenXcom
 {
 
@@ -801,6 +803,9 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 			}
 		}
 
+		// OF - Preserve attribution while suppressing excluded casualty records.
+		UnitCombatRules::suppressCasualtyRecord(*victim, murderer, killStat, *_save->getUnits());
+
 		if (murderer && killStat.status != STATUS_IGNORE_ME)
 		{
 			if (murderer->getFaction() == FACTION_PLAYER && murderer->getOriginalFaction() != FACTION_PLAYER)
@@ -846,7 +851,14 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 
 				if (murderer)
 				{
-					murderer->addKillCount();
+
+					// OF - Excluded targets grant no kill count or promotion score.
+					if (!UnitCombatRules::shouldDisableKillRecords(victim))
+					{
+						murderer->addKillCount();
+					}
+					// End OF
+
 					victim->killedBy(murderer->getFaction());
 					int modifier = murderer->getFaction() == FACTION_PLAYER ? _save->getFactionMoraleModifier(true) : 100;
 

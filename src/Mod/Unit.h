@@ -484,6 +484,11 @@ private:
 	bool _canBeMindControlled;
 	int _berserkChance;
 
+	// OF - Optional unit combat credit and stun damage controls.
+	bool _ofDisableKillRecords = false;
+	bool _ofCanBeStunned = true;
+	// End OF
+
 public:
 	/// Creates a blank unit ruleset.
 	Unit(const std::string &type);
@@ -610,6 +615,12 @@ public:
 	bool canPanic() const { return _canPanic; }
 	/// Checks if this unit can be mind controlled.
 	bool canBeMindControlled() const { return _canBeMindControlled; }
+
+	// OF - Expose optional unit combat credit and stun damage controls.
+	bool ofGetDisableKillRecords() const { return _ofDisableKillRecords; }
+	bool ofCanBeStunned() const { return _ofCanBeStunned; }
+	// End OF
+
 	/// Gets the probability of unit berserking when panicked.
 	int getBerserkChance() const { return _berserkChance; }
 

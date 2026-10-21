@@ -116,6 +116,12 @@ void Unit::load(const YAML::YamlNodeReader& node, Mod *mod)
 	reader.tryRead("ignoredByAI", _ignoredByAI);
 	reader.tryRead("canPanic", _canPanic);
 	reader.tryRead("canBeMindControlled", _canBeMindControlled);
+
+	// OF - Load optional unit combat credit and stun damage controls.
+	reader.tryRead("disableKillRecords", _ofDisableKillRecords);
+	reader.tryRead("canBeStunned", _ofCanBeStunned);
+	// End OF
+
 	reader.tryRead("berserkChance", _berserkChance);
 	reader.tryRead("builtInWeaponSets", _builtInWeaponsNames);
 	if (reader["builtInWeapons"])

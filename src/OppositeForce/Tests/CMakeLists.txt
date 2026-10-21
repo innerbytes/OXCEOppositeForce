@@ -66,8 +66,9 @@ endif()
 target_compile_options(opposite_force_test_fixtures PRIVATE "${fixture_access_flag}")
 
 file(GLOB test_sources CONFIGURE_DEPENDS "${test_source_directory}/*Tests.cpp")
-# Landing fixtures exercise private mission entry points with SDL's dummy driver.
+# Landing and combat fixtures exercise private engine entry points headlessly.
 set_source_files_properties("${test_source_directory}/LandingTexturesTests.cpp"
+    "${test_source_directory}/UnitCombatTests.cpp"
     PROPERTIES COMPILE_OPTIONS "${fixture_access_flag}")
 add_executable(opposite_force_tests
     "${test_source_directory}/TestEnvironment.cpp"

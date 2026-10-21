@@ -11,6 +11,36 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 - [Geographic mission terrain](#geographic-mission-terrain)
 - [Excluded landing textures](#excluded-landing-textures)
 - [Custom terrain spawn points](#custom-terrain-spawn-points)
+- [Unit kill credit and stun damage](#unit-kill-credit-and-stun-damage)
+
+## Unit kill credit and stun damage
+
+Use these optional `units[]` properties for destructible exploration objects:
+
+```yaml
+units:
+  - type: OBJ_SAMPLE_GROUND
+    disableKillRecords: true
+    canBeStunned: false
+```
+
+| Property | Default | Effect |
+| --- | --- | --- |
+| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience. |
+| `canBeStunned` | `true` | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
+
+With `disableKillRecords: true`, killing or stunning this unit grants no kill
+records, kill-based commendations or promotion credit. Damaging it grants no
+skill, mana or reaction experience. Shots, hits, diary accuracy and hit-based
+commendations still count. Mission participation and unrelated actions can still
+advance a soldier.
+
+Mind-control and panic rewards are unchanged. For exploration objects, use
+`canBeMindControlled: false` and `canPanic: false` to prevent those attacks.
+
+`canBeStunned: false` protects against stun damage; explicit scripted or mission
+knockouts remain possible. Use either property independently, or both together
+for exploration objects. Omitting them keeps normal behavior.
 
 ## Hangar compatibility
 

@@ -14,11 +14,13 @@
 #include "Mod/RuleBaseFacility.h"
 #include "Mod/RuleCountry.h"
 #include "Mod/RuleCraft.h"
+#include "Mod/RuleItem.h"
 #include "Mod/RuleManufacture.h"
 #include "Mod/RuleRegion.h"
 #include "Mod/RuleSoldier.h"
 #include "Mod/RuleTerrain.h"
 #include "Mod/RuleUfo.h"
+#include "Mod/Unit.h"
 #include "OppositeForce/Savegame/HangarCompatibility.h"
 #include "Savegame/AlienMission.h"
 #include "Savegame/Base.h"
@@ -49,6 +51,8 @@ namespace OpenXcom::OppositeForceTests
         AlienDeployment &createDeployment(const std::string &type, const std::string &yaml = "{}");
         const std::vector<MapScript *> &createMapScript(const std::string &type, const std::string &yaml);
         Armor &createArmor(const std::string &type);
+        Unit &createUnit(const std::string &type, const std::string &yaml = "{}");
+        RuleItem &createItem(const std::string &type, const std::string &yaml = "{}");
         RuleTerrain &createTerrain(const std::string &type, const std::string &yaml);
         MapDataSet &createMapDataSet(const std::string &type);
         void createInventoryGround();
@@ -58,6 +62,8 @@ namespace OpenXcom::OppositeForceTests
         void loadRule(RuleCountry &rule, const std::string &yaml);
         void loadRule(RuleSoldier &rule, const std::string &yaml);
         void loadRule(AlienDeployment &rule, const std::string &yaml);
+        void loadRule(Unit &rule, const std::string &yaml);
+        void loadRule(Armor &rule, const std::string &yaml);
         void setDestroyedFacility(RuleBaseFacility &rule, const RuleBaseFacility &replacement);
         MissionSite *spawnMissionSite(AlienMission &mission, SavedGame &save, const MissionArea &area, const Ufo *ufo);
 

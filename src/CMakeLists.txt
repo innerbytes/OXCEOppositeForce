@@ -460,6 +460,7 @@ set ( cxx_src
     OppositeForce/Mod/HangarRules.cpp
     OppositeForce/Mod/TerrainSpawnRules.cpp
     OppositeForce/Battlescape/GlobalTerrain.cpp
+    OppositeForce/Battlescape/UnitCombatRules.cpp
     OppositeForce/Battlescape/TerrainSpawnValidation.cpp
     OppositeForce/Battlescape/TerrainSpawnPoints.cpp
     OppositeForce/Savegame/HangarCompatibility.cpp
