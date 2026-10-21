@@ -6,41 +6,12 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 
 - [Hangar compatibility](#hangar-compatibility)
 - [Funding actor names](#funding-actor-names)
-- [Disable avatar selection](#disable-avatar-selection)
 - [Hidden UFOs](#hidden-ufos)
 - [Geographic mission terrain](#geographic-mission-terrain)
 - [Excluded landing textures](#excluded-landing-textures)
 - [Custom terrain spawn points](#custom-terrain-spawn-points)
+- [Disable avatar selection](#disable-avatar-selection)
 - [Unit kill credit and stun damage](#unit-kill-credit-and-stun-damage)
-
-## Unit kill credit and stun damage
-
-Use these optional `units[]` properties for destructible exploration objects:
-
-```yaml
-units:
-  - type: OBJ_SAMPLE_GROUND
-    disableKillRecords: true
-    canBeStunned: false
-```
-
-| Property | Default | Effect |
-| --- | --- | --- |
-| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience. |
-| `canBeStunned` | `true` | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
-
-With `disableKillRecords: true`, killing or stunning this unit grants no kill
-records, kill-based commendations or promotion credit. Damaging it grants no
-skill, mana or reaction experience. Shots, hits, diary accuracy and hit-based
-commendations still count. Mission participation and unrelated actions can still
-advance a soldier.
-
-Mind-control and panic rewards are unchanged. For exploration objects, use
-`canBeMindControlled: false` and `canPanic: false` to prevent those attacks.
-
-`canBeStunned: false` protects against stun damage; explicit scripted or mission
-knockouts remain possible. Use either property independently, or both together
-for exploration objects. Omitting them keeps normal behavior.
 
 ## Hangar compatibility
 
@@ -148,28 +119,6 @@ The feature only changes individual actor names. Generic headings and sentences
 such as “Country,” “International Relations,” and “Countries Lost” can be changed
 using their existing localization keys. No save migration is required.
 
-## Disable avatar selection
-
-Set `disableAvatarSelection: true` on a soldier type to disable the inventory's
-manual avatar selector, both through right-click and the avatar keyboard shortcut.
-The action silently does nothing; armor selection is unaffected.
-
-```yaml
-soldiers:
-  - type: STR_SECTOID
-    disableAvatarSelection: true
-  - type: STR_FLOATER
-    disableAvatarSelection: true
-```
-
-The optional boolean defaults to `false`, preserving normal avatar selection for
-all soldier types that do not opt in, including humans. It follows `refNode`
-inheritance and ruleset layering: omission preserves an inherited or previously
-loaded value, and explicit `false` re-enables selection.
-
-The restriction applies to all existing and new soldiers of that type. It does
-not change their stored gender or appearance, and no save migration is required.
-
 ## Hidden UFOs
 
 Set `isHidden: true` on a UFO type to prevent normal detection and automatic
@@ -194,7 +143,6 @@ existing land checks and fallback behavior are unchanged.
 The debug **Ctrl+7** command can still reveal hidden UFOs and their hyperwave
 information. Loading a save clears their detection flags, including debug
 reveals.
-
 
 ## Geographic mission terrain
 
@@ -330,3 +278,54 @@ terrains:
     mapBlockSpawnPoints:
       FOREST00: []
 ```
+
+## Disable avatar selection
+
+Set `disableAvatarSelection: true` on a soldier type to disable the inventory's
+manual avatar selector, both through right-click and the avatar keyboard shortcut.
+The action silently does nothing; armor selection is unaffected.
+
+```yaml
+soldiers:
+  - type: STR_SECTOID
+    disableAvatarSelection: true
+  - type: STR_FLOATER
+    disableAvatarSelection: true
+```
+
+The optional boolean defaults to `false`, preserving normal avatar selection for
+all soldier types that do not opt in, including humans. It follows `refNode`
+inheritance and ruleset layering: omission preserves an inherited or previously
+loaded value, and explicit `false` re-enables selection.
+
+The restriction applies to all existing and new soldiers of that type. It does
+not change their stored gender or appearance, and no save migration is required.
+
+## Unit kill credit and stun damage
+
+Use these optional `units[]` properties for destructible exploration objects:
+
+```yaml
+units:
+  - type: OBJ_SAMPLE_GROUND
+    disableKillRecords: true
+    canBeStunned: false
+```
+
+| Property | Default | Effect |
+| --- | --- | --- |
+| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience. |
+| `canBeStunned` | `true` | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
+
+With `disableKillRecords: true`, killing or stunning this unit grants no kill
+records, kill-based commendations or promotion credit. Damaging it grants no
+skill, mana or reaction experience. Shots, hits, diary accuracy and hit-based
+commendations still count. Mission participation and unrelated actions can still
+advance a soldier.
+
+Mind-control and panic rewards are unchanged. For exploration objects, use
+`canBeMindControlled: false` and `canPanic: false` to prevent those attacks.
+
+`canBeStunned: false` protects against stun damage; explicit scripted or mission
+knockouts remain possible. Use either property independently, or both together
+for exploration objects. Omitting them keeps normal behavior.
