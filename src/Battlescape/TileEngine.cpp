@@ -2683,7 +2683,6 @@ TileEngine::ReactionScore *TileEngine::getReactor(std::vector<TileEngine::Reacti
 			{
 				best->unit->addReactionExp();
 			}
-			// End OF
 
 		}
 	}
@@ -3189,7 +3188,6 @@ bool TileEngine::hitUnit(BattleActionAttack attack, BattleUnit *target, const Po
 		{
 			awardExperience(attack, target, rangeAtack);
 		}
-		// End OF
 
 	}
 

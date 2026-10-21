@@ -153,38 +153,6 @@ TEST_CASE("Unit_LayeredCombatFlags_PreserveOrOverridePreviousValues", "[unit-com
     REQUIRE(rule.ofCanBeStunned() == stunnable);
 }
 
-TEST_CASE("Casualty_ExcludedTarget_PreservesAttributionWithoutJournalEntry", "[unit-combat][kills]")
-{
-    // Arrange
-    const auto status = GENERATE(STATUS_DEAD, STATUS_UNCONSCIOUS);
-    CombatFixture fixture;
-    auto event = fixture.createEvent(status);
-    std::vector<BattleUnit *> units{fixture.attacker.get(), fixture.target.get()};
-
-    // Act
-    UnitCombatRules::suppressCasualtyRecord(*fixture.target, fixture.attacker.get(), event, units);
-
-    // Assert
-    REQUIRE(event.status == STATUS_IGNORE_ME);
-    REQUIRE(fixture.target->getMurdererId() == fixture.attacker->getId());
-    REQUIRE(fixture.attacker->getStatistics()->kills.empty());
-}
-
-TEST_CASE("Casualty_DefaultTarget_PreservesExistingEventAndAttribution", "[unit-combat][kills]")
-{
-    // Arrange
-    const auto flags = GENERATE("{}", "cosmetic: true");
-    CombatFixture fixture(flags);
-    auto event = fixture.createEvent(STATUS_DEAD);
-
-    // Act
-    UnitCombatRules::suppressCasualtyRecord(*fixture.target, fixture.attacker.get(), event, {});
-
-    // Assert
-    REQUIRE(event.status == STATUS_DEAD);
-    REQUIRE(fixture.target->getMurdererId() == 0);
-}
-
 TEST_CASE("Experience_ExcludedTarget_BlocksManaAndScriptAwards", "[unit-combat][experience][scripts]")
 {
     // Arrange
@@ -282,10 +250,12 @@ TEST_CASE("BattleUnit_ExcludedTarget_PreservesShotStatisticsAndIndependentTraini
     fixture.attacker->getStatistics()->shotsFiredCounter = 4;
     fixture.attacker->getStatistics()->shotsLandedCounter = 3;
     fixture.attacker->getStatistics()->longDistanceHitCounter = 1;
-    auto event = fixture.createEvent(STATUS_DEAD);
+    auto &rule = fixture.rules.createItem("GUN", "battleType: 1\nmaxRange: 30");
+    int itemId = 1;
+    BattleItem weapon(&rule, &itemId);
 
     // Act
-    UnitCombatRules::suppressCasualtyRecord(*fixture.target, fixture.attacker.get(), event, {});
+    fixture.hitTarget(BattleActionAttack{BA_SNAPSHOT, fixture.attacker.get(), &weapon, &weapon});
     fixture.attacker->addThrowingExp();
 
     // Assert

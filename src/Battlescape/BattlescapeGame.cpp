@@ -803,9 +803,6 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 			}
 		}
 
-		// OF - Preserve attribution while suppressing excluded casualty records.
-		UnitCombatRules::suppressCasualtyRecord(*victim, murderer, killStat, *_save->getUnits());
-
 		if (murderer && killStat.status != STATUS_IGNORE_ME)
 		{
 			if (murderer->getFaction() == FACTION_PLAYER && murderer->getOriginalFaction() != FACTION_PLAYER)
@@ -815,18 +812,24 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 				{
 					if (bu->getId() == murderer->getMindControllerId() && bu->getGeoscapeSoldier())
 					{
-						if (!victim->isCosmetic())
+
+						// OF - Excluded damage targets grant no controller casualty statistics.
+						if (!UnitCombatRules::shouldDisableKillRecords(victim))
 						{
-							bu->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
-							if (killStat.status == STATUS_DEAD)
+							if (!victim->isCosmetic())
 							{
-								bu->addKillCount();
-							}
-							if (victim->getFaction() == FACTION_HOSTILE)
-							{
-								bu->getStatistics()->slaveKills++;
+								bu->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+								if (killStat.status == STATUS_DEAD)
+								{
+									bu->addKillCount();
+								}
+								if (victim->getFaction() == FACTION_HOSTILE)
+								{
+									bu->getStatistics()->slaveKills++;
+								}
 							}
 						}
+
 						victim->setMurdererId(bu->getId());
 						break;
 					}
@@ -834,10 +837,16 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 			}
 			else if (!murderer->getStatistics()->duplicateEntry(killStat.status, victim->getId()))
 			{
-				if (!victim->isCosmetic())
+
+				// OF - Excluded damage targets grant no casualty journal entries.
+				if (!UnitCombatRules::shouldDisableKillRecords(victim))
 				{
-					murderer->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+					if (!victim->isCosmetic())
+					{
+						murderer->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+					}
 				}
+
 				victim->setMurdererId(murderer->getId());
 			}
 		}
@@ -857,7 +866,6 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 					{
 						murderer->addKillCount();
 					}
-					// End OF
 
 					victim->killedBy(murderer->getFaction());
 					int modifier = murderer->getFaction() == FACTION_PLAYER ? _save->getFactionMoraleModifier(true) : 100;
