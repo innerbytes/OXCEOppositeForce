@@ -231,12 +231,12 @@ terrains:
 The fragment name must match an existing terrain block. These example coordinates
 illustrate syntax; they are **not verified locations** in FOREST00.
 
-| Property | Default | Meaning |
-| --- | --- | --- |
-| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`. |
+| Property   | Default  | Meaning                                                                                          |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`.                                   |
 | `unitSize` | Required | `1` for a 1×1 point or `2` for a dedicated 2×2 point. Each point accepts only its declared size. |
-| `rank` | `0` | OXCE node rank, from `0` through `8`; see below. |
-| `priority` | `1` | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank. |
+| `rank`     | `0`      | OXCE node rank, from `0` through `8`; see below.                                                 |
+| `priority` | `1`      | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank.         |
 
 A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
 `[x, y+1]`, and `[x+1, y+1]` on the same floor. Its four tiles are reserved against
@@ -244,17 +244,17 @@ A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
 is unaffected. Choose non-overlapping footprints inside the fragment with a
 walkable route to its ground-level exterior; upper floors can use stairs.
 
-| Rank | Spawn usage |
-| --- | --- |
-| `0` | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
-| `1` | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
-| `2` | AI opponent spawn category: Soldier. |
-| `3` | AI opponent spawn category: Navigator. |
-| `4` | AI opponent spawn category: Leader; preferred by both commanders and leaders. |
-| `5` | AI opponent spawn category: Engineer. |
-| `6` | AI opponent spawn category: Miscellaneous 1. |
-| `7` | AI opponent spawn category: Medic. |
-| `8` | AI opponent spawn category: Miscellaneous 2. |
+| Rank | Spawn usage                                                                                                                                          |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
+| `1`  | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
+| `2`  | AI opponent spawn category: Soldier.                                                                                                                 |
+| `3`  | AI opponent spawn category: Navigator.                                                                                                               |
+| `4`  | AI opponent spawn category: Leader; preferred by both commanders and leaders.                                                                        |
+| `5`  | AI opponent spawn category: Engineer.                                                                                                                |
+| `6`  | AI opponent spawn category: Miscellaneous 1.                                                                                                         |
+| `7`  | AI opponent spawn category: Medic.                                                                                                                   |
+| `8`  | AI opponent spawn category: Miscellaneous 2.                                                                                                         |
 
 These are **location categories**, not faction IDs or deployment `alienRank`
 values. They use the same numbers as vanilla `.RMP` spawn nodes. There is no
@@ -313,10 +313,10 @@ units:
     canBeStunned: false
 ```
 
-| Property | Default | Effect |
-| --- | --- | --- |
-| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience. |
-| `canBeStunned` | `true` | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
+| Property             | Default | Effect                                                                                                                                            |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience.                                                       |
+| `canBeStunned`       | `true`  | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
 
 With `disableKillRecords: true`, killing or stunning this unit grants no kill
 records, kill-based commendations or promotion credit. Damaging it grants no
@@ -368,13 +368,11 @@ After a scripted failure with a surviving squad, the craft returns to base.
 Total squad loss results in mission failure even when success was requested.
 Normal craft and base-loss rules apply.
 
-The result selects success/failure titles, cutscenes, research, bounty rewards,
-counters and events. It takes precedence over ordinary objective, escape-tile
-and VIP success requirements. The corresponding `objectiveComplete` or
-`objectiveFailed` score is awarded once at its configured value.
-
-Equipment recovery covers the full map when soldiers survive, for either
-scripted result. Prisoner recovery follows the existing mission rules.
+The manual mission completion result determines the success/failure titles,
+cutscenes, research, bounty rewards, counters and events instead of the ordinary
+success or failure of the mission objective would decide on them. The
+corresponding `objectiveComplete` or `objectiveFailed` scores are given once at
+their configured value.
 
 Restore ordinary OXCE mission-ending conditions with:
 
