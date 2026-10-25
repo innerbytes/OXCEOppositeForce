@@ -12,6 +12,7 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 - [Custom terrain spawn points](#custom-terrain-spawn-points)
 - [Disable avatar selection](#disable-avatar-selection)
 - [Unit kill credit and stun damage](#unit-kill-credit-and-stun-damage)
+- [Script-controlled mission completion](#script-controlled-mission-completion)
 
 ## Hangar compatibility
 
