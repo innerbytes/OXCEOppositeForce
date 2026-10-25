@@ -241,6 +241,10 @@ void BattlescapeGenerator::setMissionSite(MissionSite *mission)
  */
 void BattlescapeGenerator::nextStage()
 {
+
+	// OF - Native stage progression starts with normal completion and no old requests.
+	_save->ofGetMissionCompletion().resetForStage();
+
 	// check if the unit is available in the next stage
 	auto isUnitStillActive = [](const BattleUnit* u)
 	{

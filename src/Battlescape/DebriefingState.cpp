@@ -1028,6 +1028,12 @@ void DebriefingState::prepareDebriefing()
 
 	bool aborted = battle->isAborted();
 	bool success = !aborted || battle->allObjectivesDestroyed();
+
+	// OF - An applied script result is independent of abort and native objectives.
+	const auto &completion = battle->ofGetMissionCompletion();
+	success = completion.resolveSuccess(success, 1);
+	// End OF
+
 	Craft *craft = 0;
 	Base *base = 0;
 	std::string target;
@@ -1063,6 +1069,15 @@ void DebriefingState::prepareDebriefing()
 			addStat("STR_MISSION_ABORTED", 1, -ruleDeploy->getAbortPenalty());
 		}
 	}
+
+	// OF - Award the explicit objective result once, after native recovery processing.
+	if (completion.hasAppliedResult())
+	{
+		objectiveCompleteText.clear();
+		objectiveFailedText.clear();
+	}
+	// End OF
+
 	if (battle->getVIPSurvivalPercentage() > 0)
 	{
 		_stats.push_back(new DebriefingStat("STR_VIPS_LOST", false));
@@ -1158,6 +1173,14 @@ void DebriefingState::prepareDebriefing()
 			target = base->getType();
 			base->setInBattlescape(false);
 			base->cleanupDefenses(false);
+
+			// OF - Explicit failure loses a defended base without marking the battle aborted.
+			if (completion.hasAppliedResult() && !completion.resolveSuccess(success, 1))
+			{
+				_destroyBase = true;
+			}
+			// End OF
+
 			for (auto* region : *save->getRegions())
 			{
 				if (region->getRules()->insideRegion(base->getLongitude(), base->getLatitude()))
@@ -1320,6 +1343,9 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
+	// OF - Normal squad-loss handling can override a requested script victory.
+	success = completion.resolveSuccess(success, playersSurvived);
+
 	// if it's a UFO, let's see what happens to it
 	for (auto ufoIt = save->getUfos()->begin(); ufoIt != save->getUfos()->end(); ++ufoIt)
 	{
@@ -1335,7 +1361,15 @@ void DebriefingState::prepareDebriefing()
 			ufo->setInBattlescape(false);
 			// if XCom failed to secure the landing zone, the UFO
 			// takes off immediately and proceeds according to its mission directive
-			if (ufo->getStatus() == Ufo::LANDED && (aborted || playersSurvived == 0))
+
+			// OF - A landed UFO remains unsecured after explicit mission failure.
+			if (ufo->getStatus() == Ufo::LANDED && completion.hasAppliedResult() && !success)
+			{
+				ufo->setSecondsRemaining(5);
+			}
+			// End OF
+
+			else if (ufo->getStatus() == Ufo::LANDED && (aborted || playersSurvived == 0))
 			{
 				 ufo->setSecondsRemaining(5);
 			}
@@ -1357,7 +1391,14 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
-	if (ruleDeploy && ruleDeploy->getEscapeType() != ESCAPE_NONE)
+	// OF - Scripts decide the objective result independently of exit-tile occupancy.
+	if (completion.hasAppliedResult())
+	{
+		success = completion.resolveSuccess(success, playersSurvived);
+	}
+	// End OF
+
+	else if (ruleDeploy && ruleDeploy->getEscapeType() != ESCAPE_NONE)
 	{
 		if (ruleDeploy->getEscapeType() != ESCAPE_EXIT)
 		{
@@ -1409,6 +1450,9 @@ void DebriefingState::prepareDebriefing()
 				_missionStatistics->alienRace = ab->getAlienRace();
 				destroyAlienBase = false;
 			}
+
+			// OF - Script completion determines alien-base destruction even with nextStage set.
+			destroyAlienBase = completion.resolveSuccess(destroyAlienBase, playersSurvived);
 
 			success = destroyAlienBase;
 			if (destroyAlienBase)
@@ -1672,6 +1716,17 @@ void DebriefingState::prepareDebriefing()
 					}
 				}
 			}
+
+			// OF - Living civilians follow an explicit failed objective's outcome.
+			else if (oldFaction == FACTION_NEUTRAL && completion.hasAppliedResult() && !success)
+			{
+				if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
+				{
+					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -bunit->getValueCivilian());
+				}
+			}
+			// End OF
+
 			else if (oldFaction == FACTION_NEUTRAL)
 			{
 				// if mission fails, all civilians die
@@ -1782,6 +1837,9 @@ void DebriefingState::prepareDebriefing()
 			addStat("STR_VIPS_SAVED", battle->getSavedVIPs(), battle->getSavedVIPsScore());
 		}
 	}
+
+	// OF - VIP requirements do not override a script-owned mission result.
+	success = completion.resolveSuccess(success, playersSurvived);
 
 	if ((!aborted || success) && playersSurvived > 0) 	// RECOVER UFO : run through all tiles to recover UFO components and items
 	{
@@ -1931,6 +1989,19 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 	}
+
+	// OF - Present and score the explicit result without changing non-aborted recovery.
+	if (completion.hasAppliedResult())
+	{
+		const auto outcome = completion.getDebriefingOutcome(ruleDeploy, target, playersSurvived, lostCraft);
+		success = outcome.success;
+		_txtTitle->setText(tr(outcome.title));
+		if (!outcome.objectiveText.empty())
+		{
+			addStat(outcome.objectiveText, 1, outcome.objectiveScore);
+		}
+	}
+	// End OF
 
 	// recover all our goodies
 	if (playersSurvived > 0)

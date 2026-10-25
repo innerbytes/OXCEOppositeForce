@@ -25,6 +25,8 @@
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/RuleCraft.h"
 
+#include "../OppositeForce/Battlescape/MissionCompletion.h"
+
 namespace OpenXcom
 {
 
@@ -130,11 +132,19 @@ private:
 	std::string _hiddenMovementBackground;
 	HitLog *_hitLog;
 	ScriptValues<SavedBattleGame> _scriptValues;
+
+	// OF - Persist script-controlled mission completion.
+	MissionCompletion _ofMissionCompletion;
+
 	/// Selects a soldier.
 	BattleUnit *selectPlayerUnit(int dir, bool checkReselect = false, bool setReselect = false, bool checkInventory = false);
 	/// Run newTurnUnit and newTurnItem scripts
 	void newTurnUpdateScripts();
 public:
+
+	// OF - Access script-controlled mission completion.
+	MissionCompletion &ofGetMissionCompletion() { return _ofMissionCompletion; }
+
 	/// Creates a new battle save, based on the current generic save.
 	SavedBattleGame(Mod *rule, Language *lang, bool isPreview = false);
 	/// Cleans up the saved game.

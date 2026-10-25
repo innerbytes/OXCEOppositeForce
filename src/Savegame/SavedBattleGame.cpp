@@ -424,6 +424,9 @@ void SavedBattleGame::load(const YAML::YamlNodeReader& node, Mod *mod, SavedGame
 	reader.tryRead("toggleBrightness", _toggleBrightness);
 	_scriptValues.load(reader, _rule->getScriptGlobal());
 
+	// OF - Restore script-controlled mission completion.
+	_ofMissionCompletion.load(reader);
+
 	// Sanity checks
 	for (auto* unit : _units)
 	{
@@ -622,6 +625,10 @@ void SavedBattleGame::save(YAML::YamlNodeWriter writer) const
 	writer.write("toggleNightVision", _toggleNightVision);
 	writer.write("toggleBrightness", _toggleBrightness);
 	_scriptValues.save(writer, _rule->getScriptGlobal());
+
+	// OF - Save script-controlled mission completion.
+	_ofMissionCompletion.save(writer);
+
 }
 
 /**
@@ -3701,6 +3708,9 @@ void SavedBattleGame::ScriptRegister(ScriptParserBase* parser)
 	parser->registerPointerType<Tile>();
 
 	Bind<SavedBattleGame> sbg = { parser };
+
+	// OF - Register script-controlled mission completion.
+	MissionCompletion::registerScriptBindings(parser);
 
 	sbg.add<&SavedBattleGame::getTurn>("getTurn", "Current turn, 0 - before battle, 1 - first turn, each stage reset this value.");
 	sbg.add<&SavedBattleGame::getAnimFrame>("getAnimFrame");

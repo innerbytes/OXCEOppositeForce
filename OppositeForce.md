@@ -329,3 +329,59 @@ Mind-control and panic rewards are unchanged. For exploration objects, use
 `canBeStunned: false` protects against stun damage; explicit scripted or mission
 knockouts remain possible. Use either property independently, or both together
 for exploration objects. Omitting them keeps normal behavior.
+
+## Script-controlled mission completion
+
+Use manual ending for missions whose result is determined by scripts. Enable it
+once at mission start:
+
+```text
+battle_game.setMissionEndManual 1;
+```
+
+The mission then continues after enemy elimination or completion of its ordinary
+objectives. Squad defeat, deployment timers (`turnLimit` / `chronoTrigger`) and
+player retreat retain their usual effects.
+
+Request the mission result when your scripted objective is decided:
+
+```text
+# Objective completed successfully.
+battle_game.completeMission 1;
+
+# Objective failed.
+battle_game.completeMission 0;
+```
+
+Use the appropriate command for the result. Each call replaces any earlier
+completion request. Both commands work with manual ending enabled or disabled.
+
+The result takes effect on the next player **Next Turn** press. Current actions
+and their consequences finish first, followed by mission completion before
+turn-ending effects and enemy actions. Squad defeat, a deployment timer or player
+retreat can finish the mission before that press.
+
+Both results finish the entire mission, including deployments with `nextStage`.
+Surviving soldiers return from their current positions with their equipment.
+After a scripted failure with a surviving squad, the craft returns to base.
+Total squad loss results in mission failure even when success was requested.
+Normal craft and base-loss rules apply.
+
+The result selects success/failure titles, cutscenes, research, bounty rewards,
+counters and events. It takes precedence over ordinary objective, escape-tile
+and VIP success requirements. The corresponding `objectiveComplete` or
+`objectiveFailed` score is awarded once at its configured value.
+
+Equipment recovery covers the full map when soldiers survive, for either
+scripted result. Prisoner recovery follows the existing mission rules.
+
+Restore ordinary OXCE mission-ending conditions with:
+
+```text
+battle_game.setMissionEndManual 0;
+```
+
+This is the default setting. Any queued completion request remains active when
+changing it. Manual ending and queued results persist through save/load; after
+loading, press **Next Turn** to apply a queued result. A stage reached through
+ordinary mission progression starts with ordinary OXCE ending conditions.

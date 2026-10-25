@@ -512,6 +512,19 @@ bool BattlescapeGame::kneel(BattleUnit *bu)
  */
 void BattlescapeGame::endTurn()
 {
+
+	// OF - Apply a player-armed result after queued actions and before turn effects.
+	if (_save->ofGetMissionCompletion().hasArmedCompletion())
+	{
+		BattlescapeTally tally = tallyUnits();
+		if (_save->ofGetMissionCompletion().tryApplyCompletion(_save->getSide() == FACTION_PLAYER, tally.liveSoldiers, _save->isPreview()))
+		{
+			_parentState->finishBattle(false, tally.liveSoldiers);
+			return;
+		}
+	}
+	// End OF
+
 	_debugPlay = _save->getDebugMode() && _parentState->getGame()->isCtrlPressed() && (_save->getSide() != FACTION_NEUTRAL);
 	_currentAction.type = BA_NONE;
 	_currentAction.skillRules = nullptr;
@@ -654,7 +667,19 @@ void BattlescapeGame::endTurn()
 	BattlescapeTally tally = _save->getBattleGame()->tallyUnits();
 
 	// if all units from either faction are killed - the mission is over.
-	if (_save->allObjectivesDestroyed() && _save->getObjectiveType() == MUST_DESTROY)
+
+	// OF - Scripts own objective completion, while squad defeat remains native.
+	if (_save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion(_save->isPreview()))
+	{
+		if (tally.liveSoldiers == 0)
+		{
+			_parentState->finishBattle(false, 0);
+			return;
+		}
+	}
+	// End OF
+
+	else if (_save->allObjectivesDestroyed() && _save->getObjectiveType() == MUST_DESTROY)
 	{
 		_parentState->finishBattle(false, tally.liveSoldiers);
 		return;
@@ -696,6 +721,12 @@ void BattlescapeGame::endTurn()
 	// "escort the VIPs" missions don't end when all aliens are neutralized
 	// objective type MUST_DESTROY was already handled above
 	bool killingAllAliensIsNotEnough = (_save->getVIPSurvivalPercentage() > 0 && _save->getVIPEscapeType() != ESCAPE_NONE);
+
+	// OF - Preserve neutral-phase turn-screen skipping during script-controlled battles.
+	// OXCE shows the normally silent civilian-phase announcement when it considers the battle complete.
+	// Keep that phase silent while the scripted mission continues after enemy elimination.
+	// NextTurnState separately guards actual completion when a turn announcement closes.
+	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || _save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion(_save->isPreview());
 
 	bool battleComplete = (!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0;
 
@@ -3372,6 +3403,21 @@ void BattlescapeGame::autoEndBattle()
 	{
 		return;
 	}
+
+	// OF - Do not latch enemy elimination or auto-press Next Turn for scripted missions.
+	if (_save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion(_save->isPreview()))
+	{
+		_allEnemiesNeutralized = false;
+		if (tallyUnits().liveSoldiers == 0)
+		{
+			_save->setSelectedUnit(0);
+			cancelAllActions();
+			requestEndTurn(false);
+		}
+		return;
+	}
+	// End OF
+
 	if (Options::battleAutoEnd)
 	{
 		if (_save->getVIPSurvivalPercentage() > 0 && _save->getVIPEscapeType() != ESCAPE_NONE)

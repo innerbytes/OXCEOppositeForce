@@ -1466,6 +1466,10 @@ void BattlescapeState::btnEndTurnClick(Action *)
 		_map->getCamera()->stopKeyScrolling();
 
 		_txtTooltip->setText("");
+
+		// OF - Only a player Next Turn press may arm a pending script result.
+		_save->ofGetMissionCompletion().armCompletion(_save->getSide() == FACTION_PLAYER, _save->isPreview());
+
 		_battleGame->requestEndTurn(false);
 	}
 }
@@ -3512,6 +3516,9 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 {
 	bool isPreview = _save->isPreview();
 
+	// OF - Discard queued requests on native endings; retreat never applies them.
+	_save->ofGetMissionCompletion().prepareFinish(abort || _save->isAborted());
+
 	while (!_game->isState(this))
 	{
 		_game->popState();
@@ -3578,6 +3585,13 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		nextStage = ruleDeploy->getNextStage();
 	}
 
+	// OF - Explicit script completion ends the entire mission.
+	if (_save->ofGetMissionCompletion().hasAppliedResult())
+	{
+		nextStage.clear();
+	}
+	// End OF
+
 	if (!nextStage.empty() && inExitArea && !isPreview)
 	{
 		// if there is a next mission stage + we have people in exit area OR we killed all aliens, load the next stage
@@ -3625,7 +3639,15 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		std::string cutscene;
 		if (ruleDeploy)
 		{
-			if (abort)
+
+			// OF - Scripted failure uses defeat presentation without becoming an abort.
+			if (_save->ofGetMissionCompletion().hasAppliedResult())
+			{
+				cutscene = _save->ofGetMissionCompletion().getCutscene(*ruleDeploy, inExitArea);
+			}
+			// End OF
+
+			else if (abort)
 			{
 				cutscene = ruleDeploy->getAbortCutscene();
 			}
