@@ -13,6 +13,7 @@ namespace OpenXcom
     class MissionCompletion
     {
     public:
+        // TODO - is None result is needed? Should None be 0 , Success 1 and Failure -1?
         enum class Result
         {
             None = -1,
@@ -28,29 +29,47 @@ namespace OpenXcom
             int objectiveScore = 0;
         };
 
+        void reset();
         void setManual(bool manual);
         bool isManual() const;
         void requestCompletion(bool success);
+
+        // TODO - see if we can unify those
         bool hasPendingResult() const;
         bool hasAppliedResult() const;
         bool hasArmedCompletion() const;
+
         bool shouldSuppressAutomaticCompletion(bool preview) const;
+
+        // TODO - see how it's different from requestCompletion()
         void armCompletion(bool playerTurn, bool preview);
+
         bool tryApplyCompletion(bool playerTurn, int liveSoldiers, bool preview);
+
+        // TODO - see what it's doing
         void prepareFinish(bool aborted);
-        void resetForStage();
+
         bool resolveSuccess(bool nativeSuccess, int survivors) const;
+
+        // TODO - see if we need to control it from here
         DebriefingOutcome getDebriefingOutcome(const AlienDeployment *deployment, const std::string &target,
                                                int survivors, bool lostCraft) const;
+
+        // TODO - see if we need to control it from here
         std::string getCutscene(const AlienDeployment &deployment, int survivors) const;
+
+        // TODO - load / save code and script control can be moved to the other class
         void load(const YAML::YamlNodeReader &reader);
         void save(YAML::YamlNodeWriter writer) const;
         static void registerScriptBindings(ScriptParserBase *parser);
 
     private:
+        // TODO - move to separate storage and have good names
         bool _manual = false;
         Result _pending = Result::None;
         Result _applied = Result::None;
+
+        // TODO - see how this dirty flag us used
         bool _armed = false;
     };
 }  // namespace OpenXcom

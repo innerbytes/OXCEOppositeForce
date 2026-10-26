@@ -160,21 +160,26 @@ TEST_CASE("MissionCompletion_NativeTimerOrRetreat_DiscardsQueuedResult", "[missi
     REQUIRE_FALSE(completion.tryApplyCompletion(true, 1, false));
 }
 
-TEST_CASE("MissionCompletion_NativeStageTransition_ResetsAllCompletionState", "[mission-completion]")
+TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]")
 {
     // Arrange
     const bool applied = GENERATE(false, true);
     auto completion = applied ? createAppliedCompletion(true) : MissionCompletion{};
     completion.setManual(true);
-    if (!applied) completion.requestCompletion(false);
+    if (!applied)
+    {
+        completion.requestCompletion(false);
+        completion.armCompletion(true, false);
+    }
 
     // Act
-    completion.resetForStage();
+    completion.reset();
 
     // Assert
     REQUIRE_FALSE(completion.isManual());
     REQUIRE_FALSE(completion.hasPendingResult());
     REQUIRE_FALSE(completion.hasAppliedResult());
+    REQUIRE_FALSE(completion.hasArmedCompletion());
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
 }
 

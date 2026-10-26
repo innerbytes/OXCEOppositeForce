@@ -6,6 +6,7 @@
 
 namespace OpenXcom
 {
+    // TODO - script control should be moved to the other class
     namespace
     {
         void setMissionEndManual(SavedBattleGame *battle, int manual)
@@ -74,13 +75,17 @@ namespace OpenXcom
         {
             return false;
         }
+
         _armed = false;
+
         if (!playerTurn || preview || liveSoldiers <= 0 || !hasPendingResult())
         {
             return false;
         }
+
         _applied = _pending;
         _pending = Result::None;
+
         return true;
     }
 
@@ -88,15 +93,19 @@ namespace OpenXcom
     {
         _armed = false;
         _pending = Result::None;
+
         if (aborted)
         {
             _applied = Result::None;
         }
     }
 
-    void MissionCompletion::resetForStage()
+    void MissionCompletion::reset()
     {
-        *this = MissionCompletion{};
+        _manual = false;
+        _pending = Result::None;
+        _applied = Result::None;
+        _armed = false;
     }
 
     bool MissionCompletion::resolveSuccess(bool nativeSuccess, int survivors) const
@@ -143,7 +152,7 @@ namespace OpenXcom
 
     void MissionCompletion::load(const YAML::YamlNodeReader &reader)
     {
-        resetForStage();
+        reset();
         const auto &node = reader["ofMissionCompletion"];
         if (node)
         {
