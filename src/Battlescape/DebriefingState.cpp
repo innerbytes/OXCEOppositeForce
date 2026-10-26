@@ -1070,6 +1070,7 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
+	// TODO - OF - check how it works
 	// OF - Award the explicit objective result once, after native recovery processing.
 	if (completion.hasAppliedResult())
 	{

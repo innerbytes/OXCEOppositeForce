@@ -30,12 +30,17 @@ namespace OpenXcom
 
         void reset();
         void setManual(bool manual);
+
+        // TODO - looks like it's used only in tests, remove
         bool isManual() const;
+
         void requestCompletion(bool success);
 
-        // TODO - see if we can unify those
+        // TODO - looks like it's used only in tests, remove
         bool hasPendingResult() const;
+
         bool hasAppliedResult() const;
+
         bool hasArmedCompletion() const;
 
         bool shouldSuppressAutomaticCompletion(bool preview) const;
@@ -63,7 +68,10 @@ namespace OpenXcom
 
     private:
         // TODO - move to separate storage and have good names
+
+        // TODO rename to _isManualCompletion;
         bool _manual = false;
+
         Result _pending = Result::None;
         Result _applied = Result::None;
 

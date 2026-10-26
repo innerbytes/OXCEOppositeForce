@@ -241,7 +241,6 @@ void BattlescapeGenerator::setMissionSite(MissionSite *mission)
  */
 void BattlescapeGenerator::nextStage()
 {
-
 	// OF - Native stage progression starts with normal completion and no old requests.
 	_save->ofGetMissionCompletion().reset();
 

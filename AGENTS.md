@@ -46,6 +46,7 @@ else {
 
 - Name test files `*Tests.cpp` and test cases `Subject_Scenario_ExpectedBehavior`, following the existing tests.
 - Structure each test with `// Arrange`, `// Act`, and `// Assert` comments, keeping setup, the operation under test, and result checks in their respective sections.
+- No public production code should exist for the testing purpose only. Tests should rely on the existing essential public interfaces of the modules.
 
 ## Run and test manually
 

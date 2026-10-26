@@ -3639,7 +3639,6 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		std::string cutscene;
 		if (ruleDeploy)
 		{
-
 			// OF - Scripted failure uses defeat presentation without becoming an abort.
 			if (_save->ofGetMissionCompletion().hasAppliedResult())
 			{
