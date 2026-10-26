@@ -12,6 +12,7 @@ This document describes ruleset properties added by OXCE Opposite Force. Standar
 - [Custom terrain spawn points](#custom-terrain-spawn-points)
 - [Disable avatar selection](#disable-avatar-selection)
 - [Unit kill credit and stun damage](#unit-kill-credit-and-stun-damage)
+- [Script-controlled mission completion](#script-controlled-mission-completion)
 
 ## Hangar compatibility
 
@@ -230,12 +231,12 @@ terrains:
 The fragment name must match an existing terrain block. These example coordinates
 illustrate syntax; they are **not verified locations** in FOREST00.
 
-| Property | Default | Meaning |
-| --- | --- | --- |
-| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`. |
+| Property   | Default  | Meaning                                                                                          |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`.                                   |
 | `unitSize` | Required | `1` for a 1×1 point or `2` for a dedicated 2×2 point. Each point accepts only its declared size. |
-| `rank` | `0` | OXCE node rank, from `0` through `8`; see below. |
-| `priority` | `1` | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank. |
+| `rank`     | `0`      | OXCE node rank, from `0` through `8`; see below.                                                 |
+| `priority` | `1`      | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank.         |
 
 A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
 `[x, y+1]`, and `[x+1, y+1]` on the same floor. Its four tiles are reserved against
@@ -243,17 +244,17 @@ A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
 is unaffected. Choose non-overlapping footprints inside the fragment with a
 walkable route to its ground-level exterior; upper floors can use stairs.
 
-| Rank | Spawn usage |
-| --- | --- |
-| `0` | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
-| `1` | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
-| `2` | AI opponent spawn category: Soldier. |
-| `3` | AI opponent spawn category: Navigator. |
-| `4` | AI opponent spawn category: Leader; preferred by both commanders and leaders. |
-| `5` | AI opponent spawn category: Engineer. |
-| `6` | AI opponent spawn category: Miscellaneous 1. |
-| `7` | AI opponent spawn category: Medic. |
-| `8` | AI opponent spawn category: Miscellaneous 2. |
+| Rank | Spawn usage                                                                                                                                          |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
+| `1`  | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
+| `2`  | AI opponent spawn category: Soldier.                                                                                                                 |
+| `3`  | AI opponent spawn category: Navigator.                                                                                                               |
+| `4`  | AI opponent spawn category: Leader; preferred by both commanders and leaders.                                                                        |
+| `5`  | AI opponent spawn category: Engineer.                                                                                                                |
+| `6`  | AI opponent spawn category: Miscellaneous 1.                                                                                                         |
+| `7`  | AI opponent spawn category: Medic.                                                                                                                   |
+| `8`  | AI opponent spawn category: Miscellaneous 2.                                                                                                         |
 
 These are **location categories**, not faction IDs or deployment `alienRank`
 values. They use the same numbers as vanilla `.RMP` spawn nodes. There is no
@@ -312,10 +313,10 @@ units:
     canBeStunned: false
 ```
 
-| Property | Default | Effect |
-| --- | --- | --- |
-| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience. |
-| `canBeStunned` | `true` | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
+| Property             | Default | Effect                                                                                                                                            |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience.                                                       |
+| `canBeStunned`       | `true`  | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
 
 With `disableKillRecords: true`, killing or stunning this unit grants no kill
 records, kill-based commendations or promotion credit. Damaging it grants no
@@ -329,3 +330,73 @@ Mind-control and panic rewards are unchanged. For exploration objects, use
 `canBeStunned: false` protects against stun damage; explicit scripted or mission
 knockouts remain possible. Use either property independently, or both together
 for exploration objects. Omitting them keeps normal behavior.
+
+## Script-controlled mission completion
+
+### Manual mission end
+
+If this option is enabled, enemy elimination and other ordinary OXCE completion conditions do not end the mission. It continues until the script calls `completeMission`, unless squad defeat, an expired deployment timer or player retreat ends it first.
+
+Enable manual mission ending once at mission start:
+
+```text
+battle_game.setMissionEndManual 1;
+```
+
+- The default is `0`, which uses ordinary OXCE mission-ending conditions.
+- Set it to `1` to continue the mission after enemy elimination or completion of
+  ordinary objectives.
+- Squad defeat, deployment timers (`turnLimit` / `chronoTrigger`) and player
+  retreat retain their usual effects.
+- The setting persists through save/load.
+- Ordinary progression to a new stage resets the setting to its default.
+
+Restore ordinary mission-ending conditions with:
+
+```text
+battle_game.setMissionEndManual 0;
+```
+
+### Scripted mission result
+
+Request the mission result when your scripted objective is decided:
+
+```text
+# Objective completed successfully.
+battle_game.completeMission 1;
+
+# Objective failed.
+battle_game.completeMission 0;
+```
+
+#### Common behavior
+
+- `1` requests success and `0` requests failure.
+- The command works with manual ending enabled or disabled.
+- Each call replaces the previous pending result.
+- The pending result persists through save/load.
+- Current actions and queued consequences finish before the result applies.
+- During the player turn, the result applies when **Next Turn** is pressed, before
+  enemy actions. Results requested during explosions, enemy turns or civilian
+  turns apply at the next safe turn transition.
+- The requested scripted result is ignored when squad defeat, an expired
+  deployment timer or player retreat ends the mission; ordinary outcome rules
+  apply.
+- A scripted result ends the entire mission, including deployments with
+  `nextStage`.
+
+#### Mission outcome with the scripted result
+
+- Surviving soldiers return with their equipment. After scripted failure, a
+  surviving squad and its craft return to base. Normal craft and base-loss rules
+  apply, and total squad loss results in failure.
+- The scripted result determines the success or failure title, cutscene, research,
+  bounty rewards, counters and events in the same way as an ordinary objective
+  result. The configured `objectiveComplete` or `objectiveFailed` score is awarded
+  once.
+
+#### Scripted result behavior when manual mission ending is disabled
+
+- An ordinary objective or enemy-elimination ending that is already due takes
+  priority and uses the ordinary mission result.
+- When no ordinary ending is due, the pending scripted result applies normally.

@@ -75,8 +75,17 @@
 #include "../Savegame/BattleUnitStatistics.h"
 #include "../fallthrough.h"
 
+#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+
 namespace OpenXcom
 {
+
+// OF - Preserve the explicit result before debriefing runs unit-return scripts.
+DebriefingState::DebriefingState(MissionCompletion::Result scriptResult) : DebriefingState()
+{
+	_ofMissionResult = scriptResult;
+}
+// End OF
 
 /**
  * Initializes all the elements in the Debriefing screen.
@@ -1028,6 +1037,7 @@ void DebriefingState::prepareDebriefing()
 
 	bool aborted = battle->isAborted();
 	bool success = !aborted || battle->allObjectivesDestroyed();
+
 	Craft *craft = 0;
 	Base *base = 0;
 	std::string target;
@@ -1063,6 +1073,7 @@ void DebriefingState::prepareDebriefing()
 			addStat("STR_MISSION_ABORTED", 1, -ruleDeploy->getAbortPenalty());
 		}
 	}
+
 	if (battle->getVIPSurvivalPercentage() > 0)
 	{
 		_stats.push_back(new DebriefingStat("STR_VIPS_LOST", false));
@@ -1158,6 +1169,7 @@ void DebriefingState::prepareDebriefing()
 			target = base->getType();
 			base->setInBattlescape(false);
 			base->cleanupDefenses(false);
+
 			for (auto* region : *save->getRegions())
 			{
 				if (region->getRules()->insideRegion(base->getLongitude(), base->getLatitude()))
@@ -1190,6 +1202,13 @@ void DebriefingState::prepareDebriefing()
 			{
 				_destroyBase = true;
 			}
+
+			// OF - Explicit failure loses a defended base without marking the battle aborted.
+			if (!MissionCompletionResult::resolveSuccess(success, _ofMissionResult, 1))
+			{
+				_destroyBase = true;
+			}
+			// End OF
 
 			// This is an overkill, since we may not lose any hangar/craft, but doing it properly requires tons of changes
 			save->stopHuntingXcomCrafts(base);
@@ -1335,7 +1354,15 @@ void DebriefingState::prepareDebriefing()
 			ufo->setInBattlescape(false);
 			// if XCom failed to secure the landing zone, the UFO
 			// takes off immediately and proceeds according to its mission directive
-			if (ufo->getStatus() == Ufo::LANDED && (aborted || playersSurvived == 0))
+
+			// OF - A landed UFO remains unsecured after explicit mission failure.
+			if (ufo->getStatus() == Ufo::LANDED && !MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived))
+			{
+				ufo->setSecondsRemaining(5);
+			}
+			// End OF
+
+			else if (ufo->getStatus() == Ufo::LANDED && (aborted || playersSurvived == 0))
 			{
 				 ufo->setSecondsRemaining(5);
 			}
@@ -1369,6 +1396,9 @@ void DebriefingState::prepareDebriefing()
 			success = success || playersInExitArea1 > 0;
 		}
 	}
+
+	// OF - Script completion overrides native success
+	success = MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 	int playersInExitArea2 = 0;
 
@@ -1409,6 +1439,9 @@ void DebriefingState::prepareDebriefing()
 				_missionStatistics->alienRace = ab->getAlienRace();
 				destroyAlienBase = false;
 			}
+
+			// OF - Script completion determines alien-base destruction even with nextStage set.
+			destroyAlienBase = MissionCompletionResult::resolveSuccess(destroyAlienBase, _ofMissionResult, playersSurvived);
 
 			success = destroyAlienBase;
 			if (destroyAlienBase)
@@ -1674,8 +1707,21 @@ void DebriefingState::prepareDebriefing()
 			}
 			else if (oldFaction == FACTION_NEUTRAL)
 			{
+
+				// OF - Living civilians follow an explicit failed objective's outcome.
+				// Passing true ensures None skips our branch and reaches native handling.
+				// Explicit scripted failure enters our branch.
+				if (!MissionCompletionResult::resolveSuccess(true, _ofMissionResult, playersSurvived))
+				{
+					if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
+					{
+						addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -bunit->getValueCivilian());
+					}
+				}
+				// End OF
+
 				// if mission fails, all civilians die
-				if ((aborted && !success) || playersSurvived == 0)
+				else if ((aborted && !success) || playersSurvived == 0)
 				{
 					if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
 					{
@@ -1774,6 +1820,9 @@ void DebriefingState::prepareDebriefing()
 			savedEnoughVIPs = false; // nobody to save?
 			success = false;
 		}
+
+		// OF - the script success overrides native VIP success requirements
+		success = MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 		// 4. add stats
 		if (vipSubtotal > 0 || (vipTotal > 0 && !savedEnoughVIPs))
@@ -1931,6 +1980,26 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 	}
+
+	// OF - Present and score the explicit result without changing non-aborted recovery.
+	if (_ofMissionResult != MissionCompletion::Result::None)
+	{
+		const auto &missionText = success ? missionCompleteText : missionFailedText;
+		const auto title = missionText.empty() ? MissionCompletionResult::getDefaultDebriefingTitle(success, target, lostCraft) : missionText;
+		
+		_txtTitle->setText(title.empty() ? "OF_ERROR_RESULT" : std::string(tr(title)));
+		
+		// Clear the native objective awards before adding the resolved scripted award.
+		MissionCompletionResult::clearObjectiveAwards(_stats, objectiveCompleteText, objectiveFailedText);
+		
+		const auto &objectiveText = success ? objectiveCompleteText : objectiveFailedText;
+		const auto &objectiveScore = success ? objectiveCompleteScore : objectiveFailedScore;
+		if (!objectiveText.empty())
+		{
+			addStat(objectiveText, 1, objectiveScore);
+		}
+	}
+	// End OF
 
 	// recover all our goodies
 	if (playersSurvived > 0)

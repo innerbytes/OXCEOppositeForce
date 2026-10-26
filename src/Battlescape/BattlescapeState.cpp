@@ -89,6 +89,8 @@
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleVideo.h"
 
+#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+
 namespace OpenXcom
 {
 
@@ -3502,6 +3504,14 @@ void BattlescapeState::popup(State *state)
 	_popups.push_back(state);
 }
 
+// OF - Pass the script result through the existing battle finalization body.
+void BattlescapeState::ofFinishBattle(int survivors, MissionCompletion::Result result)
+{
+	_ofFinishResult = result;
+	finishBattle(false, survivors);
+}
+// End OF
+
 /**
  * Finishes up the current battle, shuts down the battlescape
  * and presents the debriefing screen for the mission.
@@ -3511,6 +3521,12 @@ void BattlescapeState::popup(State *state)
 void BattlescapeState::finishBattle(bool abort, int inExitArea)
 {
 	bool isPreview = _save->isPreview();
+
+	// OF - Consume the temporary result once; native endings discard queued requests.
+	auto scriptResult = (abort || _save->isAborted() || isPreview) ? MissionCompletion::Result::None : _ofFinishResult;
+	_ofFinishResult = MissionCompletion::Result::None;
+	_save->ofGetMissionCompletion().setResult(MissionCompletion::Result::None);
+	// End OF
 
 	while (!_game->isState(this))
 	{
@@ -3578,6 +3594,13 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		nextStage = ruleDeploy->getNextStage();
 	}
 
+	// OF - Explicit script completion ends the entire mission.
+	if (scriptResult != MissionCompletion::Result::None)
+	{
+		nextStage.clear();
+	}
+	// End OF
+
 	if (!nextStage.empty() && inExitArea && !isPreview)
 	{
 		// if there is a next mission stage + we have people in exit area OR we killed all aliens, load the next stage
@@ -3621,7 +3644,19 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 			_game->getMod()->playMusic("GMGEO");
 			return;
 		}
-		_game->pushState(new DebriefingState);
+
+		// OF - Carry the consumed result into debriefing independently of later script requests.
+		if (scriptResult != MissionCompletion::Result::None)
+		{
+			_game->pushState(new DebriefingState(scriptResult));
+		}
+		// End OF
+
+		else
+		{
+			_game->pushState(new DebriefingState);
+		}
+
 		std::string cutscene;
 		if (ruleDeploy)
 		{
@@ -3637,6 +3672,16 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 			{
 				cutscene = ruleDeploy->getWinCutscene();
 			}
+
+			// OF - Scripted mission result uses win/lose cutscenes based on success.
+			// If the mission was aborted the scriptResult is already None at this point.
+			if (scriptResult != MissionCompletion::Result::None)
+			{
+				cutscene = MissionCompletionResult::resolveSuccess(false, scriptResult, inExitArea)
+					? ruleDeploy->getWinCutscene() : ruleDeploy->getLoseCutscene();
+			}
+			// End OF
+
 		}
 		if (!cutscene.empty())
 		{

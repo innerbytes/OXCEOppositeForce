@@ -69,6 +69,7 @@ file(GLOB test_sources CONFIGURE_DEPENDS "${test_source_directory}/*Tests.cpp")
 # Landing and combat fixtures exercise private engine entry points headlessly.
 set_source_files_properties("${test_source_directory}/LandingTexturesTests.cpp"
     "${test_source_directory}/UnitCombatTests.cpp"
+    "${test_source_directory}/MissionCompletionTests.cpp"
     PROPERTIES COMPILE_OPTIONS "${fixture_access_flag}")
 add_executable(opposite_force_tests
     "${test_source_directory}/TestEnvironment.cpp"
