@@ -63,7 +63,7 @@
 #include "../Mod/Texture.h"
 #include "Pathfinding.h"
 
-#include "../OppositeForce/Battlescape/GlobalTerrain.h"
+#include "../OppositeForce/Battlescape/Game/GlobalTerrain.h"
 
 namespace OpenXcom
 {

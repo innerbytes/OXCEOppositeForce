@@ -4,6 +4,7 @@ UseTab: Never
 ColumnLimit: 120
 NamespaceIndentation: All
 AllowShortFunctionsOnASingleLine: Empty
+SeparateDefinitionBlocks: Always
 BreakBeforeBraces: Custom
 AccessModifierOffset: -4
 DerivePointerAlignment: false

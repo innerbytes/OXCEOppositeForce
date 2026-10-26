@@ -22,7 +22,7 @@
 #include "../Engine/Yaml.h"
 #include "../Battlescape/Position.h"
 
-#include "../OppositeForce/Mod/TerrainSpawnRules.h"
+#include "../OppositeForce/Battlescape/Rules/TerrainSpawnRules.h"
 
 namespace OpenXcom
 {

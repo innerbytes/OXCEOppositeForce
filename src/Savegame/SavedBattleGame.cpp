@@ -54,8 +54,9 @@
 #include "../fallthrough.h"
 #include "../fmath.h"
 
-#include "../OppositeForce/Battlescape/MissionScriptController.h"
-#include "../OppositeForce/Battlescape/TerrainSpawnPoints.h"
+#include "../OppositeForce/Battlescape/Game/MissionScriptController.h"
+#include "../OppositeForce/Battlescape/Repository/MissionCompletionRepository.h"
+#include "../OppositeForce/Battlescape/Game/TerrainSpawnPoints.h"
 
 #include "../Engine/Language.h"
 
@@ -426,7 +427,7 @@ void SavedBattleGame::load(const YAML::YamlNodeReader& node, Mod *mod, SavedGame
 	_scriptValues.load(reader, _rule->getScriptGlobal());
 
 	// OF - Restore script-controlled mission completion.
-	_ofMissionCompletion.load(reader);
+	MissionCompletionRepository::load(_ofMissionCompletion, reader);
 
 	// Sanity checks
 	for (auto* unit : _units)
@@ -628,7 +629,7 @@ void SavedBattleGame::save(YAML::YamlNodeWriter writer) const
 	_scriptValues.save(writer, _rule->getScriptGlobal());
 
 	// OF - Save script-controlled mission completion.
-	_ofMissionCompletion.save(writer);
+	MissionCompletionRepository::save(_ofMissionCompletion, writer);
 
 }
 

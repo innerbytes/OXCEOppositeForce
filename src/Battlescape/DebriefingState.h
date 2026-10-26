@@ -23,7 +23,7 @@
 #include <map>
 #include "../Savegame/SavedGame.h"
 
-#include "../OppositeForce/Battlescape/MissionCompletion.h"
+#include "../OppositeForce/Battlescape/Game/MissionCompletion.h"
 
 namespace OpenXcom
 {

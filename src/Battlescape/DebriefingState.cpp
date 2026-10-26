@@ -75,7 +75,7 @@
 #include "../Savegame/BattleUnitStatistics.h"
 #include "../fallthrough.h"
 
-#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+#include "../OppositeForce/Battlescape/Game/MissionCompletionResult.h"
 
 namespace OpenXcom
 {

@@ -52,7 +52,7 @@
 #include "Region.h"
 #include "../Mod/RuleRegion.h"
 
-#include "../OppositeForce/Savegame/HangarCompatibility.h"
+#include "../OppositeForce/Geoscape/Game/HangarCompatibility.h"
 
 namespace OpenXcom
 {

@@ -23,7 +23,7 @@
 #include <vector>
 #include <string>
 
-#include "../OppositeForce/Battlescape/MissionCompletion.h"
+#include "../OppositeForce/Battlescape/Game/MissionCompletion.h"
 
 namespace OpenXcom
 {

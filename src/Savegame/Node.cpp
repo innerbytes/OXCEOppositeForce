@@ -18,6 +18,8 @@
  */
 #include "Node.h"
 
+#include "../OppositeForce/Battlescape/Repository/TerrainSpawnNodeRepository.h"
+
 namespace OpenXcom
 {
 
@@ -85,7 +87,7 @@ void Node::load(const YAML::YamlNodeReader& reader)
 	reader.tryRead("dummy", _dummy);
 
 	// OF - Older saves have no custom-size metadata.
-	_ofSpawnSize = reader["ofSpawnSize"].readVal(0);
+	TerrainSpawnNodeRepository::load(*this, reader);
 
 }
 
@@ -112,9 +114,7 @@ void Node::save(YAML::YamlNodeWriter writer) const
 		writer.write("dummy", _dummy);
 
 	// OF - Persist only custom node metadata.
-	if (_ofSpawnSize)
-		writer.write("ofSpawnSize", _ofSpawnSize);
-	// End OF
+	TerrainSpawnNodeRepository::save(*this, writer);
 
 }
 

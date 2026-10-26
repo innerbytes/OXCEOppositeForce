@@ -42,7 +42,7 @@
 #include "../Mod/RuleInterface.h"
 #include "../Mod/RuleVideo.h"
 
-#include "../OppositeForce/Geoscape/FundingNames.h"
+#include "../OppositeForce/Geoscape/Game/FundingReports.h"
 
 namespace OpenXcom
 {
@@ -501,7 +501,7 @@ std::string MonthlyReportState::countryList(const std::vector<std::string> &coun
 
 	// OF - Format actor names without changing IDs used by political events.
 	std::string fundingText;
-	if (FundingNames::tryFormatCountryList(*_game->getMod(), *_game->getLanguage(), countries, singular, plural, fundingText))
+	if (FundingReports::tryFormatCountryList(*_game->getMod(), *_game->getLanguage(), countries, singular, plural, fundingText))
 	{
 		return fundingText;
 	}

@@ -51,7 +51,7 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Battlescape/DebriefingState.h"
 
-#include "../OppositeForce/Savegame/HangarCompatibility.h"
+#include "../OppositeForce/Geoscape/Game/HangarCompatibility.h"
 
 namespace OpenXcom
 {

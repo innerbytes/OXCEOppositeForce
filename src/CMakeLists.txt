@@ -455,18 +455,22 @@ set ( cxx_src
     ${rapidyaml_src}
 
     # OF - Build Opposite Force modules.
-    OppositeForce/Geoscape/FundingNames.cpp
-    OppositeForce/Geoscape/LandingTextures.cpp
-    OppositeForce/Mod/HangarRules.cpp
-    OppositeForce/Mod/TerrainSpawnRules.cpp
-    OppositeForce/Battlescape/GlobalTerrain.cpp
-    OppositeForce/Battlescape/UnitCombatRules.cpp
-    OppositeForce/Battlescape/MissionCompletion.cpp
-    OppositeForce/Battlescape/MissionCompletionResult.cpp
-    OppositeForce/Battlescape/MissionScriptController.cpp
-    OppositeForce/Battlescape/TerrainSpawnValidation.cpp
-    OppositeForce/Battlescape/TerrainSpawnPoints.cpp
-    OppositeForce/Savegame/HangarCompatibility.cpp
+    OppositeForce/Geoscape/Rules/FundingNames.cpp
+    OppositeForce/Geoscape/Game/FundingReports.cpp
+    OppositeForce/Geoscape/Game/LandingTextures.cpp
+    OppositeForce/Geoscape/Rules/HangarRules.cpp
+    OppositeForce/Battlescape/Rules/TerrainSpawnRules.cpp
+    OppositeForce/Battlescape/Game/GlobalTerrain.cpp
+    OppositeForce/Battlescape/Game/UnitCombatRules.cpp
+    OppositeForce/Battlescape/Game/MissionCompletion.cpp
+    OppositeForce/Battlescape/Game/MissionCompletionResult.cpp
+    OppositeForce/Battlescape/Game/MissionScriptController.cpp
+    OppositeForce/Battlescape/Rules/TerrainSpawnValidation.cpp
+    OppositeForce/Battlescape/Game/TerrainSpawnPoints.cpp
+    OppositeForce/Battlescape/Game/TerrainSpawnInternal.cpp
+    OppositeForce/Battlescape/Repository/MissionCompletionRepository.cpp
+    OppositeForce/Battlescape/Repository/TerrainSpawnNodeRepository.cpp
+    OppositeForce/Geoscape/Game/HangarCompatibility.cpp
     # End OF
 
 )

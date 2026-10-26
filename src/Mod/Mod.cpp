@@ -38,7 +38,7 @@
 #include "../Interface/Window.h"
 #include "MapDataSet.h"
 
-#include "../OppositeForce/Battlescape/TerrainSpawnPoints.h"
+#include "../OppositeForce/Battlescape/Rules/TerrainSpawnValidation.h"
 
 #include "RuleMusic.h"
 #include "../Engine/ShaderDraw.h"
@@ -2515,7 +2515,7 @@ void Mod::loadAll()
 	modResources();
 
 	// OF - Fail startup on unsafe custom spawn definitions after final resources load.
-	TerrainSpawnPoints::validateAllTerrains(*this);
+	TerrainSpawnValidation::validateAllTerrains(*this);
 
 }
 

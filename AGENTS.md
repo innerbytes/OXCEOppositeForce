@@ -5,6 +5,7 @@
 - In `src/OppositeForce`, write all the pointer and reference declarations as `Type *name` and `Type &name`;
 - At integration points in existing OXCE files, follow the predominant pointer and reference marker style of that specific file. Do not reformat unrelated OXCE code.
 - After editing any of our modules (in the `src/OppositeForce` directory and below), run `pnpm prettier` to format the code.
+- In all our `.h` files, separate consecutive declarations (including functions and data members) with a blank line. Keep each declaration's documentation comment directly above it; put the separating blank line before that comment.
 
 - Names of our functions should be clear of what they do and always start with a verb. getSomething, setSomething, calculateSomething, etc. Name of functions that return boolean can start with "is", "has", "can", or "should", or other appropriate verbs that convey their purpose - "lacksSomething", "needsSomething", "requiresSomething", etc.
 - Names of our local variables should never use "of" prefix. The variable name should clearly indicate what it represents, not how it is used.

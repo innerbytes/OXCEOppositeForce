@@ -32,7 +32,7 @@
 #include "../Savegame/SavedGame.h"
 #include "../Engine/Options.h"
 
-#include "../OppositeForce/Geoscape/FundingNames.h"
+#include "../OppositeForce/Geoscape/Rules/FundingNames.h"
 
 namespace OpenXcom
 {

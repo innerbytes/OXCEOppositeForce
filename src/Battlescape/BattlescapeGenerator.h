@@ -21,7 +21,7 @@
 #include "../Mod/RuleTerrain.h"
 #include "../Mod/MapScript.h"
 
-#include "../OppositeForce/Battlescape/TerrainSpawnPoints.h"
+#include "../OppositeForce/Battlescape/Game/TerrainSpawnPoints.h"
 
 namespace OpenXcom
 {

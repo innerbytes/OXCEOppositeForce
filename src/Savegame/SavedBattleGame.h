@@ -25,7 +25,7 @@
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/RuleCraft.h"
 
-#include "../OppositeForce/Battlescape/MissionCompletion.h"
+#include "../OppositeForce/Battlescape/Game/MissionCompletion.h"
 
 namespace OpenXcom
 {

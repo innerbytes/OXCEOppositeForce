@@ -60,9 +60,9 @@
 #include "ConfirmEndMissionState.h"
 #include "../fmath.h"
 
-#include "../OppositeForce/Battlescape/UnitCombatRules.h"
+#include "../OppositeForce/Battlescape/Game/UnitCombatRules.h"
 
-#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+#include "../OppositeForce/Battlescape/Game/MissionCompletionResult.h"
 
 namespace OpenXcom
 {

@@ -45,7 +45,7 @@
 #include <functional>
 #include "../Mod/AlienDeployment.h"
 
-#include "../OppositeForce/Geoscape/LandingTextures.h"
+#include "../OppositeForce/Geoscape/Game/LandingTextures.h"
 
 namespace OpenXcom
 {

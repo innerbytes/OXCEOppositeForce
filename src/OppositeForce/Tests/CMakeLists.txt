@@ -1,4 +1,5 @@
 set(test_source_directory "${CMAKE_CURRENT_LIST_DIR}")
+set(test_infrastructure_directory "${test_source_directory}/Infrastructure")
 get_target_property(engine_source_directory openxcom SOURCE_DIR)
 get_target_property(engine_sources openxcom SOURCES)
 set(test_engine_sources)
@@ -16,7 +17,7 @@ foreach(source IN LISTS engine_sources)
     endforeach()
 endforeach()
 
-add_library(opposite_force_test_engine STATIC ${test_engine_sources} "${test_source_directory}/EngineEntryPoint.cpp")
+add_library(opposite_force_test_engine STATIC ${test_engine_sources} "${test_infrastructure_directory}/EngineEntryPoint.cpp")
 foreach(property INCLUDE_DIRECTORIES COMPILE_OPTIONS COMPILE_DEFINITIONS LINK_DIRECTORIES LINK_OPTIONS)
     get_target_property(value openxcom "${property}")
     if(value AND NOT value MATCHES "-NOTFOUND$")
@@ -44,10 +45,11 @@ target_include_directories(opposite_force_test_engine PUBLIC "${engine_source_di
 get_target_property(engine_includes openxcom INCLUDE_DIRECTORIES)
 target_include_directories(opposite_force_test_engine PUBLIC ${engine_includes})
 
-add_library(opposite_force_catch2 STATIC "${test_source_directory}/vendor/Catch2/catch_amalgamated.cpp")
-target_include_directories(opposite_force_catch2 PUBLIC "${test_source_directory}/vendor/Catch2")
+add_library(opposite_force_catch2 STATIC "${test_infrastructure_directory}/vendor/Catch2/catch_amalgamated.cpp")
+target_include_directories(opposite_force_catch2 PUBLIC "${test_infrastructure_directory}/vendor/Catch2")
 
-add_library(opposite_force_test_fixtures STATIC "${test_source_directory}/Fixtures.cpp")
+add_library(opposite_force_test_fixtures STATIC "${test_infrastructure_directory}/Fixtures.cpp")
+target_include_directories(opposite_force_test_fixtures PUBLIC "${test_infrastructure_directory}")
 target_link_libraries(opposite_force_test_fixtures PUBLIC opposite_force_test_engine)
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     message(FATAL_ERROR "The test-only parser fixtures require Clang or GCC. On Windows, use clang-cl (Ninja or the Visual Studio ClangCL toolset), not cl.exe.")
@@ -65,14 +67,21 @@ if(NOT OPPOSITE_FORCE_FIXTURE_ACCESS_WORKS)
 endif()
 target_compile_options(opposite_force_test_fixtures PRIVATE "${fixture_access_flag}")
 
-file(GLOB test_sources CONFIGURE_DEPENDS "${test_source_directory}/*Tests.cpp")
-# Landing and combat fixtures exercise private engine entry points headlessly.
-set_source_files_properties("${test_source_directory}/LandingTexturesTests.cpp"
-    "${test_source_directory}/UnitCombatTests.cpp"
-    "${test_source_directory}/MissionCompletionTests.cpp"
+file(GLOB_RECURSE test_sources CONFIGURE_DEPENDS
+    "${test_source_directory}/Geoscape/*Tests.cpp"
+    "${test_source_directory}/Battlescape/*Tests.cpp"
+    "${test_source_directory}/OXCE/*Tests.cpp"
+    "${test_source_directory}/Integration/*Tests.cpp")
+# Only these suites use private engine state or the headless landing/combat fixtures.
+set_source_files_properties("${test_source_directory}/Geoscape/Game/LandingTexturesTests.cpp"
+    "${test_source_directory}/Battlescape/Game/UnitCombatRulesTests.cpp"
+    "${test_source_directory}/OXCE/Savegame/BattleUnitTests.cpp"
+    "${test_source_directory}/Integration/Geoscape/LandingTexturesIntegrationTests.cpp"
+    "${test_source_directory}/Integration/Battlescape/UnitCombatIntegrationTests.cpp"
+    "${test_source_directory}/Integration/Battlescape/MissionCompletionIntegrationTests.cpp"
     PROPERTIES COMPILE_OPTIONS "${fixture_access_flag}")
 add_executable(opposite_force_tests
-    "${test_source_directory}/TestEnvironment.cpp"
+    "${test_infrastructure_directory}/TestEnvironment.cpp"
     ${test_sources})
 target_link_libraries(opposite_force_tests PRIVATE opposite_force_test_fixtures opposite_force_catch2)
 set_target_properties(opposite_force_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")

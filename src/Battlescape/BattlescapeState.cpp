@@ -89,7 +89,7 @@
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleVideo.h"
 
-#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+#include "../OppositeForce/Battlescape/Game/MissionCompletionResult.h"
 
 namespace OpenXcom
 {

@@ -54,7 +54,7 @@
 #include "../fmath.h"
 #include "../fallthrough.h"
 
-#include "../OppositeForce/Battlescape/UnitCombatRules.h"
+#include "../OppositeForce/Battlescape/Game/UnitCombatRules.h"
 
 namespace OpenXcom
 {

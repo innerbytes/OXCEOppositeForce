@@ -24,7 +24,7 @@
 #include "../Engine/Yaml.h"
 #include "RuleBaseFacilityFunctions.h"
 
-#include "../OppositeForce/Mod/HangarRules.h"
+#include "../OppositeForce/Geoscape/Rules/HangarRules.h"
 
 namespace OpenXcom
 {

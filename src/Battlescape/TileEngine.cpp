@@ -44,7 +44,7 @@
 #include "MeleeAttackBState.h"
 #include "../fmath.h"
 
-#include "../OppositeForce/Battlescape/UnitCombatRules.h"
+#include "../OppositeForce/Battlescape/Game/UnitCombatRules.h"
 
 namespace OpenXcom
 {

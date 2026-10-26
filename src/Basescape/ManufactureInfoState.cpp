@@ -41,7 +41,7 @@
 #include "../Mod/RuleInterface.h"
 #include <climits>
 
-#include "../OppositeForce/Savegame/HangarCompatibility.h"
+#include "../OppositeForce/Geoscape/Game/HangarCompatibility.h"
 
 namespace OpenXcom
 {
