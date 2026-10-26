@@ -513,13 +513,14 @@ bool BattlescapeGame::kneel(BattleUnit *bu)
 void BattlescapeGame::endTurn()
 {
 
-	// OF - Apply a player-armed result after queued actions and before turn effects.
-	if (_save->ofGetMissionCompletion().hasArmedCompletion())
+	// OF - Consume pending script results at a safe transition for any faction.
+	if (_save->ofGetMissionCompletion().getResult() != MissionCompletion::Result::None)
 	{
 		BattlescapeTally tally = tallyUnits();
-		if (_save->ofGetMissionCompletion().tryApplyCompletion(_save->getSide() == FACTION_PLAYER, tally.liveSoldiers, _save->isPreview()))
+		const auto result = _save->ofGetMissionCompletion().consumePendingResult(tally.liveSoldiers, _save->isPreview());
+		if (result != MissionCompletion::Result::None)
 		{
-			_parentState->finishBattle(false, tally.liveSoldiers);
+			_parentState->ofFinishBattle(tally.liveSoldiers, result);
 			return;
 		}
 	}

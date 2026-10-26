@@ -23,6 +23,8 @@
 #include <map>
 #include "../Savegame/SavedGame.h"
 
+#include "../OppositeForce/Battlescape/MissionCompletion.h"
+
 namespace OpenXcom
 {
 
@@ -84,6 +86,10 @@ private:
 	std::map<int, int>  _containmentStateInfo;
 	int _limitsEnforced;
 	MissionStatistics *_missionStatistics;
+
+	// OF - The final result belongs to this debriefing, independently of queued script requests.
+	MissionCompletion::Result _ofMissionResult = MissionCompletion::Result::None;
+
 	std::vector<Soldier*> _soldiersCommended, _deadSoldiersCommended;
 	/// Adds to the debriefing stats.
 	void addStat(const std::string &name, int quantity, int score);
@@ -109,6 +115,10 @@ private:
 public:
 	/// Creates the Debriefing state.
 	DebriefingState();
+
+	// OF - Accept an explicit result from script-controlled finalization.
+	DebriefingState(MissionCompletion::Result scriptResult);
+
 	/// Cleans up the Debriefing state.
 	~DebriefingState();
 	/// Handler for clicking the OK button.

@@ -78,6 +78,13 @@
 namespace OpenXcom
 {
 
+// OF - Preserve the explicit result before debriefing runs unit-return scripts.
+DebriefingState::DebriefingState(MissionCompletion::Result scriptResult) : DebriefingState()
+{
+	_ofMissionResult = scriptResult;
+}
+// End OF
+
 /**
  * Initializes all the elements in the Debriefing screen.
  * @param game Pointer to the core game.
@@ -1029,9 +1036,8 @@ void DebriefingState::prepareDebriefing()
 	bool aborted = battle->isAborted();
 	bool success = !aborted || battle->allObjectivesDestroyed();
 
-	// OF - An applied script result is independent of abort and native objectives.
-	const auto &completion = battle->ofGetMissionCompletion();
-	success = completion.resolveSuccess(success, 1);
+	// OF - Resolve the explicitly supplied script result independently of native objectives.
+	success = MissionCompletion::resolveSuccess(_ofMissionResult, success, 1);
 	// End OF
 
 	Craft *craft = 0;
@@ -1072,7 +1078,7 @@ void DebriefingState::prepareDebriefing()
 
 	// TODO - OF - check how it works
 	// OF - Award the explicit objective result once, after native recovery processing.
-	if (completion.hasAppliedResult())
+	if (_ofMissionResult != MissionCompletion::Result::None)
 	{
 		objectiveCompleteText.clear();
 		objectiveFailedText.clear();
@@ -1176,7 +1182,7 @@ void DebriefingState::prepareDebriefing()
 			base->cleanupDefenses(false);
 
 			// OF - Explicit failure loses a defended base without marking the battle aborted.
-			if (completion.hasAppliedResult() && !completion.resolveSuccess(success, 1))
+			if ((_ofMissionResult != MissionCompletion::Result::None) && !MissionCompletion::resolveSuccess(_ofMissionResult, success, 1))
 			{
 				_destroyBase = true;
 			}
@@ -1345,7 +1351,7 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - Normal squad-loss handling can override a requested script victory.
-	success = completion.resolveSuccess(success, playersSurvived);
+	success = MissionCompletion::resolveSuccess(_ofMissionResult, success, playersSurvived);
 
 	// if it's a UFO, let's see what happens to it
 	for (auto ufoIt = save->getUfos()->begin(); ufoIt != save->getUfos()->end(); ++ufoIt)
@@ -1364,7 +1370,7 @@ void DebriefingState::prepareDebriefing()
 			// takes off immediately and proceeds according to its mission directive
 
 			// OF - A landed UFO remains unsecured after explicit mission failure.
-			if (ufo->getStatus() == Ufo::LANDED && completion.hasAppliedResult() && !success)
+			if (ufo->getStatus() == Ufo::LANDED && (_ofMissionResult != MissionCompletion::Result::None) && !success)
 			{
 				ufo->setSecondsRemaining(5);
 			}
@@ -1393,9 +1399,9 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - Scripts decide the objective result independently of exit-tile occupancy.
-	if (completion.hasAppliedResult())
+	if (_ofMissionResult != MissionCompletion::Result::None)
 	{
-		success = completion.resolveSuccess(success, playersSurvived);
+		success = MissionCompletion::resolveSuccess(_ofMissionResult, success, playersSurvived);
 	}
 	// End OF
 
@@ -1453,7 +1459,7 @@ void DebriefingState::prepareDebriefing()
 			}
 
 			// OF - Script completion determines alien-base destruction even with nextStage set.
-			destroyAlienBase = completion.resolveSuccess(destroyAlienBase, playersSurvived);
+			destroyAlienBase = MissionCompletion::resolveSuccess(_ofMissionResult, destroyAlienBase, playersSurvived);
 
 			success = destroyAlienBase;
 			if (destroyAlienBase)
@@ -1719,7 +1725,7 @@ void DebriefingState::prepareDebriefing()
 			}
 
 			// OF - Living civilians follow an explicit failed objective's outcome.
-			else if (oldFaction == FACTION_NEUTRAL && completion.hasAppliedResult() && !success)
+			else if (oldFaction == FACTION_NEUTRAL && (_ofMissionResult != MissionCompletion::Result::None) && !success)
 			{
 				if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
 				{
@@ -1840,7 +1846,7 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - VIP requirements do not override a script-owned mission result.
-	success = completion.resolveSuccess(success, playersSurvived);
+	success = MissionCompletion::resolveSuccess(_ofMissionResult, success, playersSurvived);
 
 	if ((!aborted || success) && playersSurvived > 0) 	// RECOVER UFO : run through all tiles to recover UFO components and items
 	{
@@ -1992,9 +1998,9 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - Present and score the explicit result without changing non-aborted recovery.
-	if (completion.hasAppliedResult())
+	if (_ofMissionResult != MissionCompletion::Result::None)
 	{
-		const auto outcome = completion.getDebriefingOutcome(ruleDeploy, target, playersSurvived, lostCraft);
+		const auto outcome = MissionCompletion::getDebriefingOutcome(_ofMissionResult, ruleDeploy, target, playersSurvived, lostCraft);
 		success = outcome.success;
 		_txtTitle->setText(tr(outcome.title));
 		if (!outcome.objectiveText.empty())

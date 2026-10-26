@@ -1466,10 +1466,6 @@ void BattlescapeState::btnEndTurnClick(Action *)
 		_map->getCamera()->stopKeyScrolling();
 
 		_txtTooltip->setText("");
-
-		// OF - Only a player Next Turn press may arm a pending script result.
-		_save->ofGetMissionCompletion().armCompletion(_save->getSide() == FACTION_PLAYER, _save->isPreview());
-
 		_battleGame->requestEndTurn(false);
 	}
 }
@@ -3506,6 +3502,14 @@ void BattlescapeState::popup(State *state)
 	_popups.push_back(state);
 }
 
+// OF - Pass the script result through the existing battle finalization body.
+void BattlescapeState::ofFinishBattle(int survivors, MissionCompletion::Result result)
+{
+	_ofFinishResult = result;
+	finishBattle(false, survivors);
+}
+// End OF
+
 /**
  * Finishes up the current battle, shuts down the battlescape
  * and presents the debriefing screen for the mission.
@@ -3516,8 +3520,11 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 {
 	bool isPreview = _save->isPreview();
 
-	// OF - Discard queued requests on native endings; retreat never applies them.
-	_save->ofGetMissionCompletion().prepareFinish(abort || _save->isAborted());
+	// OF - Consume the temporary result once; native endings discard queued requests.
+	auto scriptResult = _ofFinishResult;
+	_ofFinishResult = MissionCompletion::Result::None;
+	scriptResult = _save->ofGetMissionCompletion().prepareFinish(scriptResult, abort || _save->isAborted(), isPreview);
+	// End OF
 
 	while (!_game->isState(this))
 	{
@@ -3586,7 +3593,7 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 	}
 
 	// OF - Explicit script completion ends the entire mission.
-	if (_save->ofGetMissionCompletion().hasAppliedResult())
+	if (scriptResult != MissionCompletion::Result::None)
 	{
 		nextStage.clear();
 	}
@@ -3635,14 +3642,26 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 			_game->getMod()->playMusic("GMGEO");
 			return;
 		}
-		_game->pushState(new DebriefingState);
+
+		// OF - Carry the consumed result into debriefing independently of later script requests.
+		if (scriptResult != MissionCompletion::Result::None)
+		{
+			_game->pushState(new DebriefingState(scriptResult));
+		}
+		// End OF
+
+		else
+		{
+			_game->pushState(new DebriefingState);
+		}
+
 		std::string cutscene;
 		if (ruleDeploy)
 		{
 			// OF - Scripted failure uses defeat presentation without becoming an abort.
-			if (_save->ofGetMissionCompletion().hasAppliedResult())
+			if (scriptResult != MissionCompletion::Result::None)
 			{
-				cutscene = _save->ofGetMissionCompletion().getCutscene(*ruleDeploy, inExitArea);
+				cutscene = MissionCompletion::getCutscene(scriptResult, *ruleDeploy, inExitArea);
 			}
 			// End OF
 

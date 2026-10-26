@@ -8,16 +8,15 @@ namespace OpenXcom
 {
     class AlienDeployment;
 
-    /// Saved script-owned mission result, independent of retreat and recovery policy.
+    /// Saved manual-ending mode and pending script result.
     class MissionCompletion
     {
     public:
-        // TODO - is None result is needed? Should None be 0 , Success 1 and Failure -1?
         enum class Result
         {
-            None = -1,
-            Failure = 0,
-            Success = 1
+            None = 0,
+            Success = 1,
+            Failure = 2
         };
 
         struct DebriefingOutcome
@@ -29,53 +28,37 @@ namespace OpenXcom
         };
 
         void reset();
-        void setManual(bool manual);
+        void setManualCompletion(bool manual);
 
         // TODO - looks like it's used only in tests, remove
-        bool isManual() const;
+        bool isManualCompletion() const;
 
-        void requestCompletion(bool success);
+        void setResult(Result result);
 
-        // TODO - looks like it's used only in tests, remove
-        bool hasPendingResult() const;
-
-        bool hasAppliedResult() const;
-
-        bool hasArmedCompletion() const;
+        Result getResult() const;
 
         bool shouldSuppressAutomaticCompletion(bool preview) const;
 
-        // TODO - see how it's different from requestCompletion()
-        void armCompletion(bool playerTurn, bool preview);
+        /// Consume a pending result at a safe turn transition, for any faction.
+        Result consumePendingResult(int liveSoldiers, bool preview);
+        /// Discard queued requests and retain only an explicitly supplied script result.
+        Result prepareFinish(Result scriptResult, bool aborted, bool preview);
 
-        bool tryApplyCompletion(bool playerTurn, int liveSoldiers, bool preview);
-
-        // TODO - see what it's doing
-        void prepareFinish(bool aborted);
-
-        bool resolveSuccess(bool nativeSuccess, int survivors) const;
+        static bool resolveSuccess(Result result, bool nativeSuccess, int survivors);
 
         // TODO - see if we need to control it from here
-        DebriefingOutcome getDebriefingOutcome(const AlienDeployment *deployment, const std::string &target,
-                                               int survivors, bool lostCraft) const;
+        static DebriefingOutcome getDebriefingOutcome(Result result, const AlienDeployment *deployment,
+                                                      const std::string &target, int survivors, bool lostCraft);
 
         // TODO - see if we need to control it from here
-        std::string getCutscene(const AlienDeployment &deployment, int survivors) const;
+        static std::string getCutscene(Result result, const AlienDeployment &deployment, int survivors);
 
         // TODO - load / save code can be moved to the other class
         void load(const YAML::YamlNodeReader &reader);
         void save(YAML::YamlNodeWriter writer) const;
 
     private:
-        // TODO - move to separate storage and have good names
-
-        // TODO rename to _isManualCompletion;
-        bool _manual = false;
-
-        Result _pending = Result::None;
-        Result _applied = Result::None;
-
-        // TODO - see how this dirty flag us used
-        bool _armed = false;
+        bool _isManualCompletion = false;
+        Result _pendingResult = Result::None;
     };
 }  // namespace OpenXcom

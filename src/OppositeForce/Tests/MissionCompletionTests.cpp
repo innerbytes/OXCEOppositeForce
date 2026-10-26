@@ -1,4 +1,7 @@
+#include <type_traits>
+
 #include "Battlescape/BattlescapeGame.h"
+#include "Battlescape/BattlescapeState.h"
 #include "Engine/Options.h"
 #include "Fixtures.h"
 #include "Mod/ModScript.h"
@@ -12,13 +15,11 @@ using namespace OpenXcom::OppositeForceTests;
 
 namespace
 {
-    MissionCompletion createAppliedCompletion(bool success)
+    MissionCompletion::Result createScriptResult(bool success)
     {
         MissionCompletion completion;
-        completion.requestCompletion(success);
-        completion.armCompletion(true, false);
-        completion.tryApplyCompletion(true, 1, false);
-        return completion;
+        completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
+        return completion.consumePendingResult(1, false);
     }
 
     void runCreationScript(RulesFixture &rules, SavedBattleGame *battle, const std::string &code)
@@ -29,23 +30,36 @@ namespace
     }
 }  // namespace
 
+TEST_CASE("BattlescapeState_NativeFinishBattle_PreservesUpstreamSignature", "[mission-completion][integration]")
+{
+    // Arrange
+    using NativeFinishSignature = void (BattlescapeState::*)(bool, int);
+
+    // Act
+    constexpr bool matchesNativeSignature =
+        std::is_same_v<decltype(&BattlescapeState::finishBattle), NativeFinishSignature>;
+
+    // Assert
+    STATIC_REQUIRE(matchesNativeSignature);
+}
+
 TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-completion]")
 {
     // Arrange
     MissionCompletion completion;
 
     // Act
-    completion.armCompletion(true, false);
-    const bool applied = completion.tryApplyCompletion(true, 1, false);
+    const auto result = completion.consumePendingResult(1, false);
+    const auto finalResult = completion.prepareFinish(result, false, false);
 
     // Assert
-    REQUIRE_FALSE(completion.isManual());
+    REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
-    REQUIRE_FALSE(completion.hasPendingResult());
-    REQUIRE_FALSE(completion.hasAppliedResult());
-    REQUIRE_FALSE(applied);
-    REQUIRE(completion.resolveSuccess(true, 1));
-    REQUIRE_FALSE(completion.resolveSuccess(false, 1));
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
+    REQUIRE(result == MissionCompletion::Result::None);
+    REQUIRE(finalResult == MissionCompletion::Result::None);
+    REQUIRE(MissionCompletion::resolveSuccess(finalResult, true, 1));
+    REQUIRE_FALSE(MissionCompletion::resolveSuccess(finalResult, false, 1));
 }
 
 TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearingRequest", "[mission-completion]")
@@ -53,134 +67,145 @@ TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearin
     // Arrange
     const bool pending = GENERATE(false, true);
     MissionCompletion completion;
-    completion.setManual(true);
-    if (pending) completion.requestCompletion(true);
+    completion.setManualCompletion(true);
+    if (pending) completion.setResult(MissionCompletion::Result::Success);
     REQUIRE(completion.shouldSuppressAutomaticCompletion(false));
 
     // Act
-    completion.setManual(false);
+    completion.setManualCompletion(false);
 
     // Assert
-    REQUIRE_FALSE(completion.isManual());
-    REQUIRE(completion.hasPendingResult() == pending);
+    REQUIRE_FALSE(completion.isManualCompletion());
+    REQUIRE(completion.getResult() == (pending ? MissionCompletion::Result::Success : MissionCompletion::Result::None));
     REQUIRE(completion.shouldSuppressAutomaticCompletion(false) == pending);
 }
 
-TEST_CASE("MissionCompletion_RepeatedRequests_UsesLatestResultInEitherMode", "[mission-completion]")
+TEST_CASE("MissionCompletion_SetResult_ReplacesOrClearsPendingResultInEitherMode", "[mission-completion]")
 {
     // Arrange
     const bool manual = GENERATE(false, true);
+    const auto requestedResult = GENERATE(MissionCompletion::Result::None, MissionCompletion::Result::Success,
+                                          MissionCompletion::Result::Failure);
+    MissionCompletion completion;
+    completion.setManualCompletion(manual);
+    completion.setResult(MissionCompletion::Result::Success);
+
+    // Act
+    completion.setResult(requestedResult);
+    const auto pendingResult = completion.getResult();
+    const auto result = completion.consumePendingResult(1, false);
+
+    // Assert
+    REQUIRE(pendingResult == requestedResult);
+    REQUIRE(result == pendingResult);
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
+    REQUIRE(MissionCompletion::resolveSuccess(result, false, 1) ==
+            (requestedResult == MissionCompletion::Result::Success));
+    REQUIRE(completion.consumePendingResult(1, false) == MissionCompletion::Result::None);
+}
+
+TEST_CASE("MissionCompletion_RequestDuringTurnEffects_CompletesAtResumedTransition", "[mission-completion]")
+{
+    // Arrange
     const bool success = GENERATE(false, true);
     MissionCompletion completion;
-    completion.setManual(manual);
-    completion.requestCompletion(!success);
-    completion.armCompletion(true, false);
+    REQUIRE(completion.consumePendingResult(1, false) == MissionCompletion::Result::None);
 
     // Act
-    completion.requestCompletion(success);
-    const bool applied = completion.tryApplyCompletion(true, 1, false);
+    completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
+    const auto result = completion.consumePendingResult(1, false);
 
     // Assert
-    REQUIRE(applied);
-    REQUIRE_FALSE(completion.hasPendingResult());
-    REQUIRE(completion.hasAppliedResult());
-    REQUIRE(completion.resolveSuccess(!success, 1) == success);
-    REQUIRE_FALSE(completion.tryApplyCompletion(true, 1, false));
+    REQUIRE(result == (success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure));
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
 }
 
-TEST_CASE("MissionCompletion_UnarmedOrEnemyTransition_DoesNotApplyPendingRequest", "[mission-completion]")
-{
-    // Arrange
-    const bool playerPress = GENERATE(false, true);
-    MissionCompletion completion;
-    completion.requestCompletion(true);
-    completion.armCompletion(playerPress, false);
-
-    // Act
-    const bool applied = completion.tryApplyCompletion(false, 1, false);
-
-    // Assert
-    REQUIRE_FALSE(applied);
-    REQUIRE(completion.hasPendingResult());
-    REQUIRE_FALSE(completion.hasAppliedResult());
-    REQUIRE_FALSE(completion.tryApplyCompletion(true, 1, false));
-}
-
-TEST_CASE("MissionCompletion_RequestAfterPress_WaitsForAnotherPress", "[mission-completion]")
+TEST_CASE("MissionCompletion_SquadDefeat_PreventsConsumingScriptVictory", "[mission-completion]")
 {
     // Arrange
     MissionCompletion completion;
-    completion.armCompletion(true, false);
+    completion.setResult(MissionCompletion::Result::Success);
 
     // Act
-    completion.requestCompletion(true);
-    const bool applied = completion.tryApplyCompletion(true, 1, false);
+    const auto result = completion.consumePendingResult(0, false);
+    const auto finalResult = completion.prepareFinish(result, false, false);
 
     // Assert
-    REQUIRE_FALSE(applied);
-    REQUIRE(completion.hasPendingResult());
-    completion.armCompletion(true, false);
-    REQUIRE(completion.tryApplyCompletion(true, 1, false));
-}
-
-TEST_CASE("MissionCompletion_SquadDefeat_PreventsApplyingScriptVictory", "[mission-completion]")
-{
-    // Arrange
-    MissionCompletion completion;
-    completion.requestCompletion(true);
-    completion.armCompletion(true, false);
-
-    // Act
-    const bool applied = completion.tryApplyCompletion(true, 0, false);
-    completion.prepareFinish(false);
-
-    // Assert
-    REQUIRE_FALSE(applied);
-    REQUIRE_FALSE(completion.hasPendingResult());
-    REQUIRE_FALSE(completion.hasAppliedResult());
-    REQUIRE_FALSE(completion.resolveSuccess(false, 0));
+    REQUIRE(result == MissionCompletion::Result::None);
+    REQUIRE(finalResult == MissionCompletion::Result::None);
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
+    REQUIRE_FALSE(MissionCompletion::resolveSuccess(finalResult, false, 0));
 }
 
 TEST_CASE("MissionCompletion_NativeTimerOrRetreat_DiscardsQueuedResult", "[mission-completion]")
 {
     // Arrange
     const bool retreat = GENERATE(false, true);
+    const bool requestedSuccess = GENERATE(false, true);
+    const bool nativeSuccess = GENERATE(false, true);
     MissionCompletion completion;
-    completion.setManual(true);
-    completion.requestCompletion(false);
-    completion.armCompletion(true, false);
+    completion.setManualCompletion(true);
+    completion.setResult(requestedSuccess ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
 
     // Act
-    completion.prepareFinish(retreat);
+    const auto result = completion.prepareFinish(MissionCompletion::Result::None, retreat, false);
 
     // Assert
-    REQUIRE_FALSE(completion.hasPendingResult());
-    REQUIRE_FALSE(completion.hasAppliedResult());
-    REQUIRE(completion.resolveSuccess(true, 1));
-    REQUIRE_FALSE(completion.tryApplyCompletion(true, 1, false));
+    REQUIRE(result == MissionCompletion::Result::None);
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
+    REQUIRE(MissionCompletion::resolveSuccess(result, nativeSuccess, 1) == nativeSuccess);
+    REQUIRE(completion.consumePendingResult(1, false) == MissionCompletion::Result::None);
+}
+
+TEST_CASE("MissionCompletion_RetreatWithExplicitResult_PreservesNativeOutcome", "[mission-completion]")
+{
+    // Arrange
+    const bool success = GENERATE(false, true);
+    MissionCompletion completion;
+    completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
+    const auto scriptResult = completion.consumePendingResult(1, false);
+
+    // Act
+    const auto result = completion.prepareFinish(scriptResult, true, false);
+
+    // Assert
+    REQUIRE(result == MissionCompletion::Result::None);
+    REQUIRE_FALSE(MissionCompletion::resolveSuccess(result, false, 1));
+    REQUIRE(MissionCompletion::resolveSuccess(result, true, 1));
+}
+
+TEST_CASE("MissionCompletion_PreviewTransition_UsesNativeEnding", "[mission-completion]")
+{
+    // Arrange
+    MissionCompletion completion;
+    completion.setResult(MissionCompletion::Result::Success);
+
+    // Act
+    const auto consumed = completion.consumePendingResult(1, true);
+    const auto finalResult = completion.prepareFinish(MissionCompletion::Result::Success, false, true);
+
+    // Assert
+    REQUIRE(consumed == MissionCompletion::Result::None);
+    REQUIRE(finalResult == MissionCompletion::Result::None);
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
 }
 
 TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]")
 {
     // Arrange
-    const bool applied = GENERATE(false, true);
-    auto completion = applied ? createAppliedCompletion(true) : MissionCompletion{};
-    completion.setManual(true);
-    if (!applied)
-    {
-        completion.requestCompletion(false);
-        completion.armCompletion(true, false);
-    }
+    const bool success = GENERATE(false, true);
+    MissionCompletion completion;
+    completion.setManualCompletion(true);
+    completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
 
     // Act
     completion.reset();
 
     // Assert
-    REQUIRE_FALSE(completion.isManual());
-    REQUIRE_FALSE(completion.hasPendingResult());
-    REQUIRE_FALSE(completion.hasAppliedResult());
-    REQUIRE_FALSE(completion.hasArmedCompletion());
+    REQUIRE_FALSE(completion.isManualCompletion());
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
+    REQUIRE(completion.consumePendingResult(1, false) == MissionCompletion::Result::None);
 }
 
 TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentation", "[mission-completion]")
@@ -195,14 +220,14 @@ TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentat
                                "objectiveComplete: [OBJECTIVE_WON, 500]\nobjectiveFailed: [OBJECTIVE_LOST, -200]\n"
                                "missionCompleteText: MISSION_WON\nmissionFailedText: MISSION_LOST\n"
                                "winCutscene: WIN\nloseCutscene: LOSE\nabortCutscene: ABORT\n");
-    auto completion = createAppliedCompletion(success);
+    const auto result = createScriptResult(success);
 
     // Act
-    const auto outcome = completion.getDebriefingOutcome(&deployment, target, 2, false);
-    const auto cutscene = completion.getCutscene(deployment, 2);
+    const auto outcome = MissionCompletion::getDebriefingOutcome(result, &deployment, target, 2, false);
+    const auto cutscene = MissionCompletion::getCutscene(result, deployment, 2);
 
     // Assert
-    REQUIRE(completion.resolveSuccess(!success, 2) == success);
+    REQUIRE(MissionCompletion::resolveSuccess(result, !success, 2) == success);
     REQUIRE(outcome.success == success);
     REQUIRE(outcome.title == (success ? "MISSION_WON" : "MISSION_LOST"));
     REQUIRE(outcome.objectiveText == (success ? "OBJECTIVE_WON" : "OBJECTIVE_LOST"));
@@ -210,73 +235,113 @@ TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentat
     REQUIRE(cutscene == (success ? "WIN" : "LOSE"));
 }
 
-TEST_CASE("MissionCompletion_SquadOrCraftLost_OverridesAppliedVictory", "[mission-completion]")
+TEST_CASE("MissionCompletion_LaterRequest_PreservesExplicitFinalResult", "[mission-completion]")
+{
+    // Arrange
+    const bool success = GENERATE(false, true);
+    MissionCompletion completion;
+    completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
+    const auto result = completion.prepareFinish(completion.consumePendingResult(1, false), false, false);
+
+    // Act
+    completion.setResult(success ? MissionCompletion::Result::Failure : MissionCompletion::Result::Success);
+    const auto outcome = MissionCompletion::getDebriefingOutcome(result, nullptr, "STR_UFO", 1, false);
+
+    // Assert
+    REQUIRE(outcome.success == success);
+    REQUIRE(outcome.title == (success ? "STR_UFO_IS_RECOVERED" : "STR_UFO_IS_NOT_RECOVERED"));
+}
+
+TEST_CASE("MissionCompletion_SquadOrCraftLost_OverridesScriptVictory", "[mission-completion]")
 {
     // Arrange
     const bool lostCraft = GENERATE(false, true);
-    auto completion = createAppliedCompletion(true);
+    const auto result = createScriptResult(true);
 
     // Act
-    const auto outcome = completion.getDebriefingOutcome(nullptr, "STR_UFO", lostCraft ? 1 : 0, lostCraft);
+    const auto outcome =
+        MissionCompletion::getDebriefingOutcome(result, nullptr, "STR_UFO", lostCraft ? 1 : 0, lostCraft);
 
     // Assert
     REQUIRE_FALSE(outcome.success);
     REQUIRE(outcome.title == (lostCraft ? "STR_CRAFT_IS_LOST" : "STR_UFO_IS_NOT_RECOVERED"));
 }
 
-TEST_CASE("MissionCompletion_SaveRoundTrip_PreservesResultButRequiresNewPress", "[mission-completion][save]")
+TEST_CASE("MissionCompletion_SaveRoundTrip_PreservesPendingResult", "[mission-completion][save]")
 {
     // Arrange
     const bool success = GENERATE(false, true);
-    const bool applied = GENERATE(false, true);
-    auto original = applied ? createAppliedCompletion(success) : MissionCompletion{};
-    original.setManual(true);
-    if (!applied)
-    {
-        original.requestCompletion(success);
-        original.armCompletion(true, false);
-    }
+    MissionCompletion original;
+    original.setManualCompletion(true);
+    original.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
     YAML::YamlRootNodeWriter snapshot;
     original.save(snapshot);
     MissionCompletion reloaded;
 
     // Act
     reloaded.load(snapshot.toReader());
-    const bool completedWithoutPress = reloaded.tryApplyCompletion(true, 2, false);
+    const auto result = reloaded.consumePendingResult(2, false);
 
     // Assert
-    REQUIRE(reloaded.isManual());
-    REQUIRE_FALSE(completedWithoutPress);
-    REQUIRE(reloaded.hasAppliedResult() == applied);
-    REQUIRE(reloaded.hasPendingResult() == !applied);
-    if (!applied)
-    {
-        reloaded.armCompletion(true, false);
-        REQUIRE(reloaded.tryApplyCompletion(true, 2, false));
-    }
-    REQUIRE(reloaded.resolveSuccess(!success, 2) == success);
+    REQUIRE(reloaded.isManualCompletion());
+    REQUIRE(result == (success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure));
+    REQUIRE(reloaded.getResult() == MissionCompletion::Result::None);
+    REQUIRE(reloaded.consumePendingResult(2, false) == MissionCompletion::Result::None);
+    REQUIRE(snapshot.toReader()["ofMissionCompletion"]["isManualCompletion"].readVal<bool>());
+    REQUIRE(snapshot.toReader()["ofMissionCompletion"]["pendingResult"].readVal<int>() == (success ? 1 : 2));
+    REQUIRE_FALSE(snapshot.toReader()["isManualCompletion"]);
+    REQUIRE_FALSE(snapshot.toReader()["pendingResult"]);
+}
+
+TEST_CASE("MissionCompletion_SavedKeys_LoadsManualModeAndPendingResult", "[mission-completion][save]")
+{
+    // Arrange
+    const bool manual = GENERATE(false, true);
+    const auto [pendingResult, expectedResult] = GENERATE(table<int, MissionCompletion::Result>({
+        {-1, MissionCompletion::Result::None},
+        {0, MissionCompletion::Result::None},
+        {1, MissionCompletion::Result::Success},
+        {2, MissionCompletion::Result::Failure},
+    }));
+    YAML::YamlRootNodeReader snapshot(
+        YAML::YamlString("ofMissionCompletion: {isManualCompletion: " + std::string(manual ? "true" : "false") +
+                         ", pendingResult: " + std::to_string(pendingResult) + "}"),
+        "mission completion save");
+    MissionCompletion completion;
+    completion.setManualCompletion(!manual);
+    completion.setResult(MissionCompletion::Result::Success);
+
+    // Act
+    completion.load(snapshot);
+    const auto result = completion.consumePendingResult(1, false);
+
+    // Assert
+    REQUIRE(completion.isManualCompletion() == manual);
+    REQUIRE(result == expectedResult);
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
 }
 
 TEST_CASE("MissionCompletion_OldSaveWithoutFields_ResetsToNativeBehavior", "[mission-completion][save]")
 {
     // Arrange
-    auto completion = createAppliedCompletion(true);
-    completion.setManual(true);
+    MissionCompletion completion;
+    completion.setManualCompletion(true);
+    completion.setResult(MissionCompletion::Result::Success);
     YAML::YamlRootNodeReader oldSave(YAML::YamlString("turn: 1"), "old battle save");
 
     // Act
     completion.load(oldSave);
 
     // Assert
-    REQUIRE_FALSE(completion.isManual());
-    REQUIRE_FALSE(completion.hasAppliedResult());
-    REQUIRE_FALSE(completion.hasPendingResult());
+    REQUIRE_FALSE(completion.isManualCompletion());
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
 }
 
 TEST_CASE("BattleGame_MissionCompletionCommands_UpdateSavedBattleState", "[mission-completion][scripts]")
 {
     // Arrange
+    const bool success = GENERATE(false, true);
     RulesFixture rules;
     Language language;
     SavedBattleGame battle(&rules.getMod(), &language, false);
@@ -284,15 +349,15 @@ TEST_CASE("BattleGame_MissionCompletionCommands_UpdateSavedBattleState", "[missi
     // Act
     runCreationScript(rules, &battle,
                       "battle_game.setMissionEndManual 1; battle_game.completeMission 0; "
-                      "battle_game.setMissionEndManual 0; battle_game.completeMission 1;");
+                      "battle_game.setMissionEndManual 0; battle_game.completeMission " +
+                          std::string(success ? "1" : "0") + ";");
 
     // Assert
     auto &completion = battle.ofGetMissionCompletion();
-    REQUIRE_FALSE(completion.isManual());
-    REQUIRE(completion.hasPendingResult());
-    completion.armCompletion(true, false);
-    REQUIRE(completion.tryApplyCompletion(true, 1, false));
-    REQUIRE(completion.resolveSuccess(false, 1));
+    REQUIRE_FALSE(completion.isManualCompletion());
+    REQUIRE(completion.consumePendingResult(1, false) ==
+            (success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure));
+    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE_FALSE(battle.isAborted());
     REQUIRE(battle.getTurn() == 0);
 }
@@ -310,8 +375,8 @@ TEST_CASE("BattleGame_PreviewOrNullScriptTarget_IgnoresCompletionCommands", "[mi
                       "battle_game.setMissionEndManual 1; battle_game.completeMission 1;");
 
     // Assert
-    REQUIRE_FALSE(battle.ofGetMissionCompletion().isManual());
-    REQUIRE_FALSE(battle.ofGetMissionCompletion().hasPendingResult());
+    REQUIRE_FALSE(battle.ofGetMissionCompletion().isManualCompletion());
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == MissionCompletion::Result::None);
 }
 
 TEST_CASE("BattleGame_SaveRoundTrip_PreservesManualCompletionAndNativeTimer", "[mission-completion][save]")
@@ -326,9 +391,9 @@ TEST_CASE("BattleGame_SaveRoundTrip_PreservesManualCompletionAndNativeTimer", "[
     original.initMap(1, 1, 1);
     original.setTurnLimit(20);
     original.setChronoTrigger(FORCE_LOSE);
-    original.ofGetMissionCompletion().setManual(manual);
-    original.ofGetMissionCompletion().requestCompletion(success);
-    original.ofGetMissionCompletion().armCompletion(true, false);
+    original.ofGetMissionCompletion().setManualCompletion(manual);
+    original.ofGetMissionCompletion().setResult(success ? MissionCompletion::Result::Success
+                                                        : MissionCompletion::Result::Failure);
     YAML::YamlRootNodeWriter snapshot;
     original.save(snapshot);
     SavedBattleGame reloaded(&rules.getMod(), &language, false);
@@ -336,15 +401,12 @@ TEST_CASE("BattleGame_SaveRoundTrip_PreservesManualCompletionAndNativeTimer", "[
     // Act
     YAML::YamlRootNodeReader serialized(snapshot.emit(), "battle save round trip");
     reloaded.load(serialized, &rules.getMod(), &campaign);
+    const auto result = reloaded.ofGetMissionCompletion().consumePendingResult(1, false);
 
     // Assert
-    auto &completion = reloaded.ofGetMissionCompletion();
-    REQUIRE(completion.isManual() == manual);
-    REQUIRE(completion.hasPendingResult());
-    REQUIRE_FALSE(completion.tryApplyCompletion(true, 1, false));
-    completion.armCompletion(true, false);
-    REQUIRE(completion.tryApplyCompletion(true, 1, false));
-    REQUIRE(completion.resolveSuccess(!success, 1) == success);
+    REQUIRE(reloaded.ofGetMissionCompletion().isManualCompletion() == manual);
+    REQUIRE(result == (success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure));
+    REQUIRE(reloaded.ofGetMissionCompletion().getResult() == MissionCompletion::Result::None);
     REQUIRE(reloaded.getTurnLimit() == 20);
     REQUIRE(reloaded.getChronoTrigger() == FORCE_LOSE);
     REQUIRE_FALSE(reloaded.isAborted());
@@ -381,8 +443,8 @@ TEST_CASE("BattleGame_ManualOrPendingCompletion_DoesNotAutoEndOrLatchEnemyElimin
     engine._allEnemiesNeutralized = eliminationAlreadyLatched;
     auto *unit = new BattleUnit(&rules.getMod(), &soldier, 0, nullptr);
     battle.getUnits()->push_back(unit);
-    battle.ofGetMissionCompletion().setManual(manual);
-    if (!manual) battle.ofGetMissionCompletion().requestCompletion(true);
+    battle.ofGetMissionCompletion().setManualCompletion(manual);
+    if (!manual) battle.ofGetMissionCompletion().setResult(MissionCompletion::Result::Success);
     Options::battleAutoEnd = autoEnd;
 
     // Act

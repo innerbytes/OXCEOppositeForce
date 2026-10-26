@@ -4,98 +4,65 @@
 
 namespace OpenXcom
 {
-    void MissionCompletion::setManual(bool manual)
+    void MissionCompletion::setManualCompletion(bool manual)
     {
-        _manual = manual;
+        _isManualCompletion = manual;
     }
 
-    bool MissionCompletion::isManual() const
+    bool MissionCompletion::isManualCompletion() const
     {
-        return _manual;
+        return _isManualCompletion;
     }
 
-    void MissionCompletion::requestCompletion(bool success)
+    void MissionCompletion::setResult(Result result)
     {
-        if (!hasAppliedResult())
-        {
-            _pending = success ? Result::Success : Result::Failure;
-        }
+        _pendingResult = result;
     }
 
-    bool MissionCompletion::hasPendingResult() const
+    MissionCompletion::Result MissionCompletion::getResult() const
     {
-        return _pending != Result::None;
-    }
-
-    bool MissionCompletion::hasAppliedResult() const
-    {
-        return _applied != Result::None;
-    }
-
-    bool MissionCompletion::hasArmedCompletion() const
-    {
-        return _armed;
+        return _pendingResult;
     }
 
     bool MissionCompletion::shouldSuppressAutomaticCompletion(bool preview) const
     {
-        return !preview && (_manual || hasPendingResult());
+        return !preview && (_isManualCompletion || getResult() != Result::None);
     }
 
-    void MissionCompletion::armCompletion(bool playerTurn, bool preview)
+    MissionCompletion::Result MissionCompletion::consumePendingResult(int liveSoldiers, bool preview)
     {
-        _armed = playerTurn && !preview && hasPendingResult();
+        if (preview || liveSoldiers <= 0)
+        {
+            return Result::None;
+        }
+        const auto result = _pendingResult;
+        _pendingResult = Result::None;
+        return result;
     }
 
-    bool MissionCompletion::tryApplyCompletion(bool playerTurn, int liveSoldiers, bool preview)
+    MissionCompletion::Result MissionCompletion::prepareFinish(Result scriptResult, bool aborted, bool preview)
     {
-        if (!_armed)
-        {
-            return false;
-        }
-
-        _armed = false;
-
-        if (!playerTurn || preview || liveSoldiers <= 0 || !hasPendingResult())
-        {
-            return false;
-        }
-
-        _applied = _pending;
-        _pending = Result::None;
-
-        return true;
-    }
-
-    void MissionCompletion::prepareFinish(bool aborted)
-    {
-        _armed = false;
-        _pending = Result::None;
-
-        if (aborted)
-        {
-            _applied = Result::None;
-        }
+        _pendingResult = Result::None;
+        return aborted || preview ? Result::None : scriptResult;
     }
 
     void MissionCompletion::reset()
     {
-        _manual = false;
-        _pending = Result::None;
-        _applied = Result::None;
-        _armed = false;
+        _isManualCompletion = false;
+        _pendingResult = Result::None;
     }
 
-    bool MissionCompletion::resolveSuccess(bool nativeSuccess, int survivors) const
+    bool MissionCompletion::resolveSuccess(Result result, bool nativeSuccess, int survivors)
     {
-        return hasAppliedResult() ? _applied == Result::Success && survivors > 0 : nativeSuccess;
+        return result != Result::None ? result == Result::Success && survivors > 0 : nativeSuccess;
     }
 
-    MissionCompletion::DebriefingOutcome MissionCompletion::getDebriefingOutcome(const AlienDeployment *deployment,
+    MissionCompletion::DebriefingOutcome MissionCompletion::getDebriefingOutcome(Result result,
+                                                                                 const AlienDeployment *deployment,
                                                                                  const std::string &target,
-                                                                                 int survivors, bool lostCraft) const
+                                                                                 int survivors, bool lostCraft)
     {
-        DebriefingOutcome outcome{resolveSuccess(false, survivors) && !lostCraft, {}, {}, 0};
+        DebriefingOutcome outcome{resolveSuccess(result, false, survivors) && !lostCraft, {}, {}, 0};
         if (deployment)
         {
             if (outcome.success)
@@ -123,9 +90,9 @@ namespace OpenXcom
         return outcome;
     }
 
-    std::string MissionCompletion::getCutscene(const AlienDeployment &deployment, int survivors) const
+    std::string MissionCompletion::getCutscene(Result result, const AlienDeployment &deployment, int survivors)
     {
-        return resolveSuccess(false, survivors) ? deployment.getWinCutscene() : deployment.getLoseCutscene();
+        return resolveSuccess(result, false, survivors) ? deployment.getWinCutscene() : deployment.getLoseCutscene();
     }
 
     void MissionCompletion::load(const YAML::YamlNodeReader &reader)
@@ -134,27 +101,20 @@ namespace OpenXcom
         const auto &node = reader["ofMissionCompletion"];
         if (node)
         {
-            node.tryRead("manual", _manual);
-            int pending = -1, applied = -1;
-            node.tryRead("pending", pending);
-            node.tryRead("applied", applied);
-            if (pending == 0 || pending == 1) _pending = static_cast<Result>(pending);
-            if (applied == 0 || applied == 1) _applied = static_cast<Result>(applied);
-            if (hasAppliedResult()) _pending = Result::None;
+            node.tryRead("isManualCompletion", _isManualCompletion);
+            int pendingResult = 0;
+            node.tryRead("pendingResult", pendingResult);
+            _pendingResult = pendingResult >= 0 ? static_cast<Result>(pendingResult) : Result::None;
         }
     }
 
     void MissionCompletion::save(YAML::YamlNodeWriter writer) const
     {
-        if (_manual || hasPendingResult() || hasAppliedResult())
-        {
-            writer.setAsMap();
-            auto node = writer["ofMissionCompletion"];
-            node.setAsMap();
-            node.write("manual", _manual);
-            node.write("pending", static_cast<int>(_pending));
-            node.write("applied", static_cast<int>(_applied));
-        }
+        writer.setAsMap();
+        auto node = writer["ofMissionCompletion"];
+        node.setAsMap();
+        node.write("isManualCompletion", _isManualCompletion);
+        node.write("pendingResult", static_cast<int>(_pendingResult));
     }
 
 }  // namespace OpenXcom

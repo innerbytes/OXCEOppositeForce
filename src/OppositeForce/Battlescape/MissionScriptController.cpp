@@ -9,7 +9,7 @@ namespace OpenXcom::MissionScriptController
     {
         if (battle && !battle->isPreview())
         {
-            battle->ofGetMissionCompletion().setManual(manual != 0);
+            battle->ofGetMissionCompletion().setManualCompletion(manual != 0);
         }
     }
 
@@ -17,7 +17,8 @@ namespace OpenXcom::MissionScriptController
     {
         if (battle && !battle->isPreview())
         {
-            battle->ofGetMissionCompletion().requestCompletion(success != 0);
+            const auto result = success != 0 ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure;
+            battle->ofGetMissionCompletion().setResult(result);
         }
     }
 
@@ -28,7 +29,6 @@ namespace OpenXcom::MissionScriptController
             "setMissionEndManual",
             "1: script-owned ending; 0: normal completion. Defeat, timers and retreat remain active.");
         binding.add<&completeMission>(
-            "completeMission",
-            "Queue success (1) or failure (0) for the next player Next Turn press. Latest request wins.");
+            "completeMission", "Queue success (1) or failure (0) for the next turn transition. Latest request wins.");
     }
 }  // namespace OpenXcom::MissionScriptController

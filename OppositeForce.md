@@ -357,10 +357,12 @@ battle_game.completeMission 0;
 Use the appropriate command for the result. Each call replaces any earlier
 completion request. Both commands work with manual ending enabled or disabled.
 
-The result takes effect on the next player **Next Turn** press. Current actions
-and their consequences finish first, followed by mission completion before
-turn-ending effects and enemy actions. Squad defeat, a deployment timer or player
-retreat can finish the mission before that press.
+For a request made during your turn, press **Next Turn** to complete the mission
+before enemy actions. A request made during turn-ending explosions takes effect
+after those explosions resolve. Requests made during an enemy or civilian turn
+take effect at the next turn transition. Current actions and their queued
+consequences finish before mission completion. Squad defeat, a deployment timer or player
+retreat can finish the mission first and use their ordinary outcome rules.
 
 Both results finish the entire mission, including deployments with `nextStage`.
 Surviving soldiers return from their current positions with their equipment.
@@ -381,6 +383,7 @@ battle_game.setMissionEndManual 0;
 ```
 
 This is the default setting. Any queued completion request remains active when
-changing it. Manual ending and queued results persist through save/load; after
-loading, press **Next Turn** to apply a queued result. A stage reached through
-ordinary mission progression starts with ordinary OXCE ending conditions.
+changing it. Manual ending and queued results persist through save/load. A queued
+result takes effect at the next turn transition, including automatic enemy and
+civilian transitions. A stage reached through ordinary mission progression starts
+with ordinary OXCE ending conditions.
