@@ -66,9 +66,18 @@ TEST_CASE("TerrainSpawnPoints_BlockedFootprintOrExit_OmitsCustomNode", "[terrain
     TerrainFixture fixture;
     const int mode = GENERATE(0, 1, 2);
     CAPTURE(mode);
-    if (mode == 0) fixture.setPart(Position(4, 4, 0), O_OBJECT, 2);
-    if (mode == 1) fixture.encloseRoom(false);
-    if (mode == 2) fixture.initMap(10, 10, 2);
+    if (mode == 0)
+    {
+        fixture.setPart(Position(4, 4, 0), O_OBJECT, 2);
+    }
+    if (mode == 1)
+    {
+        fixture.encloseRoom(false);
+    }
+    if (mode == 2)
+    {
+        fixture.initMap(10, 10, 2);
+    }
     fixture.setPoints({createPoint(Position(2, 2, 0))});
 
     // Act
@@ -84,7 +93,10 @@ TEST_CASE("TerrainSpawnPoints_PatrolCandidates_LinksFiveNearestCompatibleReachab
     // Arrange
     TerrainFixture fixture;
     fixture.setPoints({createPoint(Position(5, 5, 0), 2)});
-    for (int x = 1; x <= 7; ++x) fixture.addNode(Position(x, 1, 0));
+    for (int x = 1; x <= 7; ++x)
+    {
+        fixture.addNode(Position(x, 1, 0));
+    }
     fixture.addNode(Position(4, 5, 0), 0, 1, Node::TYPE_SMALL);
     fixture.addNode(Position(5, 4, 0), 0, 1, Node::TYPE_FLYING);
     auto &blocked = fixture.addNode(Position(1, 10, 0));
@@ -98,6 +110,8 @@ TEST_CASE("TerrainSpawnPoints_PatrolCandidates_LinksFiveNearestCompatibleReachab
     REQUIRE(*custom.getNodeLinks() == std::vector<int>{4, 3, 5, 2, 6});
     REQUIRE(custom.getFlags() == 1);
     for (const int id : *custom.getNodeLinks())
+    {
         REQUIRE(fixture.save.getNodes()->at(id)->getNodeLinks()->back() == custom.getID());
+    }
     REQUIRE(blocked.getNodeLinks()->empty());
 }

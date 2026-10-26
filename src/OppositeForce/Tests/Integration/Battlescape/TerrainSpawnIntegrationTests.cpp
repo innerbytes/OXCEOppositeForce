@@ -107,7 +107,12 @@ TEST_CASE("SavedBattleGame_CustomSpawnSizesAndRanks_ReservesWholeLargeFootprintA
     TerrainFixture fixture;
     fixture.setPoints({createPoint(Position(2, 2, 0), 2, 0, 100), createPoint(Position(6, 6, 0), 1, 2, 20)});
     for (int x = 2; x < 4; ++x)
-        for (int y = 2; y < 4; ++y) fixture.addNode(Position(x, y, 0), 2, 255);
+    {
+        for (int y = 2; y < 4; ++y)
+        {
+            fixture.addNode(Position(x, y, 0), 2, 255);
+        }
+    }
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
     TerrainSpawnInternal::WalkingProbe small(fixture.rules.getMod(), 1);
     TerrainSpawnInternal::WalkingProbe large(fixture.rules.getMod(), 2);
@@ -198,7 +203,12 @@ TEST_CASE("SavedBattleGame_OriginalNodeRaisedIntoLargeFootprint_RejectsSmallSpaw
     fixture.data.getObjectsRaw()->push_back(raised);
     fixture.setPart(Position(2, 2, 0), O_OBJECT, 4);
     for (int x = 2; x < 4; ++x)
-        for (int y = 2; y < 4; ++y) fixture.setPart(Position(x, y, 1), O_FLOOR, 1);
+    {
+        for (int y = 2; y < 4; ++y)
+        {
+            fixture.setPart(Position(x, y, 1), O_FLOOR, 1);
+        }
+    }
     fixture.setPoints({createPoint(Position(2, 2, 1), 2)});
     addSpawnNodes(fixture.rules.getMod(), fixture.save, {{&fixture.getBlock(), Position(0, 0, 0), 0}});
     TerrainSpawnInternal::WalkingProbe small(fixture.rules.getMod(), 1);

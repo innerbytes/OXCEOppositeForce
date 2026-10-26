@@ -125,7 +125,9 @@ namespace OpenXcom::OppositeForceTests
     const std::vector<MapScript *> &RulesFixture::createMapScript(const std::string &type, const std::string &yaml)
     {
         if (getMod()._mapScripts.find(type) != getMod()._mapScripts.end())
+        {
             throw std::logic_error("Duplicate fixture map script: " + type);
+        }
         YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test map script");
         auto &commands = getMod()._mapScripts[type];
         for (const auto &entry : reader.children())
@@ -294,11 +296,20 @@ namespace OpenXcom::OppositeForceTests
 
     void BaseFixture::clearRequests()
     {
-        for (auto *craft : *_base->getCrafts()) delete craft;
+        for (auto *craft : *_base->getCrafts())
+        {
+            delete craft;
+        }
         _base->getCrafts()->clear();
-        for (auto *transfer : *_base->getTransfers()) delete transfer;
+        for (auto *transfer : *_base->getTransfers())
+        {
+            delete transfer;
+        }
         _base->getTransfers()->clear();
-        while (!_base->getProductions().empty()) _base->removeProduction(_base->getProductions().back());
+        while (!_base->getProductions().empty())
+        {
+            _base->removeProduction(_base->getProductions().back());
+        }
     }
 
     DetectionFixture::DetectionFixture(const std::string &ufoYaml)
@@ -359,7 +370,10 @@ namespace OpenXcom::OppositeForceTests
         std::vector<std::string> types;
         for (unsigned bit = 0; bit < 3; ++bit)
         {
-            if (mask & (1u << bit)) types.push_back(std::string(1, 'A' + bit));
+            if (mask & (1u << bit))
+            {
+                types.push_back(std::string(1, 'A' + bit));
+            }
         }
         return types;
     }
@@ -375,16 +389,25 @@ namespace OpenXcom::OppositeForceTests
             scenario.hangarTypes.push_back(type == 3 ? "" : std::string(1, 'A' + type));
         }
         const auto requests = random() % (slots + 2);
-        for (unsigned i = 0; i < requests; ++i) scenario.restrictions.push_back(getTypesFromMask(random() % 8));
+        for (unsigned i = 0; i < requests; ++i)
+        {
+            scenario.restrictions.push_back(getTypesFromMask(random() % 8));
+        }
         scenario.candidateTypes = getTypesFromMask(random() % 7 + 1);
         return scenario;
     }
 
     static std::string getCraftYaml(const std::vector<std::string> &types)
     {
-        if (types.empty()) return "{}";
+        if (types.empty())
+        {
+            return "{}";
+        }
         std::string yaml = "allowedHangarTypes:\n";
-        for (const auto &type : types) yaml += "  - " + type + "\n";
+        for (const auto &type : types)
+        {
+            yaml += "  - " + type + "\n";
+        }
         return yaml;
     }
 
@@ -408,7 +431,10 @@ namespace OpenXcom::OppositeForceTests
     {
         auto requests = scenario.restrictions;
         requests.insert(requests.end(), candidateCount, scenario.candidateTypes);
-        if (requests.size() > scenario.hangarTypes.size()) return false;
+        if (requests.size() > scenario.hangarTypes.size())
+        {
+            return false;
+        }
         std::vector<size_t> slots(scenario.hangarTypes.size());
         std::iota(slots.begin(), slots.end(), 0);
         // Enumerate every slot permutation, independently of the production augmenting-path algorithm.
@@ -426,18 +452,27 @@ namespace OpenXcom::OppositeForceTests
                     break;
                 }
             }
-            if (compatible) return true;
+            if (compatible)
+            {
+                return true;
+            }
         } while (std::next_permutation(slots.begin(), slots.end()));
         return false;
     }
 
     int calculateExhaustiveFreeSlots(const MatchingScenario &scenario)
     {
-        if (!canAssignExhaustively(scenario, 0)) return 0;
+        if (!canAssignExhaustively(scenario, 0))
+        {
+            return 0;
+        }
         int free = 0;
         for (size_t count = 1; count <= scenario.hangarTypes.size(); ++count)
         {
-            if (!canAssignExhaustively(scenario, count)) break;
+            if (!canAssignExhaustively(scenario, count))
+            {
+                break;
+            }
             ++free;
         }
         return free;

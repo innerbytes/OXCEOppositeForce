@@ -55,7 +55,10 @@ namespace OpenXcom::OppositeForceTests
             {
                 auto *object = new MapData(&data);
                 object->setTUCosts(index == 2 ? 255 : 4, 4, 4);
-                if (index == 3) object->setFlags(false, false, false, 0, false, true, false, false, false);
+                if (index == 3)
+                {
+                    object->setFlags(false, false, false, 0, false, true, false, false, false);
+                }
                 data.getObjectsRaw()->push_back(object);
             }
             rules.createInventoryGround();
@@ -77,7 +80,12 @@ namespace OpenXcom::OppositeForceTests
         void fillGround()
         {
             for (int y = 0; y < save.getMapSizeY(); ++y)
-                for (int x = 0; x < save.getMapSizeX(); ++x) setPart(Position(x, y, 0), O_FLOOR, 1);
+            {
+                for (int x = 0; x < save.getMapSizeX(); ++x)
+                {
+                    setPart(Position(x, y, 0), O_FLOOR, 1);
+                }
+            }
         }
 
         void setPart(const Position &position, TilePart part, int id)
@@ -107,7 +115,10 @@ namespace OpenXcom::OppositeForceTests
                 setPart(Position(coordinate, 3, 0), O_NORTHWALL, 2);
                 setPart(Position(coordinate, 7, 0), O_NORTHWALL, 2);
             }
-            if (door) setPart(Position(3, 4, 0), O_WESTWALL, 3);
+            if (door)
+            {
+                setPart(Position(3, 4, 0), O_WESTWALL, 3);
+            }
         }
 
         Node &addNode(const Position &position, int rank = 0, int priority = 1, int type = 0)
@@ -127,11 +138,13 @@ namespace OpenXcom::OppositeForceTests
     {
         std::string bytes{char(10), char(10), char(height)};
         for (int z = height - 1; z >= 0; --z)
+        {
             for (int tile = 0; tile < 100; ++tile)
             {
                 bytes.push_back(z == 0 ? 1 : 0);
                 bytes.append(3, '\0');
             }
+        }
         return bytes;
     }
 
@@ -149,8 +162,14 @@ namespace OpenXcom::OppositeForceTests
                 _directory =
                     std::filesystem::temp_directory_path() /
                     ("of-spawns-" + std::to_string(reinterpret_cast<uintptr_t>(this)) + "-" + std::to_string(attempt));
-                if (std::filesystem::create_directory(_directory)) break;
-                if (attempt == 999) throw std::runtime_error("Could not reserve synthetic resource directory");
+                if (std::filesystem::create_directory(_directory))
+                {
+                    break;
+                }
+                if (attempt == 999)
+                {
+                    throw std::runtime_error("Could not reserve synthetic resource directory");
+                }
             }
             const auto modPath = _directory / "synthetic";
             std::filesystem::create_directories(modPath / "MAPS");
@@ -160,7 +179,10 @@ namespace OpenXcom::OppositeForceTests
             FileMap::scanModDir(_directory.string() + "/", "", false);
             auto infos = FileMap::getModInfos();
             const auto found = infos.find("synthetic");
-            if (found == infos.end()) throw std::runtime_error("Synthetic FileMap mod was not mapped");
+            if (found == infos.end())
+            {
+                throw std::runtime_error("Synthetic FileMap mod was not mapped");
+            }
             FileMap::setup({&found->second}, false);
         }
 

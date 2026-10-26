@@ -23,16 +23,29 @@ namespace OpenXcom::TerrainSpawnPoints
     {
         std::vector<Position> reservations;
         if (unit.isSmallUnit())
+        {
             for (const auto *node : *save.getNodes())
-                if (!node->isDummy() && node->ofGetSpawnSize() == 2) reservations.push_back(node->getPosition());
+            {
+                if (!node->isDummy() && node->ofGetSpawnSize() == 2)
+                {
+                    reservations.push_back(node->getPosition());
+                }
+            }
+        }
         return reservations;
     }
 
     bool canSpawnAtNode(SavedBattleGame &save, const Node &node, const BattleUnit &unit,
                         const std::vector<Position> &reservations)
     {
-        if (!canUseNode(node, unit)) return false;
-        if (!unit.isSmallUnit()) return true;
+        if (!canUseNode(node, unit))
+        {
+            return false;
+        }
+        if (!unit.isSmallUnit())
+        {
+            return true;
+        }
         auto position = node.getPosition();
         // Ordinary RMP nodes on -24 terrain are raised by normal placement to the next floor.
         // Reserve the resulting footprint, including for nodes authored below a reserved point.
@@ -46,7 +59,9 @@ namespace OpenXcom::TerrainSpawnPoints
         {
             if (position.z == anchor.z && position.x >= anchor.x && position.x < anchor.x + 2 &&
                 position.y >= anchor.y && position.y < anchor.y + 2)
+            {
                 return false;
+            }
         }
         return true;
     }
@@ -75,12 +90,18 @@ namespace OpenXcom::TerrainSpawnPoints
     static void appendLink(Node &source, int destination)
     {
         auto &links = *source.getNodeLinks();
-        if (std::find(links.begin(), links.end(), destination) == links.end()) links.push_back(destination);
+        if (std::find(links.begin(), links.end(), destination) == links.end())
+        {
+            links.push_back(destination);
+        }
     }
 
     void addSpawnNodes(Mod &mod, SavedBattleGame &save, const std::vector<Placement> &placements)
     {
-        if (placements.empty()) return;
+        if (placements.empty())
+        {
+            return;
+        }
 
         struct AcceptedPoint
         {
@@ -100,17 +121,23 @@ namespace OpenXcom::TerrainSpawnPoints
                 std::string reason;
                 std::vector<unsigned char> reachable;
                 if (!TerrainSpawnInternal::canStandAtPosition(save, probe.getUnit(), position))
+                {
                     reason = "footprint is blocked in the assembled map";
+                }
                 else
                 {
                     reachable = TerrainSpawnInternal::calculateReachablePositions(save, probe.getUnit(), position);
                     if (!TerrainSpawnInternal::hasGroundExit(save, reachable, placement.offset, dimensions,
                                                              point.unitSize))
+                    {
                         reason = "no walking route into neighboring ground terrain";
+                    }
                     else if (std::any_of(accepted.begin(), accepted.end(), [&](const AcceptedPoint &other) {
                                  return overlapsPoint(*other.node, position, point.unitSize);
                              }))
+                    {
                         reason = "footprint overlaps another placed custom point";
+                    }
                 }
                 if (!reason.empty())
                 {
@@ -133,14 +160,21 @@ namespace OpenXcom::TerrainSpawnPoints
             auto &source = *point.node;
             std::vector<Node *> candidates;
             for (auto *node : *save.getNodes())
+            {
                 if (node != &source && hasCompatibleSize(*node, source.ofGetSpawnSize()) &&
                     save.getTile(node->getPosition()) && point.reachable[save.getTileIndex(node->getPosition())])
+                {
                     candidates.push_back(node);
+                }
+            }
             std::sort(candidates.begin(), candidates.end(), [&](const Node *left, const Node *right) {
                 return std::make_tuple(calculateDistance(source.getPosition(), left->getPosition()), left->getID()) <
                        std::make_tuple(calculateDistance(source.getPosition(), right->getPosition()), right->getID());
             });
-            if (candidates.size() > 5) candidates.resize(5);
+            if (candidates.size() > 5)
+            {
+                candidates.resize(5);
+            }
             for (auto *node : candidates)
             {
                 appendLink(source, node->getID());

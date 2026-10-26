@@ -18,7 +18,10 @@ namespace OpenXcom::FundingReports
                 break;
             }
         }
-        if (!hasOverride) return false;
+        if (!hasOverride)
+        {
+            return false;
+        }
 
         LocalizedText list = language.getString(FundingNames::getNameKey(mod, countries.front()));
         for (size_t index = 1; index < countries.size(); ++index)

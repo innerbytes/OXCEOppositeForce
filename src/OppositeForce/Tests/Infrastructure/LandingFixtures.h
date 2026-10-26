@@ -62,7 +62,10 @@ namespace OpenXcom::OppositeForceTests
         ~HeadlessSettings()
         {
             FileMap::clear(true, false);
-            for (auto &restore : _restore) restore();
+            for (auto &restore : _restore)
+            {
+                restore();
+            }
         }
     };
 
@@ -126,7 +129,10 @@ namespace OpenXcom::OppositeForceTests
             _game->_mod = nullptr;
             _game->_save = nullptr;
             _game.reset();
-            for (auto *ufo : *save.getUfos()) delete ufo;
+            for (auto *ufo : *save.getUfos())
+            {
+                delete ufo;
+            }
             save.getUfos()->clear();
         }
 

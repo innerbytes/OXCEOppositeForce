@@ -45,7 +45,10 @@ TEST_CASE("GlobalTerrain_WeightedGeographicCriteria_MatchesLandedUfoSelectionAnd
     REQUIRE(selected != nullptr);
     REQUIRE(selected->getName() == expected);
     REQUIRE(RNG::getSeed() == expectedSeed);
-    if (longitude >= 60 || latitude < 0) REQUIRE(selected->getName() == "DESERT");
+    if (longitude >= 60 || latitude < 0)
+    {
+        REQUIRE(selected->getName() == "DESERT");
+    }
 }
 
 TEST_CASE("GlobalTerrain_DeploymentScriptOverrides_RetainsScriptAndMapScriptsPrecedence", "[global-terrain][scripts]")

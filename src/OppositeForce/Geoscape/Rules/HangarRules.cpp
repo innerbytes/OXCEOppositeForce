@@ -37,7 +37,10 @@ namespace OpenXcom
 
         void loadCraft(Craft &rule, const YAML::YamlNodeReader &reader, const std::string &name)
         {
-            if (!reader) return;
+            if (!reader)
+            {
+                return;
+            }
             if (!reader.isSeq())
             {
                 throw Exception("Craft " + name + " must list allowed hangar types.");

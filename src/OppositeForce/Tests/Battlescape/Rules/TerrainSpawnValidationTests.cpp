@@ -127,9 +127,18 @@ TEST_CASE("TerrainSpawnValidation_BlockedFootprintOrMissingFloor_ThrowsPlacement
     const auto mode = GENERATE(0, 1, 2, 3);
     CAPTURE(mode);
     fixture.setPoints({createPoint(Position(2, 2, mode == 1 ? 1 : 0), 2)});
-    if (mode == 0) fixture.setPart(Position(5, 5, 0), O_OBJECT, 2);
-    if (mode == 2) fixture.setPart(Position(5, 4, 0), O_WESTWALL, 2);
-    if (mode == 3) fixture.setPart(Position(4, 4, 0), O_FLOOR, -1);
+    if (mode == 0)
+    {
+        fixture.setPart(Position(5, 5, 0), O_OBJECT, 2);
+    }
+    if (mode == 2)
+    {
+        fixture.setPart(Position(5, 4, 0), O_WESTWALL, 2);
+    }
+    if (mode == 3)
+    {
+        fixture.setPart(Position(4, 4, 0), O_FLOOR, -1);
+    }
 
     // Act
     const auto validate = [&] {
@@ -158,9 +167,13 @@ TEST_CASE("TerrainSpawnValidation_EnclosedRoomWithOptionalDoor_AcceptsOnlySizesW
 
     // Assert
     if (valid)
+    {
         REQUIRE_NOTHROW(validate());
+    }
     else
+    {
         REQUIRE_THROWS_WITH(validate(), Catch::Matchers::ContainsSubstring("no walking route"));
+    }
 }
 
 TEST_CASE("TerrainSpawnValidation_UpperFloorPlatform_RequiresWalkingConnectionToGround", "[terrain-spawns][paths]")
@@ -192,7 +205,10 @@ TEST_CASE("TerrainSpawnValidation_UpperFloorPlatform_RequiresWalkingConnectionTo
         fixture.setPart(Position(5, y, 1), O_WESTWALL, 2);
     }
     fixture.setPart(Position(4, 4, 1), O_NORTHWALL, 2);
-    if (!connected) fixture.setPart(Position(4, 6, 1), O_NORTHWALL, 2);
+    if (!connected)
+    {
+        fixture.setPart(Position(4, 6, 1), O_NORTHWALL, 2);
+    }
     fixture.setPoints({createPoint(Position(2, 2, 1))});
 
     // Act
@@ -202,7 +218,11 @@ TEST_CASE("TerrainSpawnValidation_UpperFloorPlatform_RequiresWalkingConnectionTo
 
     // Assert
     if (connected)
+    {
         REQUIRE_NOTHROW(validate());
+    }
     else
+    {
         REQUIRE_THROWS(validate());
+    }
 }

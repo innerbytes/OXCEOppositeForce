@@ -27,8 +27,14 @@ namespace OpenXcom::LandingTextures
                                            const std::vector<int> &excludedTextures)
     {
         const auto &areas = region.getMissionZones().at(zone).areas;
-        if (areas.empty()) return {};
-        if (initialArea < 0) initialArea = RNG::generate(0, areas.size() - 1);
+        if (areas.empty())
+        {
+            return {};
+        }
+        if (initialArea < 0)
+        {
+            initialArea = RNG::generate(0, areas.size() - 1);
+        }
         const bool allowCityLanding = !forMissionSite && areas.front().isPoint();
         const bool wantsFakeWater = !allowCityLanding && RNG::percent(fakeWaterChance);
         std::vector<int> remainingAreas(areas.size());
@@ -46,15 +52,22 @@ namespace OpenXcom::LandingTextures
                     (!globe.insideLand(position.first, position.second) ||
                      (!forMissionSite && !region.insideRegion(position.first, position.second)) ||
                      globe.insideFakeUnderwaterTexture(position.first, position.second) != wantsFakeWater))
+                {
                     continue;
+                }
 
                 int texture, shade;
                 globe.getPolygonTextureAndShade(position.first, position.second, &texture, &shade);
                 if (std::find(excludedTextures.begin(), excludedTextures.end(), texture) != excludedTextures.end())
+                {
                     continue;
+                }
                 return {true, position, selectedArea};
             }
-            if (remainingAreas.empty()) return {};
+            if (remainingAreas.empty())
+            {
+                return {};
+            }
             const int next = RNG::generate(0, remainingAreas.size() - 1);
             selectedArea = remainingAreas[next];
             remainingAreas.erase(remainingAreas.begin() + next);
@@ -71,11 +84,17 @@ namespace OpenXcom::LandingTextures
         selectionFailed = !selection.found;
         if (selection.found)
         {
-            if (initialArea != -1) missionSiteArea = selection.area;
+            if (initialArea != -1)
+            {
+                missionSiteArea = selection.area;
+            }
             return selection.position;
         }
         std::ostringstream exclusions;
-        for (int texture : missionRule.ofGetExcludedLandingTextures()) exclusions << texture << ' ';
+        for (int texture : missionRule.ofGetExcludedLandingTextures())
+        {
+            exclusions << texture << ' ';
+        }
         Log(LOG_WARNING) << "Mission: " << missionRule.getType() << " Region: " << region.getType() << " zone: " << zone
                          << " no permissible landing point found; excluded textures: [" << exclusions.str()
                          << "]; skipping UFO landing.";
@@ -93,9 +112,17 @@ namespace OpenXcom::LandingTextures
                    position.second <= std::max(area.latMin, area.latMax);
         };
         // Another UFO in this mission may have selected a different area in the meantime.
-        if (containsPoint(areas.at(preferredArea))) return preferredArea;
+        if (containsPoint(areas.at(preferredArea)))
+        {
+            return preferredArea;
+        }
         for (size_t index = 0; index < areas.size(); ++index)
-            if (containsPoint(areas[index])) return index;
+        {
+            if (containsPoint(areas[index]))
+            {
+                return index;
+            }
+        }
         return preferredArea;
     }
 }  // namespace OpenXcom::LandingTextures

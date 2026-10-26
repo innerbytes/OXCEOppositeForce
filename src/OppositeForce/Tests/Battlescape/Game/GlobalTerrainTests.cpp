@@ -32,7 +32,10 @@ TEST_CASE("GlobalTerrain_DifferentSiteAndGlobeTextures_UsesGeographyOnlyWhenEnab
     // Assert
     REQUIRE(resolved == (enabled ? &fixture.forest : &fixture.urban));
     REQUIRE((selected != nullptr) == enabled);
-    if (!enabled) REQUIRE(seedAfterHook == seed);
+    if (!enabled)
+    {
+        REQUIRE(seedAfterHook == seed);
+    }
     REQUIRE(fixture.site.getTexture() == 1);
     REQUIRE(fixture.siteTexture.getStartingCondition() == "SITE_CONDITION");
 }

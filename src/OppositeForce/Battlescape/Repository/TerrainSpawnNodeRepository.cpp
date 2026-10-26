@@ -11,6 +11,9 @@ namespace OpenXcom::TerrainSpawnNodeRepository
 
     void save(const Node &node, YAML::YamlNodeWriter writer)
     {
-        if (node.ofGetSpawnSize()) writer.write("ofSpawnSize", node.ofGetSpawnSize());
+        if (node.ofGetSpawnSize())
+        {
+            writer.write("ofSpawnSize", node.ofGetSpawnSize());
+        }
     }
 }  // namespace OpenXcom::TerrainSpawnNodeRepository

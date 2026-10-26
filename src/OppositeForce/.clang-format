@@ -4,6 +4,9 @@ UseTab: Never
 ColumnLimit: 120
 NamespaceIndentation: All
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+InsertBraces: true
 SeparateDefinitionBlocks: Always
 BreakBeforeBraces: Custom
 AccessModifierOffset: -4

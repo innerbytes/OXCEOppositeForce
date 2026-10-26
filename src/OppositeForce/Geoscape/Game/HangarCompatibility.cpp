@@ -96,10 +96,16 @@ namespace OpenXcom
         static void appendPendingRequests(std::vector<Request> &requests, const std::vector<TransferRow> *pending,
                                           bool craftObjects)
         {
-            if (!pending) return;
+            if (!pending)
+            {
+                return;
+            }
             for (const auto &row : *pending)
             {
-                if (row.type != TRANSFER_CRAFT) continue;
+                if (row.type != TRANSFER_CRAFT)
+                {
+                    continue;
+                }
                 const RuleCraft *rule = craftObjects ? static_cast<const Craft *>(row.rule)->getRules()
                                                      : static_cast<const RuleCraft *>(row.rule);
                 for (int i = 0; i < row.amount; ++i)
@@ -114,11 +120,17 @@ namespace OpenXcom
         {
             for (const auto &slot : slots)
             {
-                if (!slot.rule->ofGetHangarCompatibilityRule().hangarType.empty()) return true;
+                if (!slot.rule->ofGetHangarCompatibilityRule().hangarType.empty())
+                {
+                    return true;
+                }
             }
             for (const auto &request : requests)
             {
-                if (request.rule->ofGetHangarCompatibilityRule().allowedHangarTypesSpecified) return true;
+                if (request.rule->ofGetHangarCompatibilityRule().allowedHangarTypesSpecified)
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -138,7 +150,10 @@ namespace OpenXcom
             std::stable_sort(slotOrder.begin(), slotOrder.end(), [&](int a, int b) {
                 const std::string &left = slots[a].rule->ofGetHangarCompatibilityRule().hangarType;
                 const std::string &right = slots[b].rule->ofGetHangarCompatibilityRule().hangarType;
-                if (left.empty() != right.empty()) return !left.empty();
+                if (left.empty() != right.empty())
+                {
+                    return !left.empty();
+                }
                 return left < right;
             });
             std::vector<int> requestOrder(requests.size());
@@ -162,7 +177,9 @@ namespace OpenXcom
                 {
                     if (visited[slot] || !HangarRules::accepts(slots[slot].rule->ofGetHangarCompatibilityRule(),
                                                                requests[request].rule->ofGetHangarCompatibilityRule()))
+                    {
                         continue;
+                    }
                     visited[slot] = true;
                     if (owner[slot] != -1 && place(owner[slot], visited))
                     {
@@ -176,14 +193,20 @@ namespace OpenXcom
             for (int request : requestOrder)
             {
                 std::vector<bool> visited(slots.size(), false);
-                if (!place(request, visited)) complete = false;
+                if (!place(request, visited))
+                {
+                    complete = false;
+                }
             }
             if (assigned)
             {
                 assigned->assign(requests.size(), -1);
                 for (size_t i = 0; i < owner.size(); ++i)
                 {
-                    if (owner[i] != -1) (*assigned)[owner[i]] = i;
+                    if (owner[i] != -1)
+                    {
+                        (*assigned)[owner[i]] = i;
+                    }
                 }
             }
             return complete;
@@ -204,7 +227,10 @@ namespace OpenXcom
 
         bool shouldApplyForCraft(const Base &base, const RuleCraft *candidate)
         {
-            if (!candidate) return false;
+            if (!candidate)
+            {
+                return false;
+            }
             auto slots = collectSlots(base);
             auto requests = collectRequests(base);
             requests.push_back({candidate, nullptr});
@@ -221,7 +247,10 @@ namespace OpenXcom
         int getFreeHangarsCount(const Base &base, const RuleCraft *candidate, const std::vector<TransferRow> *pending,
                                 bool pendingCraftObjects)
         {
-            if (!candidate) return 0;
+            if (!candidate)
+            {
+                return 0;
+            }
             auto slots = collectSlots(base);
             auto requests = collectRequests(base);
             const int existingCrafts = static_cast<int>(requests.size());
@@ -232,12 +261,18 @@ namespace OpenXcom
                 return base.getAvailableHangars() - base.getUsedHangars() -
                        (static_cast<int>(requests.size()) - existingCrafts);
             }
-            if (!matchRequestsToSlots(slots, requests)) return 0;
+            if (!matchRequestsToSlots(slots, requests))
+            {
+                return 0;
+            }
             int free = 0;
             for (size_t i = requests.size(); i < slots.size(); ++i)
             {
                 requests.push_back({candidate, nullptr});
-                if (!matchRequestsToSlots(slots, requests)) break;
+                if (!matchRequestsToSlots(slots, requests))
+                {
+                    break;
+                }
                 ++free;
             }
             return free;
@@ -248,13 +283,19 @@ namespace OpenXcom
             std::vector<Slot> slots;
             for (const auto *facility : *base.ofGetFacilities())
             {
-                if (BaseAreaSubset::intersection(facility->getPlacement(), removed)) continue;
+                if (BaseAreaSubset::intersection(facility->getPlacement(), removed))
+                {
+                    continue;
+                }
                 if (facility->getBuildTime() == 0 || facility->getIfHadPreviousFacility())
                 {
                     appendSlots(facility->getRules(), facility, slots);
                 }
             }
-            if (replacement) appendSlots(replacement, nullptr, slots);
+            if (replacement)
+            {
+                appendSlots(replacement, nullptr, slots);
+            }
             auto requests = collectRequests(base, slots.size());
             return !isHangarCompatibilityEnabledForRequests(slots, requests) || matchRequestsToSlots(slots, requests);
         }
@@ -274,7 +315,10 @@ namespace OpenXcom
                 warned.erase(&base);
                 return false;
             }
-            if (warned[&base]) return false;
+            if (warned[&base])
+            {
+                return false;
+            }
             warned[&base] = true;
             return true;
         }
@@ -285,13 +329,19 @@ namespace OpenXcom
             auto slots = collectSlots(base);
             auto requests = collectRequests(base);
             result.hangarCompatibilityEnabled = isHangarCompatibilityEnabledForRequests(slots, requests);
-            if (!result.hangarCompatibilityEnabled) return result;
+            if (!result.hangarCompatibilityEnabled)
+            {
+                return result;
+            }
             std::vector<int> assigned;
             matchRequestsToSlots(slots, requests, &assigned);
             std::vector<bool> occupied(slots.size(), false);
             for (size_t i = 0; i < requests.size(); ++i)
             {
-                if (!requests[i].craft || assigned[i] < 0) continue;
+                if (!requests[i].craft || assigned[i] < 0)
+                {
+                    continue;
+                }
                 const auto *facility = slots[assigned[i]].facility;
                 if (facility)
                 {
@@ -301,7 +351,10 @@ namespace OpenXcom
             }
             for (size_t i = 0; i < requests.size(); ++i)
             {
-                if (!requests[i].craft || assigned[i] >= 0) continue;
+                if (!requests[i].craft || assigned[i] >= 0)
+                {
+                    continue;
+                }
                 for (size_t j = 0; j < slots.size(); ++j)
                 {
                     if (!occupied[j] && slots[j].facility && !result.getCraftForFacility(slots[j].facility))
@@ -317,7 +370,10 @@ namespace OpenXcom
 
         void prepareDestruction(Base &base, BaseFacility &facility)
         {
-            if (facility.getRules()->getCrafts() <= 0 || !isEnabledForBase(base)) return;
+            if (facility.getRules()->getCrafts() <= 0 || !isEnabledForBase(base))
+            {
+                return;
+            }
             for (const auto *other : *base.getFacilities())
             {
                 if (other != &facility && other->getBuildTime() == 0 && other->getX() == facility.getX() &&
@@ -341,7 +397,10 @@ namespace OpenXcom
 
         bool canKeepAfterDamage(const Base &base, const BaseFacility &damaged, const BaseFacility &replacement)
         {
-            if (!isEnabledForBase(base) || !damaged.getCraftForDrawing()) return true;
+            if (!isEnabledForBase(base) || !damaged.getCraftForDrawing())
+            {
+                return true;
+            }
             return HangarRules::accepts(replacement.getRules()->ofGetHangarCompatibilityRule(),
                                         damaged.getCraftForDrawing()->getRules()->ofGetHangarCompatibilityRule());
         }

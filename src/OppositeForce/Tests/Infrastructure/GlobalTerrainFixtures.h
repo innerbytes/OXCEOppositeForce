@@ -56,7 +56,10 @@ namespace OpenXcom::OppositeForceTests
     {
         std::vector<MapBlock *> blocks;
         command.init();
-        for (int attempt = 0; attempt < 6; ++attempt) blocks.push_back(command.getNextBlock(&terrain));
+        for (int attempt = 0; attempt < 6; ++attempt)
+        {
+            blocks.push_back(command.getNextBlock(&terrain));
+        }
         return blocks;
     }
 }  // namespace OpenXcom::OppositeForceTests
