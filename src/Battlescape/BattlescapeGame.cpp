@@ -62,6 +62,8 @@
 
 #include "../OppositeForce/Battlescape/UnitCombatRules.h"
 
+#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+
 namespace OpenXcom
 {
 
@@ -512,12 +514,11 @@ bool BattlescapeGame::kneel(BattleUnit *bu)
  */
 void BattlescapeGame::endTurn()
 {
-
-	// OF - Consume pending script results at a safe transition for any faction.
+	// OF - Prefer native endings already due; otherwise consume the script result before turn effects.
 	if (!_save->isPreview() && _save->ofGetMissionCompletion().getResult() != MissionCompletion::Result::None)
 	{
 		BattlescapeTally tally = tallyUnits();
-		if (tally.liveSoldiers > 0)
+		if (MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(*_save, tally, _allEnemiesNeutralized))
 		{
 			_parentState->ofFinishBattle(tally.liveSoldiers, _save->ofGetMissionCompletion().getResult());
 			return;
@@ -668,8 +669,8 @@ void BattlescapeGame::endTurn()
 
 	// if all units from either faction are killed - the mission is over.
 
-	// OF - Scripts own objective completion, while squad defeat remains native.
-	if (!_save->isPreview() && _save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion())
+	// OF - Manual mode suppresses objective completion, while squad defeat remains native.
+	if (!_save->isPreview() && _save->ofGetMissionCompletion().isManualCompletion())
 	{
 		if (tally.liveSoldiers == 0)
 		{
@@ -722,11 +723,11 @@ void BattlescapeGame::endTurn()
 	// objective type MUST_DESTROY was already handled above
 	bool killingAllAliensIsNotEnough = (_save->getVIPSurvivalPercentage() > 0 && _save->getVIPEscapeType() != ESCAPE_NONE);
 
-	// OF - Preserve neutral-phase turn-screen skipping during script-controlled battles.
+	// OF - Preserve neutral-phase turn-screen skipping during manual-completion battles.
 	// OXCE shows the normally silent civilian-phase announcement when it considers the battle complete.
 	// Keep that phase silent while the scripted mission continues after enemy elimination.
 	// NextTurnState separately guards actual completion when a turn announcement closes.
-	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || (!_save->isPreview() && _save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion());
+	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || (!_save->isPreview() && _save->ofGetMissionCompletion().isManualCompletion());
 
 	bool battleComplete = (!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0;
 
@@ -3404,8 +3405,8 @@ void BattlescapeGame::autoEndBattle()
 		return;
 	}
 
-	// OF - Do not latch enemy elimination or auto-press Next Turn for scripted missions.
-	if (_save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion())
+	// OF - Manual mode prevents latching enemy elimination or auto-pressing Next Turn.
+	if (_save->ofGetMissionCompletion().isManualCompletion())
 	{
 		_allEnemiesNeutralized = false;
 		if (tallyUnits().liveSoldiers == 0)

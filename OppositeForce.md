@@ -356,6 +356,10 @@ battle_game.completeMission 0;
 
 Use the appropriate command for the result. Each call replaces any earlier
 completion request. Both commands work with manual ending enabled or disabled.
+With manual ending disabled, ordinary mission-ending conditions already met when
+queued actions finish take priority and use the ordinary mission result. Otherwise,
+the requested script result applies before turn-ending effects. Squad defeat and
+an already-expired deployment timer take priority in either mode.
 
 For a request made during your turn, press **Next Turn** to complete the mission
 before enemy actions. A request made during turn-ending explosions takes effect
@@ -382,8 +386,9 @@ Restore ordinary OXCE mission-ending conditions with:
 battle_game.setMissionEndManual 0;
 ```
 
-This is the default setting. Any queued completion request remains active when
-changing it. Manual ending and queued results persist through save/load. A queued
-result takes effect at the next turn transition, including automatic enemy and
-civilian transitions. A stage reached through ordinary mission progression starts
-with ordinary OXCE ending conditions.
+This is the default setting. Changing it restores ordinary mission-ending checks
+while keeping any queued completion request. An ordinary ending takes priority
+when already due; otherwise the queued result applies. Manual ending and queued
+results persist through save/load, including across enemy and civilian turns.
+A stage reached through ordinary mission progression starts with ordinary OXCE
+ending conditions.

@@ -527,8 +527,8 @@ void NextTurnState::close()
 
 	BattlescapeTally tally = _state->getBattleGame()->tallyUnits();
 
-	// OF - A script taking ownership cancels an earlier native elimination latch.
-	if (!_battleGame->isPreview() && _battleGame->ofGetMissionCompletion().shouldSuppressAutomaticCompletion())
+	// OF - Manual mode cancels an earlier native elimination latch.
+	if (!_battleGame->isPreview() && _battleGame->ofGetMissionCompletion().isManualCompletion())
 	{
 		_battleGame->getBattleGame()->resetAllEnemiesNeutralized();
 	}
@@ -555,8 +555,8 @@ void NextTurnState::close()
 	// not "escort the VIPs" missions, not the final mission and all aliens dead.
 	bool killingAllAliensIsNotEnough = _battleGame->getObjectiveType() == MUST_DESTROY || (_battleGame->getVIPSurvivalPercentage() > 0 && _battleGame->getVIPEscapeType() != ESCAPE_NONE);
 
-	// OF - Keep script-controlled battles active when the turn screen closes.
-	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || (!_battleGame->isPreview() && _battleGame->ofGetMissionCompletion().shouldSuppressAutomaticCompletion());
+	// OF - Keep manual-completion battles active when the turn screen closes.
+	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || (!_battleGame->isPreview() && _battleGame->ofGetMissionCompletion().isManualCompletion());
 
 	if ((!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0)
 	{

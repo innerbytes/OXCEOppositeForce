@@ -22,11 +22,6 @@ namespace OpenXcom
         return _pendingResult;
     }
 
-    bool MissionCompletion::shouldSuppressAutomaticCompletion() const
-    {
-        return _isManualCompletion || getResult() != Result::None;
-    }
-
     void MissionCompletion::reset()
     {
         _isManualCompletion = false;

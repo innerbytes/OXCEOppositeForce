@@ -1,8 +1,12 @@
+#include "Battlescape/BattlescapeGame.h"
 #include "Battlescape/DebriefingState.h"
+#include "Fixtures.h"
 #include "OppositeForce/Battlescape/MissionCompletionResult.h"
+#include "Savegame/SavedBattleGame.h"
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
+using namespace OpenXcom::OppositeForceTests;
 
 TEST_CASE("MissionCompletionResult_NoScriptResult_PreservesNativeOutcome", "[mission-completion]")
 {
@@ -197,4 +201,130 @@ TEST_CASE("MissionCompletionResult_LostCraft_OverridesDefaultTargetTitle", "[mis
 
     // Assert
     REQUIRE(title == "STR_CRAFT_IS_LOST");
+}
+
+TEST_CASE("MissionCompletionResult_EndTurnEnemyElimination_RespectsManualModeAndVIPRequirements",
+          "[mission-completion]")
+{
+    // Arrange
+    const bool manual = GENERATE(false, true);
+    const auto result = GENERATE(MissionCompletion::Result::Success, MissionCompletion::Result::Failure);
+    const auto [liveAliens, latched, vipPercentage, escapeType, nativeEnding] =
+        GENERATE(table<int, bool, int, EscapeType, bool>({
+            {1, false, 0, ESCAPE_NONE, false},
+            {0, false, 0, ESCAPE_NONE, true},
+            {1, true, 0, ESCAPE_NONE, true},
+            {0, true, 0, ESCAPE_NONE, true},
+            {0, false, 100, ESCAPE_EXIT, false},
+            {1, true, 100, ESCAPE_EXIT, false},
+            {0, false, 100, ESCAPE_NONE, true},
+            {0, false, 0, ESCAPE_EXIT, true},
+        }));
+    RulesFixture rules;
+    Language language;
+    SavedBattleGame battle(&rules.getMod(), &language, false);
+    battle.setVIPSurvivalPercentage(vipPercentage);
+    battle.setVIPEscapeType(escapeType);
+    battle.ofGetMissionCompletion().setManualCompletion(manual);
+    battle.ofGetMissionCompletion().setResult(result);
+    BattlescapeTally tally{};
+    tally.liveSoldiers = 1;
+    tally.liveAliens = liveAliens;
+    const int originalTurn = battle.getTurn();
+
+    // Act
+    const bool finish = MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(battle, tally, latched);
+
+    // Assert
+    REQUIRE(finish == (manual || !nativeEnding));
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == result);
+    REQUIRE(battle.getTurn() == originalTurn);
+}
+
+TEST_CASE("MissionCompletionResult_EndTurnDestroyObjective_RequiresNativeObjectiveCompletion", "[mission-completion]")
+{
+    // Arrange
+    const bool manual = GENERATE(false, true);
+    const bool destroyed = GENERATE(false, true);
+    const bool latched = GENERATE(false, true);
+    const auto result = GENERATE(MissionCompletion::Result::Success, MissionCompletion::Result::Failure);
+    RulesFixture rules;
+    Language language;
+    SavedGame campaign;
+    SavedBattleGame battle(&rules.getMod(), &language, false);
+    YAML::YamlRootNodeReader snapshot(
+        YAML::YamlString(
+            "width: 1\nlength: 1\nheight: 1\nselectedUnit: -1\nobjectiveType: " + std::to_string(MUST_DESTROY) +
+            "\nobjectivesNeeded: 1\nobjectivesDestroyed: " + (destroyed ? "1" : "0")),
+        "objective completion");
+    battle.load(snapshot, &rules.getMod(), &campaign);
+    battle.ofGetMissionCompletion().setManualCompletion(manual);
+    battle.ofGetMissionCompletion().setResult(result);
+    BattlescapeTally tally{};
+    tally.liveSoldiers = 1;
+    tally.liveAliens = 0;
+
+    // Act
+    const bool finish = MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(battle, tally, latched);
+
+    // Assert
+    REQUIRE(finish == (manual || !destroyed));
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == result);
+}
+
+TEST_CASE("MissionCompletionResult_EndTurnTimer_OnlyExpiredEnabledTimerBlocksScript", "[mission-completion]")
+{
+    // Arrange
+    const bool manual = GENERATE(false, true);
+    const auto result = GENERATE(MissionCompletion::Result::Success, MissionCompletion::Result::Failure);
+    const auto [turn, limit, expectedFinish] = GENERATE(table<int, int, bool>({
+        {5, 0, true},
+        {4, 5, true},
+        {5, 5, true},
+        {6, 5, false},
+    }));
+    RulesFixture rules;
+    Language language;
+    SavedGame campaign;
+    SavedBattleGame battle(&rules.getMod(), &language, false);
+    YAML::YamlRootNodeReader snapshot(
+        YAML::YamlString("width: 1\nlength: 1\nheight: 1\nselectedUnit: -1\nturn: " + std::to_string(turn)),
+        "completion timer");
+    battle.load(snapshot, &rules.getMod(), &campaign);
+    battle.setTurnLimit(limit);
+    battle.ofGetMissionCompletion().setManualCompletion(manual);
+    battle.ofGetMissionCompletion().setResult(result);
+    BattlescapeTally tally{};
+    tally.liveSoldiers = 1;
+    tally.liveAliens = 1;
+
+    // Act
+    const bool finish = MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(battle, tally, false);
+
+    // Assert
+    REQUIRE(finish == expectedFinish);
+    REQUIRE(battle.getTurn() == turn);
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == result);
+}
+
+TEST_CASE("MissionCompletionResult_EndTurnSquadDefeat_BlocksScriptInEitherMode", "[mission-completion]")
+{
+    // Arrange
+    const bool manual = GENERATE(false, true);
+    const auto result = GENERATE(MissionCompletion::Result::Success, MissionCompletion::Result::Failure);
+    RulesFixture rules;
+    Language language;
+    SavedBattleGame battle(&rules.getMod(), &language, false);
+    battle.ofGetMissionCompletion().setManualCompletion(manual);
+    battle.ofGetMissionCompletion().setResult(result);
+    BattlescapeTally tally{};
+    tally.liveSoldiers = 0;
+    tally.liveAliens = 1;
+
+    // Act
+    const bool finish = MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(battle, tally, false);
+
+    // Assert
+    REQUIRE_FALSE(finish);
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == result);
 }

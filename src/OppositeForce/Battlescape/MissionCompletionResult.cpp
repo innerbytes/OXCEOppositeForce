@@ -1,10 +1,64 @@
 #include "MissionCompletionResult.h"
 
+#include "../../Battlescape/BattlescapeGame.h"
 #include "../../Battlescape/DebriefingState.h"
 #include "../../Engine/Logger.h"
+#include "../../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom::MissionCompletionResult
 {
+    bool shouldScriptedMissionResultApplyOnEndTurn(SavedBattleGame &battle, const BattlescapeTally &tally,
+                                                   bool allEnemiesNeutralized)
+    {
+        // Squad defeat must use native loss handling, even when the script requests success.
+        if (tally.liveSoldiers <= 0)
+        {
+            return false;
+        }
+
+        // An already-expired deployment timer takes priority and applies its configured outcome.
+        if (battle.getTurnLimit() > 0 && battle.getTurn() > battle.getTurnLimit())
+        {
+            return false;
+        }
+
+        // Manual mode lets the script finish regardless of enemy elimination or ordinary objectives.
+        if (battle.ofGetMissionCompletion().isManualCompletion())
+        {
+            return true;
+        }
+
+        // If manual completion is disabled and all objectives are destroyed, prefer native mission completion.
+        if (battle.getObjectiveType() == MUST_DESTROY)
+        {
+            return !battle.allObjectivesDestroyed();
+        }
+
+        // If manual completion is disabled and this is a VIP escort mission (the 2 conditions just detect it's vip
+        // protection mission), let the scripted result decide the outcome, so, if asked by the script, we can return
+        // earlier than the VIP conditions are achieved
+        if (battle.getVIPSurvivalPercentage() > 0 && battle.getVIPEscapeType() != ESCAPE_NONE)
+        {
+            return true;
+        }
+
+        // If manual completion is disabled and no enemies remain, prefer native mission completion.
+        if (tally.liveAliens == 0)
+        {
+            return false;
+        }
+
+        // If manual completion is disabled and native logic already decided all enemies were neutralized, prefer native
+        // mission completion.
+        if (allEnemiesNeutralized)
+        {
+            return false;
+        }
+
+        // If manual completion is disabled and no native ending is due, apply the scripted result before turn effects.
+        return true;
+    }
+
     bool resolveSuccess(bool isNativeSuccess, MissionCompletion::Result scriptResult, int survivorsCount)
     {
         if (scriptResult == MissionCompletion::Result::None)

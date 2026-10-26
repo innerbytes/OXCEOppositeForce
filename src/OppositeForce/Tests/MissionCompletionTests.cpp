@@ -46,7 +46,6 @@ TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-com
 
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
-    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE(result == MissionCompletion::Result::None);
 }
@@ -54,19 +53,18 @@ TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-com
 TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearingRequest", "[mission-completion]")
 {
     // Arrange
-    const bool pending = GENERATE(false, true);
+    const auto pendingResult = GENERATE(MissionCompletion::Result::None, MissionCompletion::Result::Success,
+                                        MissionCompletion::Result::Failure);
     MissionCompletion completion;
     completion.setManualCompletion(true);
-    if (pending) completion.setResult(MissionCompletion::Result::Success);
-    REQUIRE(completion.shouldSuppressAutomaticCompletion());
+    completion.setResult(pendingResult);
 
     // Act
     completion.setManualCompletion(false);
 
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
-    REQUIRE(completion.getResult() == (pending ? MissionCompletion::Result::Success : MissionCompletion::Result::None));
-    REQUIRE(completion.shouldSuppressAutomaticCompletion() == pending);
+    REQUIRE(completion.getResult() == pendingResult);
 }
 
 TEST_CASE("MissionCompletion_SetResult_ReplacesOrClearsPendingResultInEitherMode", "[mission-completion]")
@@ -85,6 +83,7 @@ TEST_CASE("MissionCompletion_SetResult_ReplacesOrClearsPendingResultInEitherMode
     completion.setResult(MissionCompletion::Result::None);
 
     // Assert
+    REQUIRE(completion.isManualCompletion() == manual);
     REQUIRE(result == requestedResult);
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
 }
@@ -103,7 +102,6 @@ TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]"
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
 }
 
 TEST_CASE("MissionCompletion_SaveRoundTrip_PreservesPendingResult", "[mission-completion][save]")
@@ -172,7 +170,6 @@ TEST_CASE("MissionCompletion_OldSaveWithoutFields_ResetsToNativeBehavior", "[mis
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
 }
 
 TEST_CASE("BattleGame_MissionCompletionCommands_UpdateSavedBattleState", "[mission-completion][scripts]")
@@ -247,11 +244,13 @@ TEST_CASE("BattleGame_SaveRoundTrip_PreservesManualCompletionAndNativeTimer", "[
     REQUIRE_FALSE(reloaded.isAborted());
 }
 
-TEST_CASE("BattleGame_ManualOrPendingCompletion_DoesNotAutoEndOrLatchEnemyElimination", "[mission-completion][battle]")
+TEST_CASE("BattleGame_ManualCompletion_DoesNotAutoEndOrLatchEnemyElimination", "[mission-completion][battle]")
 {
     // Arrange
     const bool autoEnd = GENERATE(false, true);
-    const bool manual = GENERATE(false, true);
+    const auto pendingResult = GENERATE(MissionCompletion::Result::None, MissionCompletion::Result::Success,
+                                        MissionCompletion::Result::Failure);
+    const bool destroyObjective = GENERATE(false, true);
     const bool destroyedObjective = GENERATE(false, true);
     const bool eliminationAlreadyLatched = GENERATE(false, true);
     const bool previousAutoEnd = Options::battleAutoEnd;
@@ -265,9 +264,9 @@ TEST_CASE("BattleGame_ManualOrPendingCompletion_DoesNotAutoEndOrLatchEnemyElimin
     SavedBattleGame battle(&rules.getMod(), &language, false);
     SavedGame campaign;
     YAML::YamlRootNodeReader initialState(
-        YAML::YamlString(
-            "width: 1\nlength: 1\nheight: 1\nselectedUnit: -1\nobjectiveType: " + std::to_string(MUST_DESTROY) +
-            "\nobjectivesNeeded: 1\nobjectivesDestroyed: " + (destroyedObjective ? "1" : "0")),
+        YAML::YamlString("width: 1\nlength: 1\nheight: 1\nselectedUnit: -1\nobjectiveType: " +
+                         std::to_string(destroyObjective ? MUST_DESTROY : 0) +
+                         "\nobjectivesNeeded: 1\nobjectivesDestroyed: " + (destroyedObjective ? "1" : "0")),
         "completion battle");
     battle.load(initialState, &rules.getMod(), &campaign);
     battle.initUtilities(&rules.getMod());
@@ -278,8 +277,8 @@ TEST_CASE("BattleGame_ManualOrPendingCompletion_DoesNotAutoEndOrLatchEnemyElimin
     engine._allEnemiesNeutralized = eliminationAlreadyLatched;
     auto *unit = new BattleUnit(&rules.getMod(), &soldier, 0, nullptr);
     battle.getUnits()->push_back(unit);
-    battle.ofGetMissionCompletion().setManualCompletion(manual);
-    if (!manual) battle.ofGetMissionCompletion().setResult(MissionCompletion::Result::Success);
+    battle.ofGetMissionCompletion().setManualCompletion(true);
+    battle.ofGetMissionCompletion().setResult(pendingResult);
     Options::battleAutoEnd = autoEnd;
 
     // Act
@@ -287,7 +286,62 @@ TEST_CASE("BattleGame_ManualOrPendingCompletion_DoesNotAutoEndOrLatchEnemyElimin
     Options::battleAutoEnd = previousAutoEnd;
 
     // Assert
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == pendingResult);
     REQUIRE_FALSE(engine.areAllEnemiesNeutralized());
+    REQUIRE(engine.getStates().empty());
+    REQUIRE(battle.getTurn() == 0);
+    REQUIRE_FALSE(battle.isAborted());
+}
+
+TEST_CASE("BattleGame_PendingResult_PreservesNativeLatchAndCompletionRequirements", "[mission-completion][battle]")
+{
+    // Arrange
+    const auto [autoEnd, destroyObjective, destroyedObjective, escortVIP] = GENERATE(table<bool, bool, bool, bool>({
+        {false, false, false, false},
+        {false, true, true, false},
+        {true, true, false, false},
+        {true, false, false, true},
+    }));
+    const auto pendingResult = GENERATE(MissionCompletion::Result::None, MissionCompletion::Result::Success,
+                                        MissionCompletion::Result::Failure);
+    const bool eliminationAlreadyLatched = GENERATE(false, true);
+    const bool previousAutoEnd = Options::battleAutoEnd;
+    RulesFixture rules;
+    Language language;
+    auto &armor = rules.createArmor("ARMOR");
+    auto &soldierRule = rules.createSoldier("SOLDIER");
+    Soldier soldier(&soldierRule, &armor, 0, 7);
+    soldier.getCurrentStatsEditable()->health = 40;
+    rules.createInventoryGround();
+    SavedBattleGame battle(&rules.getMod(), &language, false);
+    SavedGame campaign;
+    YAML::YamlRootNodeReader initialState(
+        YAML::YamlString("width: 1\nlength: 1\nheight: 1\nselectedUnit: -1\nobjectiveType: " +
+                         std::to_string(destroyObjective ? MUST_DESTROY : 0) +
+                         "\nobjectivesNeeded: 1\nobjectivesDestroyed: " + (destroyedObjective ? "1" : "0")),
+        "completion battle");
+    battle.load(initialState, &rules.getMod(), &campaign);
+    battle.initUtilities(&rules.getMod());
+    // Construction with an empty non-player phase avoids unrelated UI refreshes.
+    battle._side = FACTION_HOSTILE;
+    BattlescapeGame engine(&battle, nullptr);
+    battle._side = FACTION_PLAYER;
+    engine._allEnemiesNeutralized = eliminationAlreadyLatched;
+    auto *unit = new BattleUnit(&rules.getMod(), &soldier, 0, nullptr);
+    battle.getUnits()->push_back(unit);
+    battle.setVIPSurvivalPercentage(escortVIP ? 100 : 0);
+    battle.setVIPEscapeType(escortVIP ? ESCAPE_EXIT : ESCAPE_NONE);
+    battle.ofGetMissionCompletion().setManualCompletion(false);
+    battle.ofGetMissionCompletion().setResult(pendingResult);
+    Options::battleAutoEnd = autoEnd;
+
+    // Act
+    engine.autoEndBattle();
+    Options::battleAutoEnd = previousAutoEnd;
+
+    // Assert
+    REQUIRE(battle.ofGetMissionCompletion().getResult() == pendingResult);
+    REQUIRE(engine.areAllEnemiesNeutralized() == eliminationAlreadyLatched);
     REQUIRE(engine.getStates().empty());
     REQUIRE(battle.getTurn() == 0);
     REQUIRE_FALSE(battle.isAborted());

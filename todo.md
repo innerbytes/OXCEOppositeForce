@@ -8,9 +8,8 @@
 
 ## Mission Completion
 
-- [ ] Make sure all the extra checks in the mission completion code are not drilled in but checked in the client
-- [ ] Cleanup how the debriefing works, and make sure we don't add overcomplicated logic to the DebriefingState.
-- [ ] Save/load code should be moved to Savegame probably
+- [x] Make sure all the extra checks in the mission completion code are not drilled in but checked in the client
+- [x] Cleanup how the debriefing works, and make sure we don't add overcomplicated logic to the DebriefingState.
 - [ ] Boyscouting - check why hangar compatibility is in the Savegame, looks like it's out of place. Verify what is in the savegame of the original
 - [ ] Boyscouting: for the terrain spawn points code, split onto clean modules
 - [ ] Boyscouting - sort tests by the same folders as production code
