@@ -335,6 +335,8 @@ for exploration objects. Omitting them keeps normal behavior.
 
 ### Manual mission end
 
+If this option is enabled, enemy elimination and other ordinary OXCE completion conditions do not end the mission. It continues until the script calls `completeMission`, unless squad defeat, an expired deployment timer or player retreat ends it first.
+
 Enable manual mission ending once at mission start:
 
 ```text
@@ -393,13 +395,7 @@ battle_game.completeMission 0;
   result. The configured `objectiveComplete` or `objectiveFailed` score is awarded
   once.
 
-#### When manual mission ending is enabled
-
-- Enemy elimination and other ordinary OXCE completion conditions do not end the
-  mission. It continues until the script calls `completeMission`, unless squad
-  defeat, an expired deployment timer or player retreat ends it first.
-
-#### When manual mission ending is disabled
+#### Scripted result behavior when manual mission ending is disabled
 
 - An ordinary objective or enemy-elimination ending that is already due takes
   priority and uses the ordinary mission result.
