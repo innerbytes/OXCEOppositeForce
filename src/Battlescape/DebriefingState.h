@@ -87,7 +87,7 @@ private:
 	int _limitsEnforced;
 	MissionStatistics *_missionStatistics;
 
-	// OF - The final result belongs to this debriefing, independently of queued script requests.
+	// OF - the scripted mission result
 	MissionCompletion::Result _ofMissionResult = MissionCompletion::Result::None;
 
 	std::vector<Soldier*> _soldiersCommended, _deadSoldiersCommended;

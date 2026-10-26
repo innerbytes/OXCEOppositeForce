@@ -1036,10 +1036,6 @@ void DebriefingState::prepareDebriefing()
 	bool aborted = battle->isAborted();
 	bool success = !aborted || battle->allObjectivesDestroyed();
 
-	// OF - Resolve the explicitly supplied script result independently of native objectives.
-	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, 1);
-	// End OF
-
 	Craft *craft = 0;
 	Base *base = 0;
 	std::string target;
@@ -1181,13 +1177,6 @@ void DebriefingState::prepareDebriefing()
 			base->setInBattlescape(false);
 			base->cleanupDefenses(false);
 
-			// OF - Explicit failure loses a defended base without marking the battle aborted.
-			if ((_ofMissionResult != MissionCompletion::Result::None) && !MissionCompletion::resolveSuccess(success, _ofMissionResult, 1))
-			{
-				_destroyBase = true;
-			}
-			// End OF
-
 			for (auto* region : *save->getRegions())
 			{
 				if (region->getRules()->insideRegion(base->getLongitude(), base->getLatitude()))
@@ -1220,6 +1209,13 @@ void DebriefingState::prepareDebriefing()
 			{
 				_destroyBase = true;
 			}
+
+			// OF - Explicit failure loses a defended base without marking the battle aborted.
+			if (!MissionCompletion::resolveSuccess(success, _ofMissionResult, 1))
+			{
+				_destroyBase = true;
+			}
+			// End OF
 
 			// This is an overkill, since we may not lose any hangar/craft, but doing it properly requires tons of changes
 			save->stopHuntingXcomCrafts(base);
@@ -1350,9 +1346,6 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
-	// OF - Normal squad-loss handling can override a requested script victory.
-	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
-
 	// if it's a UFO, let's see what happens to it
 	for (auto ufoIt = save->getUfos()->begin(); ufoIt != save->getUfos()->end(); ++ufoIt)
 	{
@@ -1370,7 +1363,7 @@ void DebriefingState::prepareDebriefing()
 			// takes off immediately and proceeds according to its mission directive
 
 			// OF - A landed UFO remains unsecured after explicit mission failure.
-			if (ufo->getStatus() == Ufo::LANDED && (_ofMissionResult != MissionCompletion::Result::None) && !success)
+			if (ufo->getStatus() == Ufo::LANDED && !MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived))
 			{
 				ufo->setSecondsRemaining(5);
 			}
@@ -1398,14 +1391,7 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
-	// OF - Scripts decide the objective result independently of exit-tile occupancy.
-	if (_ofMissionResult != MissionCompletion::Result::None)
-	{
-		success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
-	}
-	// End OF
-
-	else if (ruleDeploy && ruleDeploy->getEscapeType() != ESCAPE_NONE)
+	if (ruleDeploy && ruleDeploy->getEscapeType() != ESCAPE_NONE)
 	{
 		if (ruleDeploy->getEscapeType() != ESCAPE_EXIT)
 		{
@@ -1417,6 +1403,9 @@ void DebriefingState::prepareDebriefing()
 			success = success || playersInExitArea1 > 0;
 		}
 	}
+
+	// OF - Script completion overrides native success
+	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 	int playersInExitArea2 = 0;
 
@@ -1837,6 +1826,9 @@ void DebriefingState::prepareDebriefing()
 			success = false;
 		}
 
+		// OF - the script success overrides native VIP success requirements
+		success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
+
 		// 4. add stats
 		if (vipSubtotal > 0 || (vipTotal > 0 && !savedEnoughVIPs))
 		{
@@ -1844,9 +1836,6 @@ void DebriefingState::prepareDebriefing()
 			addStat("STR_VIPS_SAVED", battle->getSavedVIPs(), battle->getSavedVIPsScore());
 		}
 	}
-
-	// OF - VIP requirements do not override a script-owned mission result.
-	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 	if ((!aborted || success) && playersSurvived > 0) 	// RECOVER UFO : run through all tiles to recover UFO components and items
 	{
