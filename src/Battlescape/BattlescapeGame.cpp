@@ -514,12 +514,13 @@ void BattlescapeGame::endTurn()
 {
 
 	// OF - Consume pending script results at a safe transition for any faction.
-	if (_save->ofGetMissionCompletion().getResult() != MissionCompletion::Result::None)
+	if (!_save->isPreview() && _save->ofGetMissionCompletion().getResult() != MissionCompletion::Result::None)
 	{
 		BattlescapeTally tally = tallyUnits();
-		const auto result = _save->ofGetMissionCompletion().consumePendingResult(tally.liveSoldiers, _save->isPreview());
-		if (result != MissionCompletion::Result::None)
+		if (tally.liveSoldiers > 0)
 		{
+			const auto result = _save->ofGetMissionCompletion().getResult();
+			_save->ofGetMissionCompletion().setResult(MissionCompletion::Result::None);
 			_parentState->ofFinishBattle(tally.liveSoldiers, result);
 			return;
 		}

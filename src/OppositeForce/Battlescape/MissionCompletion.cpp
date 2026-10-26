@@ -29,17 +29,6 @@ namespace OpenXcom
         return _isManualCompletion || getResult() != Result::None;
     }
 
-    MissionCompletion::Result MissionCompletion::consumePendingResult(int liveSoldiers, bool preview)
-    {
-        if (preview || liveSoldiers <= 0)
-        {
-            return Result::None;
-        }
-        const auto result = _pendingResult;
-        _pendingResult = Result::None;
-        return result;
-    }
-
     MissionCompletion::Result MissionCompletion::prepareFinish(Result scriptResult, bool aborted, bool preview)
     {
         _pendingResult = Result::None;
