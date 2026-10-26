@@ -1072,15 +1072,6 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
-	// TODO - OF - check how it works
-	// OF - Award the explicit objective result once, after native recovery processing.
-	if (_ofMissionResult != MissionCompletion::Result::None)
-	{
-		objectiveCompleteText.clear();
-		objectiveFailedText.clear();
-	}
-	// End OF
-
 	if (battle->getVIPSurvivalPercentage() > 0)
 	{
 		_stats.push_back(new DebriefingStat("STR_VIPS_LOST", false));
@@ -1991,12 +1982,26 @@ void DebriefingState::prepareDebriefing()
 	// OF - Present and score the explicit result without changing non-aborted recovery.
 	if (_ofMissionResult != MissionCompletion::Result::None)
 	{
-		const auto outcome = MissionCompletion::getDebriefingOutcome(_ofMissionResult, ruleDeploy, target, playersSurvived, lostCraft);
-		success = outcome.success;
-		_txtTitle->setText(tr(outcome.title));
-		if (!outcome.objectiveText.empty())
+		const auto &missionText = success ? missionCompleteText : missionFailedText;
+		const auto title = missionText.empty() ? MissionCompletion::getDefaultDebriefingTitle(success, target, lostCraft) : missionText;
+		
+		_txtTitle->setText(title.empty() ? "OF_ERROR_RESULT" : std::string(tr(title)));
+		
+		// Replace any native objective awards with the single resolved scripted award.
+		for (auto* stat : _stats)
 		{
-			addStat(outcome.objectiveText, 1, outcome.objectiveScore);
+			if ((!objectiveCompleteText.empty() && stat->item == objectiveCompleteText)
+				|| (!objectiveFailedText.empty() && stat->item == objectiveFailedText))
+			{
+				stat->qty = 0;
+				stat->score = 0;
+			}
+		}
+		
+		const auto &objectiveText = success ? objectiveCompleteText : objectiveFailedText;
+		if (!objectiveText.empty())
+		{
+			addStat(objectiveText, 1, success ? objectiveCompleteScore : objectiveFailedScore);
 		}
 	}
 	// End OF

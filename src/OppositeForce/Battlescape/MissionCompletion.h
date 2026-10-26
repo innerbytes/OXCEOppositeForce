@@ -6,8 +6,6 @@
 
 namespace OpenXcom
 {
-    class AlienDeployment;
-
     /// Saved manual-ending mode and pending script result.
     class MissionCompletion
     {
@@ -17,14 +15,6 @@ namespace OpenXcom
             None = 0,
             Success = 1,
             Failure = 2
-        };
-
-        struct DebriefingOutcome
-        {
-            bool success;
-            std::string title;
-            std::string objectiveText;
-            int objectiveScore = 0;
         };
 
         void reset();
@@ -41,9 +31,7 @@ namespace OpenXcom
 
         static bool resolveSuccess(bool isNativeSuccess, Result scriptResult, int survivorsCount);
 
-        // TODO - see if we need to control it from here
-        static DebriefingOutcome getDebriefingOutcome(Result result, const AlienDeployment *deployment,
-                                                      const std::string &target, int survivors, bool lostCraft);
+        static std::string getDefaultDebriefingTitle(bool success, const std::string &target, bool lostCraft);
 
         // TODO - load / save code can be moved to the other class
         void load(const YAML::YamlNodeReader &reader);

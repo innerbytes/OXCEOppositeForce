@@ -1,6 +1,6 @@
 #include "MissionCompletion.h"
 
-#include "../../Mod/AlienDeployment.h"
+#include "../../Engine/Logger.h"
 
 namespace OpenXcom
 {
@@ -50,37 +50,25 @@ namespace OpenXcom
         return scriptResult == Result::Success;
     }
 
-    MissionCompletion::DebriefingOutcome MissionCompletion::getDebriefingOutcome(Result result,
-                                                                                 const AlienDeployment *deployment,
-                                                                                 const std::string &target,
-                                                                                 int survivors, bool lostCraft)
+    std::string MissionCompletion::getDefaultDebriefingTitle(bool success, const std::string &target, bool lostCraft)
     {
-        DebriefingOutcome outcome{resolveSuccess(false, result, survivors) && !lostCraft, {}, {}, 0};
-        if (deployment)
+        if (success && lostCraft)
         {
-            if (outcome.success)
-            {
-                deployment->getObjectiveCompleteInfo(outcome.objectiveText, outcome.objectiveScore, outcome.title);
-            }
-            else
-            {
-                deployment->getObjectiveFailedInfo(outcome.objectiveText, outcome.objectiveScore, outcome.title);
-            }
+            Log(LOG_ERROR) << "Mission completion: successful result with a lost craft for target '" << target << "'.";
+            return {};
         }
-        if (outcome.title.empty())
-        {
-            if (lostCraft)
-                outcome.title = "STR_CRAFT_IS_LOST";
-            else if (target == "STR_BASE")
-                outcome.title = outcome.success ? "STR_BASE_IS_SAVED" : "STR_BASE_IS_LOST";
-            else if (target == "STR_UFO")
-                outcome.title = outcome.success ? "STR_UFO_IS_RECOVERED" : "STR_UFO_IS_NOT_RECOVERED";
-            else if (target == "STR_ALIEN_BASE")
-                outcome.title = outcome.success ? "STR_ALIEN_BASE_DESTROYED" : "STR_ALIEN_BASE_STILL_INTACT";
-            else
-                outcome.title = outcome.success ? "STR_ALIENS_DEFEATED" : "STR_TERROR_CONTINUES";
-        }
-        return outcome;
+
+        if (lostCraft) return "STR_CRAFT_IS_LOST";
+        if (target == "STR_BASE") return success ? "STR_BASE_IS_SAVED" : "STR_BASE_IS_LOST";
+        if (target == "STR_UFO") return success ? "STR_UFO_IS_RECOVERED" : "STR_UFO_IS_NOT_RECOVERED";
+        if (target == "STR_ALIEN_BASE") return success ? "STR_ALIEN_BASE_DESTROYED" : "STR_ALIEN_BASE_STILL_INTACT";
+        if (target == "STR_MISSION_SITE") return success ? "STR_ALIENS_DEFEATED" : "STR_TERROR_CONTINUES";
+
+        // All expected target types are handled above; we should not reach here.
+        Log(LOG_ERROR) << "Mission completion: unexpected debriefing target '" << target << "', success=" << success
+                       << ", lostCraft=" << lostCraft << ".";
+
+        return {};
     }
 
     void MissionCompletion::load(const YAML::YamlNodeReader &reader)
