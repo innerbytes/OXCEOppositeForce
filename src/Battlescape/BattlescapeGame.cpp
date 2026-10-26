@@ -670,7 +670,7 @@ void BattlescapeGame::endTurn()
 	// if all units from either faction are killed - the mission is over.
 
 	// OF - Scripts own objective completion, while squad defeat remains native.
-	if (_save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion(_save->isPreview()))
+	if (!_save->isPreview() && _save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion())
 	{
 		if (tally.liveSoldiers == 0)
 		{
@@ -727,7 +727,7 @@ void BattlescapeGame::endTurn()
 	// OXCE shows the normally silent civilian-phase announcement when it considers the battle complete.
 	// Keep that phase silent while the scripted mission continues after enemy elimination.
 	// NextTurnState separately guards actual completion when a turn announcement closes.
-	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || _save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion(_save->isPreview());
+	killingAllAliensIsNotEnough = killingAllAliensIsNotEnough || (!_save->isPreview() && _save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion());
 
 	bool battleComplete = (!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0;
 
@@ -3406,7 +3406,7 @@ void BattlescapeGame::autoEndBattle()
 	}
 
 	// OF - Do not latch enemy elimination or auto-press Next Turn for scripted missions.
-	if (_save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion(_save->isPreview()))
+	if (_save->ofGetMissionCompletion().shouldSuppressAutomaticCompletion())
 	{
 		_allEnemiesNeutralized = false;
 		if (tallyUnits().liveSoldiers == 0)

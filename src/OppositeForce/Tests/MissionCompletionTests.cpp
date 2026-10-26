@@ -54,7 +54,7 @@ TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-com
 
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
-    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
+    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE(result == MissionCompletion::Result::None);
     REQUIRE(finalResult == MissionCompletion::Result::None);
@@ -69,7 +69,7 @@ TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearin
     MissionCompletion completion;
     completion.setManualCompletion(true);
     if (pending) completion.setResult(MissionCompletion::Result::Success);
-    REQUIRE(completion.shouldSuppressAutomaticCompletion(false));
+    REQUIRE(completion.shouldSuppressAutomaticCompletion());
 
     // Act
     completion.setManualCompletion(false);
@@ -77,7 +77,7 @@ TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearin
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE(completion.getResult() == (pending ? MissionCompletion::Result::Success : MissionCompletion::Result::None));
-    REQUIRE(completion.shouldSuppressAutomaticCompletion(false) == pending);
+    REQUIRE(completion.shouldSuppressAutomaticCompletion() == pending);
 }
 
 TEST_CASE("MissionCompletion_SetResult_ReplacesOrClearsPendingResultInEitherMode", "[mission-completion]")
@@ -204,7 +204,7 @@ TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]"
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
+    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
     REQUIRE(completion.consumePendingResult(1, false) == MissionCompletion::Result::None);
 }
 
@@ -335,7 +335,7 @@ TEST_CASE("MissionCompletion_OldSaveWithoutFields_ResetsToNativeBehavior", "[mis
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion(false));
+    REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
 }
 
 TEST_CASE("BattleGame_MissionCompletionCommands_UpdateSavedBattleState", "[mission-completion][scripts]")

@@ -24,9 +24,9 @@ namespace OpenXcom
         return _pendingResult;
     }
 
-    bool MissionCompletion::shouldSuppressAutomaticCompletion(bool preview) const
+    bool MissionCompletion::shouldSuppressAutomaticCompletion() const
     {
-        return !preview && (_isManualCompletion || getResult() != Result::None);
+        return _isManualCompletion || getResult() != Result::None;
     }
 
     MissionCompletion::Result MissionCompletion::consumePendingResult(int liveSoldiers, bool preview)

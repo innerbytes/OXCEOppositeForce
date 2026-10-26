@@ -37,7 +37,7 @@ namespace OpenXcom
 
         Result getResult() const;
 
-        bool shouldSuppressAutomaticCompletion(bool preview) const;
+        bool shouldSuppressAutomaticCompletion() const;
 
         /// Consume a pending result at a safe turn transition, for any faction.
         Result consumePendingResult(int liveSoldiers, bool preview);
