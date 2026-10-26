@@ -3658,14 +3658,7 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		std::string cutscene;
 		if (ruleDeploy)
 		{
-			// OF - Scripted failure uses defeat presentation without becoming an abort.
-			if (scriptResult != MissionCompletion::Result::None)
-			{
-				cutscene = MissionCompletion::getCutscene(scriptResult, *ruleDeploy, inExitArea);
-			}
-			// End OF
-
-			else if (abort)
+			if (abort)
 			{
 				cutscene = ruleDeploy->getAbortCutscene();
 			}
@@ -3677,6 +3670,16 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 			{
 				cutscene = ruleDeploy->getWinCutscene();
 			}
+
+			// OF - Scripted mission result uses win/lose cutscenes based on success.
+			// If the mission was aborted the scriptResult is already None at this point.
+			if (scriptResult != MissionCompletion::Result::None)
+			{
+				cutscene = MissionCompletion::resolveSuccess(false, scriptResult, inExitArea)
+					? ruleDeploy->getWinCutscene() : ruleDeploy->getLoseCutscene();
+			}
+			// End OF
+
 		}
 		if (!cutscene.empty())
 		{

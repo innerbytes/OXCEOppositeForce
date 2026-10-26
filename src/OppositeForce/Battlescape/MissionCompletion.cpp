@@ -83,11 +83,6 @@ namespace OpenXcom
         return outcome;
     }
 
-    std::string MissionCompletion::getCutscene(Result result, const AlienDeployment &deployment, int survivors)
-    {
-        return resolveSuccess(false, result, survivors) ? deployment.getWinCutscene() : deployment.getLoseCutscene();
-    }
-
     void MissionCompletion::load(const YAML::YamlNodeReader &reader)
     {
         reset();

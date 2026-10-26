@@ -140,13 +140,11 @@ TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentat
         rules.createDeployment("SCRIPTED",
                                "nextStage: NEXT\nescapeType: 1\nvipSurvivalPercentage: 100\n"
                                "objectiveComplete: [OBJECTIVE_WON, 500]\nobjectiveFailed: [OBJECTIVE_LOST, -200]\n"
-                               "missionCompleteText: MISSION_WON\nmissionFailedText: MISSION_LOST\n"
-                               "winCutscene: WIN\nloseCutscene: LOSE\nabortCutscene: ABORT\n");
+                               "missionCompleteText: MISSION_WON\nmissionFailedText: MISSION_LOST\n");
     const auto result = createScriptResult(success);
 
     // Act
     const auto outcome = MissionCompletion::getDebriefingOutcome(result, &deployment, target, 2, false);
-    const auto cutscene = MissionCompletion::getCutscene(result, deployment, 2);
 
     // Assert
     REQUIRE(MissionCompletion::resolveSuccess(!success, result, 2) == success);
@@ -154,7 +152,6 @@ TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentat
     REQUIRE(outcome.title == (success ? "MISSION_WON" : "MISSION_LOST"));
     REQUIRE(outcome.objectiveText == (success ? "OBJECTIVE_WON" : "OBJECTIVE_LOST"));
     REQUIRE(outcome.objectiveScore == (success ? 500 : -200));
-    REQUIRE(cutscene == (success ? "WIN" : "LOSE"));
 }
 
 TEST_CASE("MissionCompletion_LaterRequest_PreservesExplicitFinalResult", "[mission-completion]")

@@ -45,9 +45,6 @@ namespace OpenXcom
         static DebriefingOutcome getDebriefingOutcome(Result result, const AlienDeployment *deployment,
                                                       const std::string &target, int survivors, bool lostCraft);
 
-        // TODO - see if we need to control it from here
-        static std::string getCutscene(Result result, const AlienDeployment &deployment, int survivors);
-
         // TODO - load / save code can be moved to the other class
         void load(const YAML::YamlNodeReader &reader);
         void save(YAML::YamlNodeWriter writer) const;
