@@ -1037,7 +1037,7 @@ void DebriefingState::prepareDebriefing()
 	bool success = !aborted || battle->allObjectivesDestroyed();
 
 	// OF - Resolve the explicitly supplied script result independently of native objectives.
-	success = MissionCompletion::resolveSuccess(_ofMissionResult, success, 1);
+	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, 1);
 	// End OF
 
 	Craft *craft = 0;
@@ -1182,7 +1182,7 @@ void DebriefingState::prepareDebriefing()
 			base->cleanupDefenses(false);
 
 			// OF - Explicit failure loses a defended base without marking the battle aborted.
-			if ((_ofMissionResult != MissionCompletion::Result::None) && !MissionCompletion::resolveSuccess(_ofMissionResult, success, 1))
+			if ((_ofMissionResult != MissionCompletion::Result::None) && !MissionCompletion::resolveSuccess(success, _ofMissionResult, 1))
 			{
 				_destroyBase = true;
 			}
@@ -1351,7 +1351,7 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - Normal squad-loss handling can override a requested script victory.
-	success = MissionCompletion::resolveSuccess(_ofMissionResult, success, playersSurvived);
+	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 	// if it's a UFO, let's see what happens to it
 	for (auto ufoIt = save->getUfos()->begin(); ufoIt != save->getUfos()->end(); ++ufoIt)
@@ -1401,7 +1401,7 @@ void DebriefingState::prepareDebriefing()
 	// OF - Scripts decide the objective result independently of exit-tile occupancy.
 	if (_ofMissionResult != MissionCompletion::Result::None)
 	{
-		success = MissionCompletion::resolveSuccess(_ofMissionResult, success, playersSurvived);
+		success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
 	}
 	// End OF
 
@@ -1459,7 +1459,7 @@ void DebriefingState::prepareDebriefing()
 			}
 
 			// OF - Script completion determines alien-base destruction even with nextStage set.
-			destroyAlienBase = MissionCompletion::resolveSuccess(_ofMissionResult, destroyAlienBase, playersSurvived);
+			destroyAlienBase = MissionCompletion::resolveSuccess(destroyAlienBase, _ofMissionResult, playersSurvived);
 
 			success = destroyAlienBase;
 			if (destroyAlienBase)
@@ -1846,7 +1846,7 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - VIP requirements do not override a script-owned mission result.
-	success = MissionCompletion::resolveSuccess(_ofMissionResult, success, playersSurvived);
+	success = MissionCompletion::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 	if ((!aborted || success) && playersSurvived > 0) 	// RECOVER UFO : run through all tiles to recover UFO components and items
 	{

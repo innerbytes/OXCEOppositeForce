@@ -35,9 +35,19 @@ namespace OpenXcom
         _pendingResult = Result::None;
     }
 
-    bool MissionCompletion::resolveSuccess(Result result, bool nativeSuccess, int survivors)
+    bool MissionCompletion::resolveSuccess(bool isNativeSuccess, Result scriptResult, int survivorsCount)
     {
-        return result != Result::None ? result == Result::Success && survivors > 0 : nativeSuccess;
+        if (scriptResult == Result::None)
+        {
+            return isNativeSuccess;
+        }
+
+        if (survivorsCount <= 0)
+        {
+            return false;
+        }
+
+        return scriptResult == Result::Success;
     }
 
     MissionCompletion::DebriefingOutcome MissionCompletion::getDebriefingOutcome(Result result,
@@ -45,7 +55,7 @@ namespace OpenXcom
                                                                                  const std::string &target,
                                                                                  int survivors, bool lostCraft)
     {
-        DebriefingOutcome outcome{resolveSuccess(result, false, survivors) && !lostCraft, {}, {}, 0};
+        DebriefingOutcome outcome{resolveSuccess(false, result, survivors) && !lostCraft, {}, {}, 0};
         if (deployment)
         {
             if (outcome.success)
@@ -75,7 +85,7 @@ namespace OpenXcom
 
     std::string MissionCompletion::getCutscene(Result result, const AlienDeployment &deployment, int survivors)
     {
-        return resolveSuccess(result, false, survivors) ? deployment.getWinCutscene() : deployment.getLoseCutscene();
+        return resolveSuccess(false, result, survivors) ? deployment.getWinCutscene() : deployment.getLoseCutscene();
     }
 
     void MissionCompletion::load(const YAML::YamlNodeReader &reader)

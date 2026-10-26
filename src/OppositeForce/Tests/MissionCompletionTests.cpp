@@ -56,8 +56,8 @@ TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-com
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE(result == MissionCompletion::Result::None);
-    REQUIRE(MissionCompletion::resolveSuccess(result, true, 1));
-    REQUIRE_FALSE(MissionCompletion::resolveSuccess(result, false, 1));
+    REQUIRE(MissionCompletion::resolveSuccess(true, result, 1));
+    REQUIRE_FALSE(MissionCompletion::resolveSuccess(false, result, 1));
 }
 
 TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearingRequest", "[mission-completion]")
@@ -96,7 +96,7 @@ TEST_CASE("MissionCompletion_SetResult_ReplacesOrClearsPendingResultInEitherMode
     // Assert
     REQUIRE(result == requestedResult);
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE(MissionCompletion::resolveSuccess(result, false, 1) ==
+    REQUIRE(MissionCompletion::resolveSuccess(false, result, 1) ==
             (requestedResult == MissionCompletion::Result::Success));
 }
 
@@ -107,7 +107,7 @@ TEST_CASE("MissionCompletion_SquadDefeat_OverridesScriptVictory", "[mission-comp
     completion.setResult(MissionCompletion::Result::Success);
 
     // Act
-    const bool success = MissionCompletion::resolveSuccess(completion.getResult(), true, 0);
+    const bool success = MissionCompletion::resolveSuccess(true, completion.getResult(), 0);
 
     // Assert
     REQUIRE_FALSE(success);
@@ -149,7 +149,7 @@ TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentat
     const auto cutscene = MissionCompletion::getCutscene(result, deployment, 2);
 
     // Assert
-    REQUIRE(MissionCompletion::resolveSuccess(result, !success, 2) == success);
+    REQUIRE(MissionCompletion::resolveSuccess(!success, result, 2) == success);
     REQUIRE(outcome.success == success);
     REQUIRE(outcome.title == (success ? "MISSION_WON" : "MISSION_LOST"));
     REQUIRE(outcome.objectiveText == (success ? "OBJECTIVE_WON" : "OBJECTIVE_LOST"));

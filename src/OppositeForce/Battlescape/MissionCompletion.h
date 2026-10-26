@@ -39,7 +39,7 @@ namespace OpenXcom
 
         bool shouldSuppressAutomaticCompletion() const;
 
-        static bool resolveSuccess(Result result, bool nativeSuccess, int survivors);
+        static bool resolveSuccess(bool isNativeSuccess, Result scriptResult, int survivorsCount);
 
         // TODO - see if we need to control it from here
         static DebriefingOutcome getDebriefingOutcome(Result result, const AlienDeployment *deployment,
