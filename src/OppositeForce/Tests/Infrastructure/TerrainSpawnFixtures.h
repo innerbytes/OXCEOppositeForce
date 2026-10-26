@@ -16,8 +16,10 @@
 #include "Savegame/SavedBattleGame.h"
 #include "Savegame/Tile.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     static Language &getFixtureLanguage()
     {
         static Language language;
@@ -192,4 +194,4 @@ namespace OpenXcom::OppositeForceTests
             std::filesystem::remove_all(_directory);
         }
     };
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

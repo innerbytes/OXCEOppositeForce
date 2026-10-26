@@ -141,7 +141,7 @@ FundingState::FundingState()
 		// OF - Display the funding actor while retaining the original country data.
 		if (!country->getRules()->ofGetFundingName().empty())
 		{
-			_fundingCountryList.back().name = tr(FundingNames::getNameKey(*country->getRules()));
+			_fundingCountryList.back().name = tr(OppositeForce::FundingNames::getNameKey(*country->getRules()));
 		}
 		// End OF
 

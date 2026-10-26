@@ -9,7 +9,7 @@
 
 #include "../../../Engine/Yaml.h"
 
-namespace OpenXcom::HangarRules
+namespace OppositeForce::HangarRules
 {
     /// Optional hangar type carried by a base facility rule.
     struct Facility
@@ -29,14 +29,14 @@ namespace OpenXcom::HangarRules
     };
 
     /// Loads a facility's optional hangar type from one ruleset layer.
-    void loadFacility(Facility &rule, const YAML::YamlNodeReader &reader, const std::string &name);
+    void loadFacility(Facility &rule, const OpenXcom::YAML::YamlNodeReader &reader, const std::string &name);
 
     /// Requires a typed hangar to hold exactly one craft.
     void validateFacility(const Facility &rule, const std::string &name, int crafts);
 
     /// Loads a craft's optional allowed hangar types from one ruleset layer.
-    void loadCraft(Craft &rule, const YAML::YamlNodeReader &reader, const std::string &name);
+    void loadCraft(Craft &rule, const OpenXcom::YAML::YamlNodeReader &reader, const std::string &name);
 
     /// Returns whether a facility can hold a craft under the opt-in rules.
     bool accepts(const Facility &facility, const Craft &craft);
-}  // namespace OpenXcom::HangarRules
+}  // namespace OppositeForce::HangarRules

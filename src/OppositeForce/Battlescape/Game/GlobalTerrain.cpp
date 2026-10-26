@@ -7,8 +7,10 @@
 #include "../../../Mod/Texture.h"
 #include "../../../Savegame/MissionSite.h"
 
-namespace OpenXcom::GlobalTerrain
+namespace OppositeForce::GlobalTerrain
 {
+    using namespace OpenXcom;
+
     RuleTerrain *selectTerrain(Mod &mod, const AlienDeployment &deployment, RuleTerrain *selectedTerrain,
                                Texture *globeTexture, MissionSite *missionSite)
     {
@@ -35,4 +37,4 @@ namespace OpenXcom::GlobalTerrain
         }
         return terrain;
     }
-}  // namespace OpenXcom::GlobalTerrain
+}  // namespace OppositeForce::GlobalTerrain

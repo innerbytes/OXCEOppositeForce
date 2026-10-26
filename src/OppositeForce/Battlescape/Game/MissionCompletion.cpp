@@ -1,6 +1,6 @@
 #include "MissionCompletion.h"
 
-namespace OpenXcom
+namespace OppositeForce
 {
     void MissionCompletion::setManualCompletion(bool manual)
     {
@@ -28,4 +28,4 @@ namespace OpenXcom
         _pendingResult = Result::None;
     }
 
-}  // namespace OpenXcom
+}  // namespace OppositeForce

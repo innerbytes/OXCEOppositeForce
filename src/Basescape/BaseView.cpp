@@ -505,7 +505,7 @@ void BaseView::draw()
 	auto craftIt = _base->getCrafts()->begin();
 
 	// OF - Resolve typed assignments once for the base display.
-	const auto assignment = HangarCompatibility::calculateDisplayAssignment(*_base);
+	const auto assignment = OppositeForce::HangarCompatibility::calculateDisplayAssignment(*_base);
 
 	for (const auto* fac : *_base->getFacilities())
 	{

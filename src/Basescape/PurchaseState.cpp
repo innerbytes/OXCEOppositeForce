@@ -1114,7 +1114,7 @@ void PurchaseState::increaseByValue(int change)
 			ruleC = (RuleCraft*)getRow().rule;
 
 			// OF - Reject buying a craft without a compatible hangar.
-			if (HangarCompatibility::lacksCompatibleSlot(*_base, ruleC, &_items))
+			if (OppositeForce::HangarCompatibility::lacksCompatibleSlot(*_base, ruleC, &_items))
 			{
 				errorMessage = tr("STR_NO_FREE_HANGARS_FOR_PURCHASE");
 				break;
@@ -1209,9 +1209,9 @@ void PurchaseState::increaseByValue(int change)
 				}
 
 				// OF - Cap bulk purchases by compatible free hangars.
-				if (HangarCompatibility::shouldApplyForCraft(*_base, ruleC))
+				if (OppositeForce::HangarCompatibility::shouldApplyForCraft(*_base, ruleC))
 				{
-					change = std::min(change, HangarCompatibility::getFreeHangarsCount(*_base, ruleC, &_items));
+					change = std::min(change, OppositeForce::HangarCompatibility::getFreeHangarsCount(*_base, ruleC, &_items));
 				}
 				// End OF
 

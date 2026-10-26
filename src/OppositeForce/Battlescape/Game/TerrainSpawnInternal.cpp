@@ -8,8 +8,10 @@
 #include "../../../Savegame/SavedBattleGame.h"
 #include "../../../Savegame/Tile.h"
 
-namespace OpenXcom::TerrainSpawnInternal
+namespace OppositeForce::TerrainSpawnInternal
 {
+    using namespace OpenXcom;
+
     WalkingProbe::WalkingProbe(Mod &mod, int size)
         : _armor(Armor::ofCreateSpawnProbe(size)),
           _rules("OF_SPAWN_PROBE"),
@@ -98,4 +100,4 @@ namespace OpenXcom::TerrainSpawnInternal
         return false;
     }
 
-}  // namespace OpenXcom::TerrainSpawnInternal
+}  // namespace OppositeForce::TerrainSpawnInternal

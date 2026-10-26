@@ -87,7 +87,7 @@ void Node::load(const YAML::YamlNodeReader& reader)
 	reader.tryRead("dummy", _dummy);
 
 	// OF - Older saves have no custom-size metadata.
-	TerrainSpawnNodeRepository::load(*this, reader);
+	OppositeForce::TerrainSpawnNodeRepository::load(*this, reader);
 
 }
 
@@ -114,7 +114,7 @@ void Node::save(YAML::YamlNodeWriter writer) const
 		writer.write("dummy", _dummy);
 
 	// OF - Persist only custom node metadata.
-	TerrainSpawnNodeRepository::save(*this, writer);
+	OppositeForce::TerrainSpawnNodeRepository::save(*this, writer);
 
 }
 

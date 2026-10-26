@@ -9,8 +9,10 @@
 
 #include "../../../Engine/Exception.h"
 
-namespace OpenXcom::HangarRules
+namespace OppositeForce::HangarRules
 {
+    using namespace OpenXcom;
+
     void loadFacility(Facility &rule, const YAML::YamlNodeReader &reader, const std::string &name)
     {
         if (reader)
@@ -68,4 +70,4 @@ namespace OpenXcom::HangarRules
                std::find(craft.allowedHangarTypes.begin(), craft.allowedHangarTypes.end(), facility.hangarType) !=
                    craft.allowedHangarTypes.end();
     }
-}  // namespace OpenXcom::HangarRules
+}  // namespace OppositeForce::HangarRules

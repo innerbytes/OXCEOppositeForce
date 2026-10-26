@@ -88,7 +88,7 @@ private:
 	BattlescapeGame *_battleGame;
 
 	// OF - a dirty flag to carry a script result until native finalization consumes it.
-	MissionCompletion::Result _ofFinishResult = MissionCompletion::Result::None;
+	OppositeForce::MissionCompletion::Result _ofFinishResult = OppositeForce::MissionCompletion::Result::None;
 
 	bool _firstInit, _paletteResetNeeded, _paletteResetRequested;
 	bool _isMouseScrolling, _isMouseScrolled;
@@ -252,7 +252,7 @@ public:
 	void finishBattle(bool abort, int inExitArea);
 
 	// OF - Supply a script result without changing the native finishBattle interface.
-	void ofFinishBattle(int survivors, MissionCompletion::Result result);
+	void ofFinishBattle(int survivors, OppositeForce::MissionCompletion::Result result);
 
 	/// Show the launch button.
 	void showLaunchButton(bool show);

@@ -790,7 +790,7 @@ void BattlescapeGenerator::run()
 	_unitSequence = BattleUnit::MAX_SOLDIER_ID; // geoscape soldier IDs should stay below this number
 
 	// OF - Resolve mission-site terrain before choosing its normal map script.
-	_terrain = GlobalTerrain::selectTerrain(*_mod, *ruleDeploy, _terrain, _globeTexture, _mission);
+	_terrain = OppositeForce::GlobalTerrain::selectTerrain(*_mod, *ruleDeploy, _terrain, _globeTexture, _mission);
 
 	if (_terrain == 0)
 	{
@@ -3368,7 +3368,7 @@ void BattlescapeGenerator::generateMap(const std::vector<MapScript*> *script, co
 	attachNodeLinks();
 
 	// OF - Append safe custom spawn nodes after all original nodes and geometry.
-	TerrainSpawnPoints::addSpawnNodes(*_mod, *_save, _ofSpawnPlacements);
+	OppositeForce::TerrainSpawnPoints::addSpawnNodes(*_mod, *_save, _ofSpawnPlacements);
 
 	if (_save->getMissionType() == "STR_BASE_DEFENSE" && _mod->getBaseDefenseMapFromLocation() == 1)
 	{

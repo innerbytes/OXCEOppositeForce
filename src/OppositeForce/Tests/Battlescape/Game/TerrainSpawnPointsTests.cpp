@@ -18,8 +18,9 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
-using namespace OpenXcom::OppositeForceTests;
-using namespace OpenXcom::TerrainSpawnPoints;
+using namespace OppositeForce;
+using namespace OppositeForce::Tests;
+using namespace OppositeForce::TerrainSpawnPoints;
 
 TEST_CASE("TerrainSpawnPoints_RepeatedFragmentPlacements_AppliesOffsetsWithoutChangingOriginalNodes",
           "[terrain-spawns][nodes]")

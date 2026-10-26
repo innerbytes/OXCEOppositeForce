@@ -3505,7 +3505,7 @@ void BattlescapeState::popup(State *state)
 }
 
 // OF - Pass the script result through the existing battle finalization body.
-void BattlescapeState::ofFinishBattle(int survivors, MissionCompletion::Result result)
+void BattlescapeState::ofFinishBattle(int survivors, OppositeForce::MissionCompletion::Result result)
 {
 	_ofFinishResult = result;
 	finishBattle(false, survivors);
@@ -3523,9 +3523,9 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 	bool isPreview = _save->isPreview();
 
 	// OF - Consume the temporary result once; native endings discard queued requests.
-	auto scriptResult = (abort || _save->isAborted() || isPreview) ? MissionCompletion::Result::None : _ofFinishResult;
-	_ofFinishResult = MissionCompletion::Result::None;
-	_save->ofGetMissionCompletion().setResult(MissionCompletion::Result::None);
+	auto scriptResult = (abort || _save->isAborted() || isPreview) ? OppositeForce::MissionCompletion::Result::None : _ofFinishResult;
+	_ofFinishResult = OppositeForce::MissionCompletion::Result::None;
+	_save->ofGetMissionCompletion().setResult(OppositeForce::MissionCompletion::Result::None);
 	// End OF
 
 	while (!_game->isState(this))
@@ -3595,7 +3595,7 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 	}
 
 	// OF - Explicit script completion ends the entire mission.
-	if (scriptResult != MissionCompletion::Result::None)
+	if (scriptResult != OppositeForce::MissionCompletion::Result::None)
 	{
 		nextStage.clear();
 	}
@@ -3646,7 +3646,7 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		}
 
 		// OF - Carry the consumed result into debriefing independently of later script requests.
-		if (scriptResult != MissionCompletion::Result::None)
+		if (scriptResult != OppositeForce::MissionCompletion::Result::None)
 		{
 			_game->pushState(new DebriefingState(scriptResult));
 		}
@@ -3675,9 +3675,9 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 
 			// OF - Scripted mission result uses win/lose cutscenes based on success.
 			// If the mission was aborted the scriptResult is already None at this point.
-			if (scriptResult != MissionCompletion::Result::None)
+			if (scriptResult != OppositeForce::MissionCompletion::Result::None)
 			{
-				cutscene = MissionCompletionResult::resolveSuccess(false, scriptResult, inExitArea)
+				cutscene = OppositeForce::MissionCompletionResult::resolveSuccess(false, scriptResult, inExitArea)
 					? ruleDeploy->getWinCutscene() : ruleDeploy->getLoseCutscene();
 			}
 			// End OF

@@ -3,7 +3,8 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
-using namespace OpenXcom::OppositeForceTests;
+using namespace OppositeForce;
+using namespace OppositeForce::Tests;
 
 TEST_CASE("RuleCountry_OptionalFundingName_LoadsExpectedKey", "[funding][rules]")
 {

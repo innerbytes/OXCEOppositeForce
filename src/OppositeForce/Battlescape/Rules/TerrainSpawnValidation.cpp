@@ -23,8 +23,10 @@
 #include "../Game/TerrainSpawnInternal.h"
 #include "TerrainSpawnRules.h"
 
-namespace OpenXcom::TerrainSpawnValidation
+namespace OppositeForce::TerrainSpawnValidation
 {
+    using namespace OpenXcom;
+
     void attachRules(RuleTerrain &terrain)
     {
         for (auto *block : *terrain.getMapBlocks())
@@ -247,4 +249,4 @@ namespace OpenXcom::TerrainSpawnValidation
             }
         }
     }
-}  // namespace OpenXcom::TerrainSpawnValidation
+}  // namespace OppositeForce::TerrainSpawnValidation

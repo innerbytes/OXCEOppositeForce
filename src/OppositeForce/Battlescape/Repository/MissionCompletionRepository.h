@@ -2,16 +2,16 @@
 
 #include "../../../Engine/Yaml.h"
 
-namespace OpenXcom
+namespace OppositeForce
 {
     class MissionCompletion;
-}  // namespace OpenXcom
+}  // namespace OppositeForce
 
-namespace OpenXcom::MissionCompletionRepository
+namespace OppositeForce::MissionCompletionRepository
 {
     /// Restores completion state, using native defaults for missing save fields.
-    void load(MissionCompletion &completion, const YAML::YamlNodeReader &reader);
+    void load(MissionCompletion &completion, const OpenXcom::YAML::YamlNodeReader &reader);
 
     /// Writes completion state into the existing battle save mapping.
-    void save(const MissionCompletion &completion, YAML::YamlNodeWriter writer);
-}  // namespace OpenXcom::MissionCompletionRepository
+    void save(const MissionCompletion &completion, OpenXcom::YAML::YamlNodeWriter writer);
+}  // namespace OppositeForce::MissionCompletionRepository

@@ -21,8 +21,10 @@
 #include "../../../Savegame/Transfer.h"
 #include "../Rules/HangarRules.h"
 
-namespace OpenXcom::HangarCompatibility
+namespace OppositeForce::HangarCompatibility
 {
+    using namespace OpenXcom;
+
     struct Slot
     {
         const BaseFacility *facility;
@@ -400,4 +402,4 @@ namespace OpenXcom::HangarCompatibility
         return HangarRules::accepts(replacement.getRules()->ofGetHangarCompatibilityRule(),
                                     damaged.getCraftForDrawing()->getRules()->ofGetHangarCompatibilityRule());
     }
-}  // namespace OpenXcom::HangarCompatibility
+}  // namespace OppositeForce::HangarCompatibility

@@ -11,7 +11,8 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
-using namespace OpenXcom::OppositeForceTests;
+using namespace OppositeForce;
+using namespace OppositeForce::Tests;
 
 TEST_CASE("BattleGame_SaveRoundTrip_PreservesManualCompletionAndNativeTimer", "[mission-completion][save]")
 {

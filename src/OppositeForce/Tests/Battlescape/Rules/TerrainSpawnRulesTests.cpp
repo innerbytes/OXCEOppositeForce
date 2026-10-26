@@ -2,6 +2,7 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
+using namespace OppositeForce;
 
 TEST_CASE("TerrainSpawnRules_MalformedDefinitions_ThrowsValidationException", "[terrain-spawns][rules]")
 {

@@ -977,7 +977,7 @@ void AlienMission::ufoReachedWaypoint(Ufo &ufo, Game &engine, const Globe &globe
 			// OF - Use the area belonging to the arriving landing, not its next destination.
 			if (!_rule.ofGetExcludedLandingTextures().empty() && wave.objectiveOnTheLandingSite && arrivalArea != -1)
 			{
-				const int landingArea = LandingTextures::findLandingArea(regionRules, trajectory.getZone(curWaypoint),
+				const int landingArea = OppositeForce::LandingTextures::findLandingArea(regionRules, trajectory.getZone(curWaypoint),
 					std::make_pair(ufo.getLongitude(), ufo.getLatitude()), arrivalArea);
 				area = regionRules.getMissionZones().at(trajectory.getZone(curWaypoint)).areas.at(landingArea);
 			}
@@ -1386,7 +1386,7 @@ std::pair<double, double> AlienMission::getLandPoint(const Globe &globe, const R
 	// OF - Restrict actual globe textures without changing the unrestricted path.
 	if (!_rule.ofGetExcludedLandingTextures().empty())
 	{
-		return LandingTextures::selectLandingPoint(globe, region, zone, -1, ufo, _rule,
+		return OppositeForce::LandingTextures::selectLandingPoint(globe, region, zone, -1, ufo, _rule,
 			ofLandingSelectionFailed, _missionSiteZoneArea);
 	}
 	// End OF
@@ -1471,7 +1471,7 @@ std::pair<double, double> AlienMission::getLandPointForMissionSite(const Globe& 
 	// OF - Retry the selected area, then other areas in the same mission-site zone.
 	if (!_rule.ofGetExcludedLandingTextures().empty())
 	{
-		return LandingTextures::selectLandingPoint(globe, region, zone, area, ufo, _rule,
+		return OppositeForce::LandingTextures::selectLandingPoint(globe, region, zone, area, ufo, _rule,
 			ofLandingSelectionFailed, _missionSiteZoneArea);
 	}
 	// End OF

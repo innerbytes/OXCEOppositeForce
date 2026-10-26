@@ -9,8 +9,10 @@
 #include "OppositeForce/Battlescape/Game/GlobalTerrain.h"
 #include "Savegame/MissionSite.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     static void loadTexture(Texture &texture, Mod &mod, const std::string &yaml)
     {
         YAML::YamlRootNodeReader reader(YAML::YamlString(yaml), "test texture");
@@ -62,4 +64,4 @@ namespace OpenXcom::OppositeForceTests
         }
         return blocks;
     }
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

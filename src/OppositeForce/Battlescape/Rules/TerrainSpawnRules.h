@@ -7,11 +7,11 @@
 #include "../../../Battlescape/Position.h"
 #include "../../../Engine/Yaml.h"
 
-namespace OpenXcom::TerrainSpawnRules
+namespace OppositeForce::TerrainSpawnRules
 {
     struct Point
     {
-        Position position;
+        OpenXcom::Position position;
 
         int unitSize = 1;
 
@@ -32,12 +32,12 @@ namespace OpenXcom::TerrainSpawnRules
     using Rules = std::map<std::string, Block>;
 
     /// Loads one ruleset layer without changing the terrain's map block list.
-    void loadRules(Rules &rules, const YAML::YamlNodeReader &reader, const std::string &terrain);
+    void loadRules(Rules &rules, const OpenXcom::YAML::YamlNodeReader &reader, const std::string &terrain);
 
     /// Formats an actionable diagnostic that remains valid after YAML readers expire.
     std::string describePoint(const std::string &terrain, const std::string &block, const Point &point);
 
     /// Rejects out-of-bounds or overlapping custom footprints against actual MAP dimensions.
     void validateFootprints(const std::string &terrain, const std::string &block, const Block &rule,
-                            const Position &dimensions);
-}  // namespace OpenXcom::TerrainSpawnRules
+                            const OpenXcom::Position &dimensions);
+}  // namespace OppositeForce::TerrainSpawnRules

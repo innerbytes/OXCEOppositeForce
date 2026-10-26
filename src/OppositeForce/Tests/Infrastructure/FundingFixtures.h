@@ -2,8 +2,10 @@
 
 #include "Fixtures.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     static void prepareFundingReport(RulesFixture &fixture, Language &language)
     {
         fixture.createCountry("A", "fundingName: ACTOR");
@@ -19,4 +21,4 @@ namespace OpenXcom::OppositeForceTests
                      "  SINGULAR: '{0} supports us.'\n"
                      "  PLURAL: '{0} support us.'\n");
     }
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

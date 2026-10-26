@@ -11,8 +11,10 @@
 #include "Mod/ModScript.h"
 #include "Mod/RuleInventory.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     struct RulesFixture::Implementation
     {
         Mod mod;
@@ -477,4 +479,4 @@ namespace OpenXcom::OppositeForceTests
         }
         return free;
     }
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

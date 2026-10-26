@@ -3,8 +3,10 @@
 #include "../../../Mod/Unit.h"
 #include "../../../Savegame/BattleUnit.h"
 
-namespace OpenXcom::UnitCombatRules
+namespace OppositeForce::UnitCombatRules
 {
+    using namespace OpenXcom;
+
     bool shouldDisableKillRecords(const BattleUnit *target)
     {
         return target && target->getUnitRules() && target->getUnitRules()->ofGetDisableKillRecords();
@@ -15,4 +17,4 @@ namespace OpenXcom::UnitCombatRules
         const auto *rule = target.getUnitRules();
         return damage > 0 && rule && !rule->ofCanBeStunned() ? 0 : damage;
     }
-}  // namespace OpenXcom::UnitCombatRules
+}  // namespace OppositeForce::UnitCombatRules

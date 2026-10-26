@@ -4,8 +4,10 @@
 #include "../../../Mod/Mod.h"
 #include "../../../Mod/RuleCountry.h"
 
-namespace OpenXcom::FundingNames
+namespace OppositeForce::FundingNames
 {
+    using namespace OpenXcom;
+
     const std::string &getNameKey(const RuleCountry &country)
     {
         return country.ofGetFundingName().empty() ? country.getType() : country.ofGetFundingName();
@@ -16,4 +18,4 @@ namespace OpenXcom::FundingNames
         const auto *country = mod.getCountry(countryId, false);
         return country ? getNameKey(*country) : countryId;
     }
-}  // namespace OpenXcom::FundingNames
+}  // namespace OppositeForce::FundingNames

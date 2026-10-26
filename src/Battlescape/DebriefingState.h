@@ -88,7 +88,7 @@ private:
 	MissionStatistics *_missionStatistics;
 
 	// OF - the scripted mission result
-	MissionCompletion::Result _ofMissionResult = MissionCompletion::Result::None;
+	OppositeForce::MissionCompletion::Result _ofMissionResult = OppositeForce::MissionCompletion::Result::None;
 
 	std::vector<Soldier*> _soldiersCommended, _deadSoldiersCommended;
 	/// Adds to the debriefing stats.
@@ -117,7 +117,7 @@ public:
 	DebriefingState();
 
 	// OF - Accept an explicit result from script-controlled finalization.
-	DebriefingState(MissionCompletion::Result scriptResult);
+	DebriefingState(OppositeForce::MissionCompletion::Result scriptResult);
 
 	/// Cleans up the Debriefing state.
 	~DebriefingState();

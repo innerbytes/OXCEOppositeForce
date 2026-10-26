@@ -2679,7 +2679,7 @@ TileEngine::ReactionScore *TileEngine::getReactor(std::vector<TileEngine::Reacti
 		{
 
 			// OF - Excluded targets grant no reaction experience.
-			if (!UnitCombatRules::shouldDisableKillRecords(unit))
+			if (!OppositeForce::UnitCombatRules::shouldDisableKillRecords(unit))
 			{
 				best->unit->addReactionExp();
 			}
@@ -3184,7 +3184,7 @@ bool TileEngine::hitUnit(BattleActionAttack attack, BattleUnit *target, const Po
 	{
 
 		// OF - Excluded damage targets grant no skill or mana experience.
-		if (!UnitCombatRules::shouldDisableKillRecords(target))
+		if (!OppositeForce::UnitCombatRules::shouldDisableKillRecords(target))
 		{
 			awardExperience(attack, target, rangeAtack);
 		}

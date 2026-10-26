@@ -134,7 +134,7 @@ private:
 	ScriptValues<SavedBattleGame> _scriptValues;
 
 	// OF - Persist script-controlled mission completion.
-	MissionCompletion _ofMissionCompletion;
+	OppositeForce::MissionCompletion _ofMissionCompletion;
 
 	/// Selects a soldier.
 	BattleUnit *selectPlayerUnit(int dir, bool checkReselect = false, bool setReselect = false, bool checkInventory = false);
@@ -143,7 +143,7 @@ private:
 public:
 
 	// OF - Access script-controlled mission completion.
-	MissionCompletion &ofGetMissionCompletion() { return _ofMissionCompletion; }
+	OppositeForce::MissionCompletion &ofGetMissionCompletion() { return _ofMissionCompletion; }
 
 	/// Creates a new battle save, based on the current generic save.
 	SavedBattleGame(Mod *rule, Language *lang, bool isPreview = false);

@@ -1757,7 +1757,7 @@ int Base::damageFacility(BaseFacility *toBeDamaged)
 	int result = 0;
 
 	// OF - Resolve typed hangar occupancy before damage replaces the facility.
-	HangarCompatibility::prepareDamage(*this, *toBeDamaged);
+	OppositeForce::HangarCompatibility::prepareDamage(*this, *toBeDamaged);
 
 	// 1. Create the new "damaged facility" first, so that when we destroy the original facility we don't lose "too much"
 	if (toBeDamaged->getRules()->getDestroyedFacility())
@@ -1771,9 +1771,9 @@ int Base::damageFacility(BaseFacility *toBeDamaged)
 		// move the craft from the original hangar to the damaged hangar
 
 		// OF - Retain only craft compatible with the damaged hangar.
-		if (HangarCompatibility::isEnabledForBase(*this))
+		if (OppositeForce::HangarCompatibility::isEnabledForBase(*this))
 		{
-			if (fac->getRules()->getCrafts() > 0 && HangarCompatibility::canKeepAfterDamage(*this, *toBeDamaged, *fac))
+			if (fac->getRules()->getCrafts() > 0 && OppositeForce::HangarCompatibility::canKeepAfterDamage(*this, *toBeDamaged, *fac))
 			{
 				fac->setCraftForDrawing(toBeDamaged->getCraftForDrawing());
 				toBeDamaged->setCraftForDrawing(0);
@@ -1931,7 +1931,7 @@ void Base::destroyFacility(BASEFACILITIESITERATOR facility)
 {
 
 	// OF - Refresh the assigned craft before a typed hangar is destroyed.
-	HangarCompatibility::prepareDestruction(*this, **facility);
+	OppositeForce::HangarCompatibility::prepareDestruction(*this, **facility);
 
 	if ((*facility)->getRules()->getCrafts() > 0)
 	{
@@ -2411,7 +2411,7 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 	}
 
 	// OF - Require the remaining hangars to fit the reserved craft mix.
-	if (removed.hangars > 0 && !HangarCompatibility::fitsAfterChange(*this, area, replacement))
+	if (removed.hangars > 0 && !OppositeForce::HangarCompatibility::fitsAfterChange(*this, area, replacement))
 	{
 		return BPE_Used_Hangars;
 	}

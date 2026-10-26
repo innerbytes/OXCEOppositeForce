@@ -3,8 +3,10 @@
 #include "../../../Engine/ScriptBind.h"
 #include "../../../Savegame/SavedBattleGame.h"
 
-namespace OpenXcom::MissionScriptController
+namespace OppositeForce::MissionScriptController
 {
+    using namespace OpenXcom;
+
     static void setMissionEndManual(SavedBattleGame *battle, int manual)
     {
         if (battle && !battle->isPreview())
@@ -31,4 +33,4 @@ namespace OpenXcom::MissionScriptController
         binding.add<&completeMission>(
             "completeMission", "Queue success (1) or failure (0) for the next turn transition. Latest request wins.");
     }
-}  // namespace OpenXcom::MissionScriptController
+}  // namespace OppositeForce::MissionScriptController

@@ -14,31 +14,32 @@ namespace OpenXcom
     class SavedBattleGame;
 }  // namespace OpenXcom
 
-namespace OpenXcom::TerrainSpawnInternal
+namespace OppositeForce::TerrainSpawnInternal
 {
     /// Probe rules belong to this object, never to the mod or battle save.
     class WalkingProbe
     {
-        std::unique_ptr<Armor> _armor;
+        std::unique_ptr<OpenXcom::Armor> _armor;
 
-        Unit _rules;
+        OpenXcom::Unit _rules;
 
-        BattleUnit _unit;
+        OpenXcom::BattleUnit _unit;
 
     public:
-        WalkingProbe(Mod &mod, int size);
+        WalkingProbe(OpenXcom::Mod &mod, int size);
 
-        BattleUnit &getUnit()
+        OpenXcom::BattleUnit &getUnit()
         {
             return _unit;
         }
     };
 
-    bool canStandAtPosition(SavedBattleGame &save, BattleUnit &unit, const Position &position);
+    bool canStandAtPosition(OpenXcom::SavedBattleGame &save, OpenXcom::BattleUnit &unit,
+                            const OpenXcom::Position &position);
 
-    std::vector<unsigned char> calculateReachablePositions(SavedBattleGame &save, BattleUnit &unit,
-                                                           const Position &start);
+    std::vector<unsigned char> calculateReachablePositions(OpenXcom::SavedBattleGame &save, OpenXcom::BattleUnit &unit,
+                                                           const OpenXcom::Position &start);
 
-    bool hasGroundExit(const SavedBattleGame &save, const std::vector<unsigned char> &reachable, const Position &origin,
-                       const Position &dimensions, int unitSize);
-}  // namespace OpenXcom::TerrainSpawnInternal
+    bool hasGroundExit(const OpenXcom::SavedBattleGame &save, const std::vector<unsigned char> &reachable,
+                       const OpenXcom::Position &origin, const OpenXcom::Position &dimensions, int unitSize);
+}  // namespace OppositeForce::TerrainSpawnInternal

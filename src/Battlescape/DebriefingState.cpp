@@ -81,7 +81,7 @@ namespace OpenXcom
 {
 
 // OF - Preserve the explicit result before debriefing runs unit-return scripts.
-DebriefingState::DebriefingState(MissionCompletion::Result scriptResult) : DebriefingState()
+DebriefingState::DebriefingState(OppositeForce::MissionCompletion::Result scriptResult) : DebriefingState()
 {
 	_ofMissionResult = scriptResult;
 }
@@ -1204,7 +1204,7 @@ void DebriefingState::prepareDebriefing()
 			}
 
 			// OF - Explicit failure loses a defended base without marking the battle aborted.
-			if (!MissionCompletionResult::resolveSuccess(success, _ofMissionResult, 1))
+			if (!OppositeForce::MissionCompletionResult::resolveSuccess(success, _ofMissionResult, 1))
 			{
 				_destroyBase = true;
 			}
@@ -1356,7 +1356,7 @@ void DebriefingState::prepareDebriefing()
 			// takes off immediately and proceeds according to its mission directive
 
 			// OF - A landed UFO remains unsecured after explicit mission failure.
-			if (ufo->getStatus() == Ufo::LANDED && !MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived))
+			if (ufo->getStatus() == Ufo::LANDED && !OppositeForce::MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived))
 			{
 				ufo->setSecondsRemaining(5);
 			}
@@ -1398,7 +1398,7 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - Script completion overrides native success
-	success = MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived);
+	success = OppositeForce::MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 	int playersInExitArea2 = 0;
 
@@ -1441,7 +1441,7 @@ void DebriefingState::prepareDebriefing()
 			}
 
 			// OF - Script completion determines alien-base destruction even with nextStage set.
-			destroyAlienBase = MissionCompletionResult::resolveSuccess(destroyAlienBase, _ofMissionResult, playersSurvived);
+			destroyAlienBase = OppositeForce::MissionCompletionResult::resolveSuccess(destroyAlienBase, _ofMissionResult, playersSurvived);
 
 			success = destroyAlienBase;
 			if (destroyAlienBase)
@@ -1711,7 +1711,7 @@ void DebriefingState::prepareDebriefing()
 				// OF - Living civilians follow an explicit failed objective's outcome.
 				// Passing true ensures None skips our branch and reaches native handling.
 				// Explicit scripted failure enters our branch.
-				if (!MissionCompletionResult::resolveSuccess(true, _ofMissionResult, playersSurvived))
+				if (!OppositeForce::MissionCompletionResult::resolveSuccess(true, _ofMissionResult, playersSurvived))
 				{
 					if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
 					{
@@ -1822,7 +1822,7 @@ void DebriefingState::prepareDebriefing()
 		}
 
 		// OF - the script success overrides native VIP success requirements
-		success = MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived);
+		success = OppositeForce::MissionCompletionResult::resolveSuccess(success, _ofMissionResult, playersSurvived);
 
 		// 4. add stats
 		if (vipSubtotal > 0 || (vipTotal > 0 && !savedEnoughVIPs))
@@ -1982,15 +1982,15 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// OF - Present and score the explicit result without changing non-aborted recovery.
-	if (_ofMissionResult != MissionCompletion::Result::None)
+	if (_ofMissionResult != OppositeForce::MissionCompletion::Result::None)
 	{
 		const auto &missionText = success ? missionCompleteText : missionFailedText;
-		const auto title = missionText.empty() ? MissionCompletionResult::getDefaultDebriefingTitle(success, target, lostCraft) : missionText;
+		const auto title = missionText.empty() ? OppositeForce::MissionCompletionResult::getDefaultDebriefingTitle(success, target, lostCraft) : missionText;
 		
 		_txtTitle->setText(title.empty() ? "OF_ERROR_RESULT" : std::string(tr(title)));
 		
 		// Clear the native objective awards before adding the resolved scripted award.
-		MissionCompletionResult::clearObjectiveAwards(_stats, objectiveCompleteText, objectiveFailedText);
+		OppositeForce::MissionCompletionResult::clearObjectiveAwards(_stats, objectiveCompleteText, objectiveFailedText);
 		
 		const auto &objectiveText = success ? objectiveCompleteText : objectiveFailedText;
 		const auto &objectiveScore = success ? objectiveCompleteScore : objectiveFailedScore;

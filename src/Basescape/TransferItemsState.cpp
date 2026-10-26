@@ -918,7 +918,7 @@ void TransferItemsState::increaseByValue(int change)
 		craft = (Craft*)getRow().rule;
 
 		// OF - Reject a selected craft without a compatible destination hangar.
-		if (HangarCompatibility::lacksCompatibleSlot(*_baseTo, craft->getRules(), &_items, true))
+		if (OppositeForce::HangarCompatibility::lacksCompatibleSlot(*_baseTo, craft->getRules(), &_items, true))
 		{
 			errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
 			break;

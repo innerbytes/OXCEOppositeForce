@@ -5,8 +5,8 @@ namespace OpenXcom
     class ScriptParserBase;
 }  // namespace OpenXcom
 
-namespace OpenXcom::MissionScriptController
+namespace OppositeForce::MissionScriptController
 {
     /// Registers the battle_game OF mission commands with a script parser.
-    void registerScriptBindings(ScriptParserBase *parser);
-}  // namespace OpenXcom::MissionScriptController
+    void registerScriptBindings(OpenXcom::ScriptParserBase *parser);
+}  // namespace OppositeForce::MissionScriptController

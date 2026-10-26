@@ -54,12 +54,12 @@ private:
 	int _lastCraftSkinIndex;
 
 	// OF - Store optional spawn definitions separately from block selection.
-	TerrainSpawnRules::Rules _ofSpawnRules;
+	OppositeForce::TerrainSpawnRules::Rules _ofSpawnRules;
 
 public:
 
 	// OF - Expose final custom terrain spawn definitions.
-	const TerrainSpawnRules::Rules& ofGetSpawnRules() const { return _ofSpawnRules; }
+	const OppositeForce::TerrainSpawnRules::Rules& ofGetSpawnRules() const { return _ofSpawnRules; }
 
 	RuleTerrain(const std::string &name);
 	~RuleTerrain();

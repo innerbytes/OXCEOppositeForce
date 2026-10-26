@@ -2,8 +2,10 @@
 
 #include "../../../Savegame/Node.h"
 
-namespace OpenXcom::TerrainSpawnNodeRepository
+namespace OppositeForce::TerrainSpawnNodeRepository
 {
+    using namespace OpenXcom;
+
     void load(Node &node, const YAML::YamlNodeReader &reader)
     {
         node.ofSetSpawnSize(reader["ofSpawnSize"].readVal(0));
@@ -16,4 +18,4 @@ namespace OpenXcom::TerrainSpawnNodeRepository
             writer.write("ofSpawnSize", node.ofGetSpawnSize());
         }
     }
-}  // namespace OpenXcom::TerrainSpawnNodeRepository
+}  // namespace OppositeForce::TerrainSpawnNodeRepository

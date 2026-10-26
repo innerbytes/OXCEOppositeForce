@@ -1,6 +1,6 @@
 #pragma once
 
-namespace OpenXcom
+namespace OppositeForce
 {
     /// Saved manual-ending mode and pending script result.
     class MissionCompletion
@@ -33,4 +33,4 @@ namespace OpenXcom
 
         Result _pendingResult = Result::None;
     };
-}  // namespace OpenXcom
+}  // namespace OppositeForce

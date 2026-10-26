@@ -2,8 +2,10 @@
 #include "Engine/Yaml.h"
 #include "catch_amalgamated.hpp"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     class TestEnvironment : public Catch::EventListenerBase
     {
         bool _previousMute = false;
@@ -26,4 +28,4 @@ namespace OpenXcom::OppositeForceTests
     };
 
     CATCH_REGISTER_LISTENER(TestEnvironment)
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

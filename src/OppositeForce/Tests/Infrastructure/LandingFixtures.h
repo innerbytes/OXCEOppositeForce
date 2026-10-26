@@ -18,8 +18,9 @@
 #include "OppositeForce/Geoscape/Game/LandingTextures.h"
 #include "Savegame/MissionSite.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
 
     class HeadlessSettings
     {
@@ -174,4 +175,4 @@ namespace OpenXcom::OppositeForceTests
             return mission.spawnUfo(save, rules.getMod(), *globe, rule.getWave(0), trajectory);
         }
     };
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

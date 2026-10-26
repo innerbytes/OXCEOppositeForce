@@ -7,11 +7,11 @@ namespace OpenXcom
     class Node;
 }  // namespace OpenXcom
 
-namespace OpenXcom::TerrainSpawnNodeRepository
+namespace OppositeForce::TerrainSpawnNodeRepository
 {
     /// Restores custom spawn size, defaulting older nodes to ordinary behavior.
-    void load(Node &node, const YAML::YamlNodeReader &reader);
+    void load(OpenXcom::Node &node, const OpenXcom::YAML::YamlNodeReader &reader);
 
     /// Appends nonzero custom metadata without changing native node fields.
-    void save(const Node &node, YAML::YamlNodeWriter writer);
-}  // namespace OpenXcom::TerrainSpawnNodeRepository
+    void save(const OpenXcom::Node &node, OpenXcom::YAML::YamlNodeWriter writer);
+}  // namespace OppositeForce::TerrainSpawnNodeRepository

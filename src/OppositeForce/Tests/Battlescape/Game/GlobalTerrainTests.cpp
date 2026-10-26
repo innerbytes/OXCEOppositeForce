@@ -10,7 +10,8 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
-using namespace OpenXcom::OppositeForceTests;
+using namespace OppositeForce;
+using namespace OppositeForce::Tests;
 
 TEST_CASE("GlobalTerrain_DifferentSiteAndGlobeTextures_UsesGeographyOnlyWhenEnabled", "[global-terrain][selection]")
 {

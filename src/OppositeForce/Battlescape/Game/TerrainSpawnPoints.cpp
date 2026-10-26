@@ -12,8 +12,10 @@
 #include "../Rules/TerrainSpawnRules.h"
 #include "TerrainSpawnInternal.h"
 
-namespace OpenXcom::TerrainSpawnPoints
+namespace OppositeForce::TerrainSpawnPoints
 {
+    using namespace OpenXcom;
+
     bool canUseNode(const Node &node, const BattleUnit &unit)
     {
         return !node.ofGetSpawnSize() || node.ofGetSpawnSize() == unit.getArmor()->getSize();
@@ -183,4 +185,4 @@ namespace OpenXcom::TerrainSpawnPoints
         }
         save.getPathfinding()->setUnit(nullptr);
     }
-}  // namespace OpenXcom::TerrainSpawnPoints
+}  // namespace OppositeForce::TerrainSpawnPoints

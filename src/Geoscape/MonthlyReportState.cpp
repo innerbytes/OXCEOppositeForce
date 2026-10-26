@@ -501,7 +501,7 @@ std::string MonthlyReportState::countryList(const std::vector<std::string> &coun
 
 	// OF - Format actor names without changing IDs used by political events.
 	std::string fundingText;
-	if (FundingReports::tryFormatCountryList(*_game->getMod(), *_game->getLanguage(), countries, singular, plural, fundingText))
+	if (OppositeForce::FundingReports::tryFormatCountryList(*_game->getMod(), *_game->getLanguage(), countries, singular, plural, fundingText))
 	{
 		return fundingText;
 	}

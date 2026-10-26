@@ -94,7 +94,7 @@ private:
 	std::vector<Tile*> _backupInventoryTiles;
 
 	// OF - Defer custom nodes until map overlays and original route links are complete.
-	std::vector<TerrainSpawnPoints::Placement> _ofSpawnPlacements;
+	std::vector<OppositeForce::TerrainSpawnPoints::Placement> _ofSpawnPlacements;
 
 
 	/// sets the map size and associated vars

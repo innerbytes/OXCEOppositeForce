@@ -11,12 +11,14 @@
 #include "Savegame/BattleUnit.h"
 #include "Savegame/SavedBattleGame.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     static void runCreationScript(RulesFixture &rules, SavedBattleGame *battle, const std::string &code)
     {
         auto &armor = rules.createArmor("SCRIPT_ARMOR");
         rules.loadRule(armor, "scripts:\n  createUnit: |\n    " + code + " return;\n");
         ModScript::scriptCallback<ModScript::CreateUnit>(&armor, static_cast<BattleUnit *>(nullptr), battle, 0);
     }
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

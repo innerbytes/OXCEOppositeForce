@@ -11,8 +11,10 @@
 #include "Savegame/SavedBattleGame.h"
 #include "Savegame/SoldierDiary.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     class CombatFixture
     {
         bool _previousExperienceMode = Mod::EXTENDED_EXPERIENCE_AWARD_SYSTEM;
@@ -101,4 +103,4 @@ namespace OpenXcom::OppositeForceTests
             return engine->hitUnit(attack, target.get(), Position{}, 20, &damage, ranged);
         }
     };
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

@@ -24,7 +24,7 @@ namespace OpenXcom
     struct TransferRow;
 }  // namespace OpenXcom
 
-namespace OpenXcom::HangarCompatibility
+namespace OppositeForce::HangarCompatibility
 {
     /// Craft placement selected for the base display.
     struct Assignment
@@ -33,44 +33,48 @@ namespace OpenXcom::HangarCompatibility
         bool hangarCompatibilityEnabled = false;
 
         /// Craft selected for each completed hangar facility.
-        std::map<const BaseFacility *, Craft *> craftByFacility;
+        std::map<const OpenXcom::BaseFacility *, OpenXcom::Craft *> craftByFacility;
 
         /// Gets the craft selected for a facility, if any.
-        Craft *getCraftForFacility(const BaseFacility *facility) const;
+        OpenXcom::Craft *getCraftForFacility(const OpenXcom::BaseFacility *facility) const;
     };
 
     /// Returns whether existing base rules enable typed hangar matching.
-    bool isEnabledForBase(const Base &base);
+    bool isEnabledForBase(const OpenXcom::Base &base);
 
     /// Returns whether typed hangar matching applies to a craft added to this base.
-    bool shouldApplyForCraft(const Base &base, const RuleCraft *candidate);
+    bool shouldApplyForCraft(const OpenXcom::Base &base, const OpenXcom::RuleCraft *candidate);
 
     /// Returns whether a craft addition lacks a compatible hangar.
-    bool lacksCompatibleSlot(const Base &base, const RuleCraft *candidate,
-                             const std::vector<TransferRow> *pending = nullptr, bool pendingCraftObjects = false);
+    bool lacksCompatibleSlot(const OpenXcom::Base &base, const OpenXcom::RuleCraft *candidate,
+                             const std::vector<OpenXcom::TransferRow> *pending = nullptr,
+                             bool pendingCraftObjects = false);
 
     /// Counts hangars available to a craft after existing and pending reservations.
-    int getFreeHangarsCount(const Base &base, const RuleCraft *candidate,
-                            const std::vector<TransferRow> *pending = nullptr, bool pendingCraftObjects = false);
+    int getFreeHangarsCount(const OpenXcom::Base &base, const OpenXcom::RuleCraft *candidate,
+                            const std::vector<OpenXcom::TransferRow> *pending = nullptr,
+                            bool pendingCraftObjects = false);
 
     /// Checks whether facility removal or replacement preserves a valid assignment.
-    bool fitsAfterChange(const Base &base, BaseAreaSubset removed, const RuleBaseFacility *replacement);
+    bool fitsAfterChange(const OpenXcom::Base &base, OpenXcom::BaseAreaSubset removed,
+                         const OpenXcom::RuleBaseFacility *replacement);
 
     /// Returns whether a base with typed rules has an invalid craft assignment.
-    bool hasInvalidAssignment(const Base &base);
+    bool hasInvalidAssignment(const OpenXcom::Base &base);
 
     /// Returns true once for each newly invalid base assignment.
-    bool shouldWarn(const Base &base);
+    bool shouldWarn(const OpenXcom::Base &base);
 
     /// Selects display craft for compatible hangars, with a visual fallback.
-    Assignment calculateDisplayAssignment(const Base &base);
+    Assignment calculateDisplayAssignment(const OpenXcom::Base &base);
 
     /// Updates the craft attached to a facility before it is destroyed.
-    void prepareDestruction(Base &base, BaseFacility &facility);
+    void prepareDestruction(OpenXcom::Base &base, OpenXcom::BaseFacility &facility);
 
     /// Updates the craft attached to a facility before damage replaces it.
-    void prepareDamage(Base &base, BaseFacility &facility);
+    void prepareDamage(OpenXcom::Base &base, OpenXcom::BaseFacility &facility);
 
     /// Checks whether a damaged hangar can keep its assigned craft.
-    bool canKeepAfterDamage(const Base &base, const BaseFacility &damaged, const BaseFacility &replacement);
-}  // namespace OpenXcom::HangarCompatibility
+    bool canKeepAfterDamage(const OpenXcom::Base &base, const OpenXcom::BaseFacility &damaged,
+                            const OpenXcom::BaseFacility &replacement);
+}  // namespace OppositeForce::HangarCompatibility

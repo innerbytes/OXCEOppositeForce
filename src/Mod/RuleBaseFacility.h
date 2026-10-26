@@ -66,7 +66,7 @@ private:
 	bool _spriteEnabled;
 
 	// OF - Store the optional hangar type on each facility rule.
-	HangarRules::Facility _ofHangarCompatibilityRule;
+	OppositeForce::HangarRules::Facility _ofHangarCompatibilityRule;
 
 	int _sightRange, _sightChance;
 	int _radarRange, _radarChance, _defense, _hitRatio, _fireSound, _hitSound, _placeSound;
@@ -171,7 +171,7 @@ public:
 	int getCrafts() const;
 
 	// OF - Expose the optional hangar type to compatibility matching.
-	const HangarRules::Facility& ofGetHangarCompatibilityRule() const { return _ofHangarCompatibilityRule; }
+	const OppositeForce::HangarRules::Facility& ofGetHangarCompatibilityRule() const { return _ofHangarCompatibilityRule; }
 
 	/// Gets the facility's laboratory space.
 	int getLaboratories() const;

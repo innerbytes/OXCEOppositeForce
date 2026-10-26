@@ -5,8 +5,10 @@
 #include "../../../Engine/Logger.h"
 #include "../../../Savegame/SavedBattleGame.h"
 
-namespace OpenXcom::MissionCompletionResult
+namespace OppositeForce::MissionCompletionResult
 {
+    using namespace OpenXcom;
+
     bool shouldScriptedMissionResultApplyOnEndTurn(SavedBattleGame &battle, const BattlescapeTally &tally,
                                                    bool allEnemiesNeutralized)
     {
@@ -124,4 +126,4 @@ namespace OpenXcom::MissionCompletionResult
         }
     }
 
-}  // namespace OpenXcom::MissionCompletionResult
+}  // namespace OppositeForce::MissionCompletionResult

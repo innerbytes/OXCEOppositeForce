@@ -4,8 +4,10 @@
 #include "../../../Engine/LocalizedText.h"
 #include "../Rules/FundingNames.h"
 
-namespace OpenXcom::FundingReports
+namespace OppositeForce::FundingReports
 {
+    using namespace OpenXcom;
+
     bool tryFormatCountryList(const Mod &mod, const Language &language, const std::vector<std::string> &countries,
                               const std::string &singular, const std::string &plural, std::string &text)
     {
@@ -33,4 +35,4 @@ namespace OpenXcom::FundingReports
         text = "\n\n" + std::string(language.getString(countries.size() == 1 ? singular : plural).arg(list));
         return true;
     }
-}  // namespace OpenXcom::FundingReports
+}  // namespace OppositeForce::FundingReports

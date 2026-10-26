@@ -525,9 +525,9 @@ void ManufactureInfoState::moreUnit(int change)
 	if (change <= 0) return;
 
 	// OF - Handle typed craft production with compatible reservations.
-	if (HangarCompatibility::shouldApplyForCraft(*_base, _production->getRules()->getProducedCraft()))
+	if (OppositeForce::HangarCompatibility::shouldApplyForCraft(*_base, _production->getRules()->getProducedCraft()))
 	{
-		int freeHangarsCount = HangarCompatibility::getFreeHangarsCount(*_base, _production->getRules()->getProducedCraft());
+		int freeHangarsCount = OppositeForce::HangarCompatibility::getFreeHangarsCount(*_base, _production->getRules()->getProducedCraft());
 		if (freeHangarsCount <= 0)
 		{
 			_timerMoreUnit->stop();

@@ -789,7 +789,7 @@ void StatsForNerdsState::addSingleString(std::ostringstream &ss, const std::stri
 	// OF - Purchase alliances display actor names but keep the actual rule ID.
 	if (translate && propertyName == "requiresBuyCountry")
 	{
-		const auto& nameKey = FundingNames::getNameKey(*_game->getMod(), id);
+		const auto& nameKey = OppositeForce::FundingNames::getNameKey(*_game->getMod(), id);
 		if (nameKey != id)
 		{
 			resetStream(ss);

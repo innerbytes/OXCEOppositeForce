@@ -515,10 +515,10 @@ bool BattlescapeGame::kneel(BattleUnit *bu)
 void BattlescapeGame::endTurn()
 {
 	// OF - Prefer native endings already due; otherwise consume the script result before turn effects.
-	if (!_save->isPreview() && _save->ofGetMissionCompletion().getResult() != MissionCompletion::Result::None)
+	if (!_save->isPreview() && _save->ofGetMissionCompletion().getResult() != OppositeForce::MissionCompletion::Result::None)
 	{
 		BattlescapeTally tally = tallyUnits();
-		if (MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(*_save, tally, _allEnemiesNeutralized))
+		if (OppositeForce::MissionCompletionResult::shouldScriptedMissionResultApplyOnEndTurn(*_save, tally, _allEnemiesNeutralized))
 		{
 			_parentState->ofFinishBattle(tally.liveSoldiers, _save->ofGetMissionCompletion().getResult());
 			return;
@@ -846,7 +846,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 					{
 
 						// OF - Excluded damage targets grant no controller casualty statistics.
-						if (!UnitCombatRules::shouldDisableKillRecords(victim))
+						if (!OppositeForce::UnitCombatRules::shouldDisableKillRecords(victim))
 						{
 							if (!victim->isCosmetic())
 							{
@@ -871,7 +871,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 			{
 
 				// OF - Excluded damage targets grant no casualty journal entries.
-				if (!UnitCombatRules::shouldDisableKillRecords(victim))
+				if (!OppositeForce::UnitCombatRules::shouldDisableKillRecords(victim))
 				{
 					if (!victim->isCosmetic())
 					{
@@ -894,7 +894,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 				{
 
 					// OF - Excluded targets grant no kill count or promotion score.
-					if (!UnitCombatRules::shouldDisableKillRecords(victim))
+					if (!OppositeForce::UnitCombatRules::shouldDisableKillRecords(victim))
 					{
 						murderer->addKillCount();
 					}

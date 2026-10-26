@@ -14,7 +14,7 @@ namespace OpenXcom
     class Ufo;
 }  // namespace OpenXcom
 
-namespace OpenXcom::LandingTextures
+namespace OppositeForce::LandingTextures
 {
     /**
      * Selects landing coordinates on a permitted globe texture, respecting the UFO's surface requirements.
@@ -32,9 +32,10 @@ namespace OpenXcom::LandingTextures
      * Unchanged for ordinary landings and failed searches.
      * @return Longitude and latitude in radians, or {0, 0} on failure. Check selectionFailed before using them.
      */
-    std::pair<double, double> selectLandingPoint(const Globe &globe, const RuleRegion &region, size_t zone,
-                                                 int initialArea, const Ufo &ufo, const RuleAlienMission &missionRule,
-                                                 bool &selectionFailed, int &missionSiteArea);
+    std::pair<double, double> selectLandingPoint(const OpenXcom::Globe &globe, const OpenXcom::RuleRegion &region,
+                                                 size_t zone, int initialArea, const OpenXcom::Ufo &ufo,
+                                                 const OpenXcom::RuleAlienMission &missionRule, bool &selectionFailed,
+                                                 int &missionSiteArea);
 
     /**
      * Finds the area containing an arriving UFO's coordinates so its site retains the correct area metadata.
@@ -45,6 +46,6 @@ namespace OpenXcom::LandingTextures
      * @return preferredArea if it contains the point; otherwise the first containing area, or preferredArea if
      * none.
      */
-    int findLandingArea(const RuleRegion &region, size_t zone, const std::pair<double, double> &position,
+    int findLandingArea(const OpenXcom::RuleRegion &region, size_t zone, const std::pair<double, double> &position,
                         int preferredArea);
-}  // namespace OpenXcom::LandingTextures
+}  // namespace OppositeForce::LandingTextures

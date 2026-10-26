@@ -415,7 +415,7 @@ void GeoscapeEventState::eventLogic()
 	const RuleCraft* craftRule = mod->getCraft(rule.getSpawnedCraftType(), true);
 
 	// OF - Skip a craft reward that has no compatible hangar.
-	if (HangarCompatibility::lacksCompatibleSlot(*hq, craftRule))
+	if (OppositeForce::HangarCompatibility::lacksCompatibleSlot(*hq, craftRule))
 	{
 		_ofCraftRewardSkippedForHangars = true;
 		craftRule = nullptr;

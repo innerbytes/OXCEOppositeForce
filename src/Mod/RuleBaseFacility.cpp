@@ -109,7 +109,7 @@ void RuleBaseFacility::load(const YAML::YamlNodeReader& node, Mod *mod)
 	reader.tryRead("crafts", _crafts);
 
 	// OF - Load the optional hangar type from this ruleset layer.
-	HangarRules::loadFacility(_ofHangarCompatibilityRule, reader["hangarType"], _type);
+	OppositeForce::HangarRules::loadFacility(_ofHangarCompatibilityRule, reader["hangarType"], _type);
 
 	reader.tryRead("labs", _labs);
 	reader.tryRead("workshops", _workshops);
@@ -195,7 +195,7 @@ void RuleBaseFacility::afterLoad(const Mod* mod)
 {
 
 	// OF - Validate the final craft capacity after ruleset inheritance.
-	HangarRules::validateFacility(_ofHangarCompatibilityRule, _type, _crafts);
+	OppositeForce::HangarRules::validateFacility(_ofHangarCompatibilityRule, _type, _crafts);
 
 	mod->linkRule(_requires, _requireNames);
 

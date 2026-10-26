@@ -32,8 +32,10 @@
 #include "Savegame/Transfer.h"
 #include "Savegame/Ufo.h"
 
-namespace OpenXcom::OppositeForceTests
+namespace OppositeForce::Tests
 {
+    using namespace OpenXcom;
+
     class RulesFixture
     {
     public:
@@ -169,4 +171,4 @@ namespace OpenXcom::OppositeForceTests
     RuleCraft &addMatchingScenario(BaseFixture &fixture, const MatchingScenario &scenario);
 
     int calculateExhaustiveFreeSlots(const MatchingScenario &scenario);
-}  // namespace OpenXcom::OppositeForceTests
+}  // namespace OppositeForce::Tests

@@ -4,8 +4,10 @@
 
 #include "../../../Engine/Exception.h"
 
-namespace OpenXcom::TerrainSpawnRules
+namespace OppositeForce::TerrainSpawnRules
 {
+    using namespace OpenXcom;
+
     static std::string getSource(const YAML::YamlNodeReader &reader)
     {
         try
@@ -104,4 +106,4 @@ namespace OpenXcom::TerrainSpawnRules
             }
         }
     }
-}  // namespace OpenXcom::TerrainSpawnRules
+}  // namespace OppositeForce::TerrainSpawnRules

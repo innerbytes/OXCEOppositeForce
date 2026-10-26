@@ -1839,7 +1839,7 @@ int BattleUnit::damage(Position relative, int damage, const RuleDamageType *type
 		work.execute(this->getArmor()->getScript<ModScript::DamageUnit>(), args);
 
 		// OF - Filter final stun damage after scripts, including pain-immunity bypasses.
-		std::get<toStun>(args.data) = UnitCombatRules::filterStunDamage(*this, std::get<toStun>(args.data));
+		std::get<toStun>(args.data) = OppositeForce::UnitCombatRules::filterStunDamage(*this, std::get<toStun>(args.data));
 
 		if (!_armor->getPainImmune() || type->IgnorePainImmunity)
 		{

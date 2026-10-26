@@ -200,7 +200,7 @@ private:
 	std::string _type;
 
 	// OF - Store the hangar types this craft can use when specified.
-	HangarRules::Craft _ofHangarCompatibilityRule;
+	OppositeForce::HangarRules::Craft _ofHangarCompatibilityRule;
 
 	std::vector<std::string> _requireNames;
 	std::vector<const RuleResearch*> _requires;
@@ -262,7 +262,7 @@ public:
 	const std::string &getType() const;
 
 	// OF - Expose craft hangar restrictions to compatibility matching.
-	const HangarRules::Craft& ofGetHangarCompatibilityRule() const { return _ofHangarCompatibilityRule; }
+	const OppositeForce::HangarRules::Craft& ofGetHangarCompatibilityRule() const { return _ofHangarCompatibilityRule; }
 
 	/// Gets the craft's requirements.
 	const std::vector<const RuleResearch*>& getRequirements() const { return _requires; }

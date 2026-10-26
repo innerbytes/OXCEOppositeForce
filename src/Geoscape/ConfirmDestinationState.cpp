@@ -421,7 +421,7 @@ void ConfirmDestinationState::btnTransferClick(Action *)
 	Base *targetBase = dynamic_cast<Base*>(_target);
 
 	// OF - Reject direct transfers without a compatible destination hangar.
-	if (HangarCompatibility::lacksCompatibleSlot(*targetBase, _crafts.front()->getRules()))
+	if (OppositeForce::HangarCompatibility::lacksCompatibleSlot(*targetBase, _crafts.front()->getRules()))
 	{
 		errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
 	}

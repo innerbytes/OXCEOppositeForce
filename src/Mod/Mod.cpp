@@ -2515,7 +2515,7 @@ void Mod::loadAll()
 	modResources();
 
 	// OF - Fail startup on unsafe custom spawn definitions after final resources load.
-	TerrainSpawnValidation::validateAllTerrains(*this);
+	OppositeForce::TerrainSpawnValidation::validateAllTerrains(*this);
 
 }
 

@@ -11,7 +11,8 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
-using namespace OpenXcom::OppositeForceTests;
+using namespace OppositeForce;
+using namespace OppositeForce::Tests;
 
 TEST_CASE("Unit_DefaultConstruction_PreservesCombatBehavior", "[unit-combat][rules]")
 {

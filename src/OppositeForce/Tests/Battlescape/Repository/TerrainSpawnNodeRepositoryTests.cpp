@@ -3,6 +3,7 @@
 #include "catch_amalgamated.hpp"
 
 using namespace OpenXcom;
+using namespace OppositeForce;
 
 TEST_CASE("TerrainSpawnNodeRepository_CustomOrOrdinaryNode_RoundTripsOnlyCustomMetadata", "[terrain-spawns][save]")
 {

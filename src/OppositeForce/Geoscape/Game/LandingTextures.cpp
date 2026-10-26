@@ -13,8 +13,10 @@
 #include "../../../Mod/RuleUfo.h"
 #include "../../../Savegame/Ufo.h"
 
-namespace OpenXcom::LandingTextures
+namespace OppositeForce::LandingTextures
 {
+    using namespace OpenXcom;
+
     struct Selection
     {
         bool found = false;
@@ -125,4 +127,4 @@ namespace OpenXcom::LandingTextures
         }
         return preferredArea;
     }
-}  // namespace OpenXcom::LandingTextures
+}  // namespace OppositeForce::LandingTextures

@@ -15,17 +15,18 @@ namespace OpenXcom
     class SavedBattleGame;
 }  // namespace OpenXcom
 
-namespace OpenXcom::TerrainSpawnValidation
+namespace OppositeForce::TerrainSpawnValidation
 {
     /// Validates and attaches final rules, using resources from FileMap.
-    void validateAllTerrains(Mod &mod);
+    void validateAllTerrains(OpenXcom::Mod &mod);
 
     /// Loads a standalone MAP into an initialized, padded battlescape. Also used by synthetic fixtures.
-    Position loadFragment(Mod &mod, std::istream &stream, SavedBattleGame &save, RuleTerrain &terrain, MapBlock &block);
+    OpenXcom::Position loadFragment(OpenXcom::Mod &mod, std::istream &stream, OpenXcom::SavedBattleGame &save,
+                                    OpenXcom::RuleTerrain &terrain, OpenXcom::MapBlock &block);
 
     /// Resolves fragment names, attaching definitions without changing block selection.
-    void attachRules(RuleTerrain &terrain);
+    void attachRules(OpenXcom::RuleTerrain &terrain);
 
     /// Validates a fragment's points using a supplied padded map.
-    void validateFragment(Mod &mod, SavedBattleGame &save, const MapBlock &block);
-}  // namespace OpenXcom::TerrainSpawnValidation
+    void validateFragment(OpenXcom::Mod &mod, OpenXcom::SavedBattleGame &save, const OpenXcom::MapBlock &block);
+}  // namespace OppositeForce::TerrainSpawnValidation

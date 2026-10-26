@@ -243,7 +243,7 @@ void ManufactureStartState::btnStartClick(Action *)
 {
 
 	// OF - Reject craft production without a compatible reservation.
-	if (HangarCompatibility::lacksCompatibleSlot(*_base, _item->getProducedCraft()))
+	if (OppositeForce::HangarCompatibility::lacksCompatibleSlot(*_base, _item->getProducedCraft()))
 	{
 		_game->pushState(new ErrorMessageState(tr("STR_NO_FREE_HANGARS_FOR_CRAFT_PRODUCTION"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK17.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 		return;

@@ -17,26 +17,27 @@ namespace OpenXcom
     class SavedBattleGame;
 }  // namespace OpenXcom
 
-namespace OpenXcom::TerrainSpawnPoints
+namespace OppositeForce::TerrainSpawnPoints
 {
     struct Placement
     {
-        const MapBlock *block;
+        const OpenXcom::MapBlock *block;
 
-        Position offset;
+        OpenXcom::Position offset;
 
         int segment;
     };
 
     /// Appends safe custom nodes only after all ordinary nodes and overlays have loaded.
-    void addSpawnNodes(Mod &mod, SavedBattleGame &save, const std::vector<Placement> &placements);
+    void addSpawnNodes(OpenXcom::Mod &mod, OpenXcom::SavedBattleGame &save, const std::vector<Placement> &placements);
 
     /// Applies custom size eligibility to spawn and patrol candidates.
-    bool canUseNode(const Node &node, const BattleUnit &unit);
+    bool canUseNode(const OpenXcom::Node &node, const OpenXcom::BattleUnit &unit);
 
     /// Keeps small-unit spawns off accepted custom 2x2 footprints, across all ranks.
-    std::vector<Position> getReservedFootprints(SavedBattleGame &save, const BattleUnit &unit);
+    std::vector<OpenXcom::Position> getReservedFootprints(OpenXcom::SavedBattleGame &save,
+                                                          const OpenXcom::BattleUnit &unit);
 
-    bool canSpawnAtNode(SavedBattleGame &save, const Node &node, const BattleUnit &unit,
-                        const std::vector<Position> &reservations);
-}  // namespace OpenXcom::TerrainSpawnPoints
+    bool canSpawnAtNode(OpenXcom::SavedBattleGame &save, const OpenXcom::Node &node, const OpenXcom::BattleUnit &unit,
+                        const std::vector<OpenXcom::Position> &reservations);
+}  // namespace OppositeForce::TerrainSpawnPoints

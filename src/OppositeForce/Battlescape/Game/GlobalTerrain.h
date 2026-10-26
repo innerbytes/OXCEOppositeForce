@@ -13,10 +13,11 @@ namespace OpenXcom
     class Texture;
 }  // namespace OpenXcom
 
-namespace OpenXcom::GlobalTerrain
+namespace OppositeForce::GlobalTerrain
 {
     /// Selects geographic terrain for mission sites when enabled and no explicit terrain takes precedence.
     /// Returns the existing terrain otherwise, including when no mission site is supplied.
-    RuleTerrain *selectTerrain(Mod &mod, const AlienDeployment &deployment, RuleTerrain *selectedTerrain,
-                               Texture *globeTexture, MissionSite *missionSite);
-}  // namespace OpenXcom::GlobalTerrain
+    OpenXcom::RuleTerrain *selectTerrain(OpenXcom::Mod &mod, const OpenXcom::AlienDeployment &deployment,
+                                         OpenXcom::RuleTerrain *selectedTerrain, OpenXcom::Texture *globeTexture,
+                                         OpenXcom::MissionSite *missionSite);
+}  // namespace OppositeForce::GlobalTerrain

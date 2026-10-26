@@ -713,7 +713,7 @@ void GraphsState::drawCountryLines()
 	for (size_t index = 0; index < countries.size(); ++index)
 	{
 		const auto* rules = countries[index]->getRules();
-		_countryToggles[index]->_name = tr(_income ? FundingNames::getNameKey(*rules) : rules->getType());
+		_countryToggles[index]->_name = tr(_income ? OppositeForce::FundingNames::getNameKey(*rules) : rules->getType());
 	}
 	for (size_t index = 0; index < _btnCountries.size(); ++index)
 	{

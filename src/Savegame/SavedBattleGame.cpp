@@ -427,7 +427,7 @@ void SavedBattleGame::load(const YAML::YamlNodeReader& node, Mod *mod, SavedGame
 	_scriptValues.load(reader, _rule->getScriptGlobal());
 
 	// OF - Restore script-controlled mission completion.
-	MissionCompletionRepository::load(_ofMissionCompletion, reader);
+	OppositeForce::MissionCompletionRepository::load(_ofMissionCompletion, reader);
 
 	// Sanity checks
 	for (auto* unit : _units)
@@ -629,7 +629,7 @@ void SavedBattleGame::save(YAML::YamlNodeWriter writer) const
 	_scriptValues.save(writer, _rule->getScriptGlobal());
 
 	// OF - Save script-controlled mission completion.
-	MissionCompletionRepository::save(_ofMissionCompletion, writer);
+	OppositeForce::MissionCompletionRepository::save(_ofMissionCompletion, writer);
 
 }
 
@@ -2278,7 +2278,7 @@ Node *SavedBattleGame::getSpawnNode(int nodeRank, BattleUnit *unit)
 {
 
 	// OF - Collect reserved large-unit footprints once per spawn search.
-	const auto reservations = TerrainSpawnPoints::getReservedFootprints(*this, *unit);
+	const auto reservations = OppositeForce::TerrainSpawnPoints::getReservedFootprints(*this, *unit);
 
 	int highestPriority = -1;
 	std::vector<Node*> compliantNodes;
@@ -2291,7 +2291,7 @@ Node *SavedBattleGame::getSpawnNode(int nodeRank, BattleUnit *unit)
 		}
 
 		// OF - Enforce exact custom sizes and reserved large-unit footprints.
-		if (!TerrainSpawnPoints::canSpawnAtNode(*this, *node, *unit, reservations)) continue;
+		if (!OppositeForce::TerrainSpawnPoints::canSpawnAtNode(*this, *node, *unit, reservations)) continue;
 
 		if (node->getRank() == nodeRank								// ranks must match
 			&& (!(node->getType() & Node::TYPE_SMALL)
@@ -2352,7 +2352,7 @@ Node *SavedBattleGame::getPatrolNode(bool scout, BattleUnit *unit, Node *fromNod
 		Node *n = getNodes()->at(scout ? i : fromNode->getNodeLinks()->at(i));
 
 		// OF - Custom patrol nodes accept only their declared unit size.
-		if (!TerrainSpawnPoints::canUseNode(*n, *unit)) continue;
+		if (!OppositeForce::TerrainSpawnPoints::canUseNode(*n, *unit)) continue;
 
 		if ( !n->isDummy()																				// don't consider dummy nodes.
 			&& (n->getFlags() > 0 || n->getRank() > 0 || scout)											// for non-scouts we find a node with a desirability above 0
@@ -3712,7 +3712,7 @@ void SavedBattleGame::ScriptRegister(ScriptParserBase* parser)
 	Bind<SavedBattleGame> sbg = { parser };
 
 	// OF - Register script-controlled mission completion.
-	MissionScriptController::registerScriptBindings(parser);
+	OppositeForce::MissionScriptController::registerScriptBindings(parser);
 
 	sbg.add<&SavedBattleGame::getTurn>("getTurn", "Current turn, 0 - before battle, 1 - first turn, each stage reset this value.");
 	sbg.add<&SavedBattleGame::getAnimFrame>("getAnimFrame");

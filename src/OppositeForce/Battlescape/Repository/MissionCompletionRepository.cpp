@@ -2,8 +2,10 @@
 
 #include "../Game/MissionCompletion.h"
 
-namespace OpenXcom::MissionCompletionRepository
+namespace OppositeForce::MissionCompletionRepository
 {
+    using namespace OpenXcom;
+
     void load(MissionCompletion &completion, const YAML::YamlNodeReader &reader)
     {
         completion.reset();
@@ -28,4 +30,4 @@ namespace OpenXcom::MissionCompletionRepository
         node.write("isManualCompletion", completion.isManualCompletion());
         node.write("pendingResult", static_cast<int>(completion.getResult()));
     }
-}  // namespace OpenXcom::MissionCompletionRepository
+}  // namespace OppositeForce::MissionCompletionRepository

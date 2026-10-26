@@ -89,7 +89,7 @@ void RuleCraft::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript
 	reader.tryRead("requiresBuyCountry", _requiresBuyCountry);
 
 	// OF - Load the craft's optional list of compatible hangar types.
-	HangarRules::loadCraft(_ofHangarCompatibilityRule, reader["allowedHangarTypes"], _type);
+	OppositeForce::HangarRules::loadCraft(_ofHangarCompatibilityRule, reader["allowedHangarTypes"], _type);
 
 	if (reader["sprite"])
 	{
