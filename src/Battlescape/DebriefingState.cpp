@@ -1712,21 +1712,23 @@ void DebriefingState::prepareDebriefing()
 					}
 				}
 			}
-
-			// OF - Living civilians follow an explicit failed objective's outcome.
-			else if (oldFaction == FACTION_NEUTRAL && (_ofMissionResult != MissionCompletion::Result::None) && !success)
-			{
-				if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
-				{
-					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -bunit->getValueCivilian());
-				}
-			}
-			// End OF
-
 			else if (oldFaction == FACTION_NEUTRAL)
 			{
+
+				// OF - Living civilians follow an explicit failed objective's outcome.
+				// Passing true ensures None skips our branch and reaches native handling.
+				// Explicit scripted failure enters our branch.
+				if (!MissionCompletion::resolveSuccess(true, _ofMissionResult, playersSurvived))
+				{
+					if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
+					{
+						addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -bunit->getValueCivilian());
+					}
+				}
+				// End OF
+
 				// if mission fails, all civilians die
-				if ((aborted && !success) || playersSurvived == 0)
+				else if ((aborted && !success) || playersSurvived == 0)
 				{
 					if (!bunit->isResummonedFakeCivilian() && !bunit->isCosmetic() && !ignoreLivingCivilians)
 					{
