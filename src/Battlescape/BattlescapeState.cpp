@@ -89,6 +89,8 @@
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleVideo.h"
 
+#include "../OppositeForce/Battlescape/MissionCompletionResult.h"
+
 namespace OpenXcom
 {
 
@@ -3675,7 +3677,7 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 			// If the mission was aborted the scriptResult is already None at this point.
 			if (scriptResult != MissionCompletion::Result::None)
 			{
-				cutscene = MissionCompletion::resolveSuccess(false, scriptResult, inExitArea)
+				cutscene = MissionCompletionResult::resolveSuccess(false, scriptResult, inExitArea)
 					? ruleDeploy->getWinCutscene() : ruleDeploy->getLoseCutscene();
 			}
 			// End OF

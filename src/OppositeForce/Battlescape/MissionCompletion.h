@@ -1,14 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "../../Engine/Yaml.h"
 
 namespace OpenXcom
 {
-    struct DebriefingStat;
-
     /// Saved manual-ending mode and pending script result.
     class MissionCompletion
     {
@@ -31,14 +26,6 @@ namespace OpenXcom
         Result getResult() const;
 
         bool shouldSuppressAutomaticCompletion() const;
-
-        static bool resolveSuccess(bool isNativeSuccess, Result scriptResult, int survivorsCount);
-
-        static std::string getDefaultDebriefingTitle(bool success, const std::string &target, bool lostCraft);
-
-        static void clearObjectiveAwards(const std::vector<DebriefingStat *> &stats,
-                                         const std::string &objectiveCompleteText,
-                                         const std::string &objectiveFailedText);
 
         void load(const YAML::YamlNodeReader &reader);
         void save(YAML::YamlNodeWriter writer) const;

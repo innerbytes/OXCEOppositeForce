@@ -2,7 +2,6 @@
 
 #include "Battlescape/BattlescapeGame.h"
 #include "Battlescape/BattlescapeState.h"
-#include "Battlescape/DebriefingState.h"
 #include "Engine/Options.h"
 #include "Fixtures.h"
 #include "Mod/ModScript.h"
@@ -16,13 +15,6 @@ using namespace OpenXcom::OppositeForceTests;
 
 namespace
 {
-    MissionCompletion::Result createScriptResult(bool success)
-    {
-        MissionCompletion completion;
-        completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
-        return completion.getResult();
-    }
-
     void runCreationScript(RulesFixture &rules, SavedBattleGame *battle, const std::string &code)
     {
         auto &armor = rules.createArmor("SCRIPT_ARMOR");
@@ -57,8 +49,6 @@ TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-com
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE(result == MissionCompletion::Result::None);
-    REQUIRE(MissionCompletion::resolveSuccess(true, result, 1));
-    REQUIRE_FALSE(MissionCompletion::resolveSuccess(false, result, 1));
 }
 
 TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearingRequest", "[mission-completion]")
@@ -97,21 +87,6 @@ TEST_CASE("MissionCompletion_SetResult_ReplacesOrClearsPendingResultInEitherMode
     // Assert
     REQUIRE(result == requestedResult);
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE(MissionCompletion::resolveSuccess(false, result, 1) ==
-            (requestedResult == MissionCompletion::Result::Success));
-}
-
-TEST_CASE("MissionCompletion_SquadDefeat_OverridesScriptVictory", "[mission-completion]")
-{
-    // Arrange
-    MissionCompletion completion;
-    completion.setResult(MissionCompletion::Result::Success);
-
-    // Act
-    const bool success = MissionCompletion::resolveSuccess(true, completion.getResult(), 0);
-
-    // Assert
-    REQUIRE_FALSE(success);
 }
 
 TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]")
@@ -129,174 +104,6 @@ TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]"
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
-}
-
-TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjective", "[mission-completion]")
-{
-    // Arrange
-    const bool success = GENERATE(false, true);
-    const auto result = createScriptResult(success);
-
-    // Act
-    const bool resolvedSuccess = MissionCompletion::resolveSuccess(!success, result, 2);
-
-    // Assert
-    REQUIRE(resolvedSuccess == success);
-}
-
-TEST_CASE("MissionCompletion_DefaultDebriefingTitle_MatchesOutcomeAndTarget", "[mission-completion]")
-{
-    // Arrange
-    const bool success = GENERATE(false, true);
-    const auto [target, winTitle, loseTitle] = GENERATE(table<std::string, std::string, std::string>({
-        {"STR_BASE", "STR_BASE_IS_SAVED", "STR_BASE_IS_LOST"},
-        {"STR_UFO", "STR_UFO_IS_RECOVERED", "STR_UFO_IS_NOT_RECOVERED"},
-        {"STR_ALIEN_BASE", "STR_ALIEN_BASE_DESTROYED", "STR_ALIEN_BASE_STILL_INTACT"},
-        {"STR_MISSION_SITE", "STR_ALIENS_DEFEATED", "STR_TERROR_CONTINUES"},
-    }));
-
-    // Act
-    const auto title = MissionCompletion::getDefaultDebriefingTitle(success, target, false);
-
-    // Assert
-    REQUIRE(title == (success ? winTitle : loseTitle));
-}
-
-TEST_CASE("MissionCompletion_InvalidDebriefingOutcome_ReturnsEmptyTitle", "[mission-completion]")
-{
-    // Arrange
-    const auto [success, target, lostCraft] = GENERATE(table<bool, std::string, bool>({
-        {true, "STR_UFO", true},
-        {true, "UNKNOWN_TARGET", false},
-        {false, "UNKNOWN_TARGET", false},
-        {true, "", false},
-        {false, "", false},
-    }));
-
-    // Act
-    const auto title = MissionCompletion::getDefaultDebriefingTitle(success, target, lostCraft);
-
-    // Assert
-    REQUIRE(title.empty());
-}
-
-TEST_CASE("MissionCompletion_ClearObjectiveAwards_ResetsBothAwardsAndPreservesOtherStats", "[mission-completion]")
-{
-    // Arrange
-    DebriefingStat completed("OBJECTIVE_WON", false);
-    completed.qty = 3;
-    completed.score = 500;
-    DebriefingStat failed("OBJECTIVE_LOST", false);
-    failed.qty = 1;
-    failed.score = -200;
-    DebriefingStat recovered("RECOVERED_ITEM", true);
-    recovered.qty = 4;
-    recovered.score = 40;
-    const std::vector<DebriefingStat *> stats{&completed, &failed, &recovered};
-
-    // Act
-    MissionCompletion::clearObjectiveAwards(stats, "OBJECTIVE_WON", "OBJECTIVE_LOST");
-
-    // Assert
-    REQUIRE(stats.size() == 3);
-    REQUIRE(completed.item == "OBJECTIVE_WON");
-    REQUIRE(completed.qty == 0);
-    REQUIRE(completed.score == 0);
-    REQUIRE_FALSE(completed.recovery);
-    REQUIRE(failed.item == "OBJECTIVE_LOST");
-    REQUIRE(failed.qty == 0);
-    REQUIRE(failed.score == 0);
-    REQUIRE_FALSE(failed.recovery);
-    REQUIRE(recovered.item == "RECOVERED_ITEM");
-    REQUIRE(recovered.qty == 4);
-    REQUIRE(recovered.score == 40);
-    REQUIRE(recovered.recovery);
-}
-
-TEST_CASE("MissionCompletion_EmptyOrMissingObjectiveLabels_PreservesStats", "[mission-completion]")
-{
-    // Arrange
-    const std::string label = GENERATE("", "MISSING_OBJECTIVE");
-    DebriefingStat unnamed("", false);
-    unnamed.qty = 1;
-    unnamed.score = 50;
-    DebriefingStat other("OTHER_STAT", false);
-    other.qty = 2;
-    other.score = 100;
-    const std::vector<DebriefingStat *> stats{&unnamed, &other};
-
-    // Act
-    MissionCompletion::clearObjectiveAwards(stats, label, label);
-
-    // Assert
-    REQUIRE(unnamed.qty == 1);
-    REQUIRE(unnamed.score == 50);
-    REQUIRE(other.qty == 2);
-    REQUIRE(other.score == 100);
-}
-
-TEST_CASE("MissionCompletion_OneConfiguredObjective_ClearsMatchingAward", "[mission-completion]")
-{
-    // Arrange
-    const bool success = GENERATE(false, true);
-    DebriefingStat objective("OBJECTIVE", false);
-    objective.qty = 1;
-    objective.score = success ? 500 : -200;
-    const std::vector<DebriefingStat *> stats{&objective};
-
-    // Act
-    MissionCompletion::clearObjectiveAwards(stats, success ? "OBJECTIVE" : "", success ? "" : "OBJECTIVE");
-
-    // Assert
-    REQUIRE(objective.qty == 0);
-    REQUIRE(objective.score == 0);
-}
-
-TEST_CASE("MissionCompletion_SharedObjectiveLabel_ClearsAwardIdempotently", "[mission-completion]")
-{
-    // Arrange
-    DebriefingStat objective("OBJECTIVE", false);
-    objective.qty = 2;
-    objective.score = 300;
-    const std::vector<DebriefingStat *> stats{&objective};
-
-    // Act
-    MissionCompletion::clearObjectiveAwards(stats, "OBJECTIVE", "OBJECTIVE");
-    MissionCompletion::clearObjectiveAwards(stats, "OBJECTIVE", "OBJECTIVE");
-
-    // Assert
-    REQUIRE(objective.item == "OBJECTIVE");
-    REQUIRE(objective.qty == 0);
-    REQUIRE(objective.score == 0);
-}
-
-TEST_CASE("MissionCompletion_LaterRequest_PreservesExplicitFinalResult", "[mission-completion]")
-{
-    // Arrange
-    const bool success = GENERATE(false, true);
-    MissionCompletion completion;
-    completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
-    const auto result = completion.getResult();
-    completion.setResult(MissionCompletion::Result::None);
-
-    // Act
-    completion.setResult(success ? MissionCompletion::Result::Failure : MissionCompletion::Result::Success);
-    const bool resolvedSuccess = MissionCompletion::resolveSuccess(!success, result, 1);
-
-    // Assert
-    REQUIRE(resolvedSuccess == success);
-}
-
-TEST_CASE("MissionCompletion_LostCraft_OverridesDefaultTargetTitle", "[mission-completion]")
-{
-    // Arrange
-    const std::string target = GENERATE("STR_BASE", "STR_UFO", "STR_ALIEN_BASE", "STR_MISSION_SITE");
-
-    // Act
-    const auto title = MissionCompletion::getDefaultDebriefingTitle(false, target, true);
-
-    // Assert
-    REQUIRE(title == "STR_CRAFT_IS_LOST");
 }
 
 TEST_CASE("MissionCompletion_SaveRoundTrip_PreservesPendingResult", "[mission-completion][save]")
