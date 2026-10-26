@@ -7,7 +7,6 @@
 namespace OpenXcom
 {
     class AlienDeployment;
-    class ScriptParserBase;
 
     /// Saved script-owned mission result, independent of retreat and recovery policy.
     class MissionCompletion
@@ -58,10 +57,9 @@ namespace OpenXcom
         // TODO - see if we need to control it from here
         std::string getCutscene(const AlienDeployment &deployment, int survivors) const;
 
-        // TODO - load / save code and script control can be moved to the other class
+        // TODO - load / save code can be moved to the other class
         void load(const YAML::YamlNodeReader &reader);
         void save(YAML::YamlNodeWriter writer) const;
-        static void registerScriptBindings(ScriptParserBase *parser);
 
     private:
         // TODO - move to separate storage and have good names

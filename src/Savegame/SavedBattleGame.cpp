@@ -54,6 +54,7 @@
 #include "../fallthrough.h"
 #include "../fmath.h"
 
+#include "../OppositeForce/Battlescape/MissionScriptController.h"
 #include "../OppositeForce/Battlescape/TerrainSpawnPoints.h"
 
 #include "../Engine/Language.h"
@@ -3710,7 +3711,7 @@ void SavedBattleGame::ScriptRegister(ScriptParserBase* parser)
 	Bind<SavedBattleGame> sbg = { parser };
 
 	// OF - Register script-controlled mission completion.
-	MissionCompletion::registerScriptBindings(parser);
+	MissionScriptController::registerScriptBindings(parser);
 
 	sbg.add<&SavedBattleGame::getTurn>("getTurn", "Current turn, 0 - before battle, 1 - first turn, each stage reset this value.");
 	sbg.add<&SavedBattleGame::getAnimFrame>("getAnimFrame");

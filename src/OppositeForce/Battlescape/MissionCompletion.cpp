@@ -1,31 +1,9 @@
 #include "MissionCompletion.h"
 
-#include "../../Engine/ScriptBind.h"
 #include "../../Mod/AlienDeployment.h"
-#include "../../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom
 {
-    // TODO - script control should be moved to the other class
-    namespace
-    {
-        void setMissionEndManual(SavedBattleGame *battle, int manual)
-        {
-            if (battle && !battle->isPreview())
-            {
-                battle->ofGetMissionCompletion().setManual(manual != 0);
-            }
-        }
-
-        void completeMission(SavedBattleGame *battle, int success)
-        {
-            if (battle && !battle->isPreview())
-            {
-                battle->ofGetMissionCompletion().requestCompletion(success != 0);
-            }
-        }
-    }  // namespace
-
     void MissionCompletion::setManual(bool manual)
     {
         _manual = manual;
@@ -179,14 +157,4 @@ namespace OpenXcom
         }
     }
 
-    void MissionCompletion::registerScriptBindings(ScriptParserBase *parser)
-    {
-        Bind<SavedBattleGame> binding{parser, BindBase::ExtensionBinding{}};
-        binding.add<&setMissionEndManual>(
-            "setMissionEndManual",
-            "1: script-owned ending; 0: normal completion. Defeat, timers and retreat remain active.");
-        binding.add<&completeMission>(
-            "completeMission",
-            "Queue success (1) or failure (0) for the next player Next Turn press. Latest request wins.");
-    }
 }  // namespace OpenXcom

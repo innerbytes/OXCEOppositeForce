@@ -10,6 +10,8 @@
 - Names of our local variables should never use "of" prefix. The variable name should clearly indicate what it represents, not how it is used.
 - Names of the class and module members (both functions and variables) we introduce in the OXCE existing files should have "of" prefix. This does not concern members of our own classes and modules, which should follow our usual naming conventions.
 
+- To isolate functions within the cpp module prefer using `static` keyword for internal linkage, instead of placing them in an anonymous namespace.
+
 ## Integration Rules
 
 - Integration of the our code to the existing OXCE code is done with the goal to make future synchronization from the upstream OXCE code easier. That's why we allow to add our lines, but not mix them with the existing code, even if it means duplicating some code.
