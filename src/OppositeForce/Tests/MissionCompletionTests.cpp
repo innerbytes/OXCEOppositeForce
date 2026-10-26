@@ -2,6 +2,7 @@
 
 #include "Battlescape/BattlescapeGame.h"
 #include "Battlescape/BattlescapeState.h"
+#include "Battlescape/DebriefingState.h"
 #include "Engine/Options.h"
 #include "Fixtures.h"
 #include "Mod/ModScript.h"
@@ -130,28 +131,143 @@ TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]"
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
 }
 
-TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjectiveAndPresentation", "[mission-completion]")
+TEST_CASE("MissionCompletion_ExplicitResult_OverridesNativeObjective", "[mission-completion]")
 {
     // Arrange
     const bool success = GENERATE(false, true);
-    const std::string target = GENERATE("STR_BASE", "STR_UFO", "STR_ALIEN_BASE", "STR_MISSION_SITE");
-    RulesFixture rules;
-    auto &deployment =
-        rules.createDeployment("SCRIPTED",
-                               "nextStage: NEXT\nescapeType: 1\nvipSurvivalPercentage: 100\n"
-                               "objectiveComplete: [OBJECTIVE_WON, 500]\nobjectiveFailed: [OBJECTIVE_LOST, -200]\n"
-                               "missionCompleteText: MISSION_WON\nmissionFailedText: MISSION_LOST\n");
     const auto result = createScriptResult(success);
 
     // Act
-    const auto outcome = MissionCompletion::getDebriefingOutcome(result, &deployment, target, 2, false);
+    const bool resolvedSuccess = MissionCompletion::resolveSuccess(!success, result, 2);
 
     // Assert
-    REQUIRE(MissionCompletion::resolveSuccess(!success, result, 2) == success);
-    REQUIRE(outcome.success == success);
-    REQUIRE(outcome.title == (success ? "MISSION_WON" : "MISSION_LOST"));
-    REQUIRE(outcome.objectiveText == (success ? "OBJECTIVE_WON" : "OBJECTIVE_LOST"));
-    REQUIRE(outcome.objectiveScore == (success ? 500 : -200));
+    REQUIRE(resolvedSuccess == success);
+}
+
+TEST_CASE("MissionCompletion_DefaultDebriefingTitle_MatchesOutcomeAndTarget", "[mission-completion]")
+{
+    // Arrange
+    const bool success = GENERATE(false, true);
+    const auto [target, winTitle, loseTitle] = GENERATE(table<std::string, std::string, std::string>({
+        {"STR_BASE", "STR_BASE_IS_SAVED", "STR_BASE_IS_LOST"},
+        {"STR_UFO", "STR_UFO_IS_RECOVERED", "STR_UFO_IS_NOT_RECOVERED"},
+        {"STR_ALIEN_BASE", "STR_ALIEN_BASE_DESTROYED", "STR_ALIEN_BASE_STILL_INTACT"},
+        {"STR_MISSION_SITE", "STR_ALIENS_DEFEATED", "STR_TERROR_CONTINUES"},
+    }));
+
+    // Act
+    const auto title = MissionCompletion::getDefaultDebriefingTitle(success, target, false);
+
+    // Assert
+    REQUIRE(title == (success ? winTitle : loseTitle));
+}
+
+TEST_CASE("MissionCompletion_InvalidDebriefingOutcome_ReturnsEmptyTitle", "[mission-completion]")
+{
+    // Arrange
+    const auto [success, target, lostCraft] = GENERATE(table<bool, std::string, bool>({
+        {true, "STR_UFO", true},
+        {true, "UNKNOWN_TARGET", false},
+        {false, "UNKNOWN_TARGET", false},
+        {true, "", false},
+        {false, "", false},
+    }));
+
+    // Act
+    const auto title = MissionCompletion::getDefaultDebriefingTitle(success, target, lostCraft);
+
+    // Assert
+    REQUIRE(title.empty());
+}
+
+TEST_CASE("MissionCompletion_ClearObjectiveAwards_ResetsBothAwardsAndPreservesOtherStats", "[mission-completion]")
+{
+    // Arrange
+    DebriefingStat completed("OBJECTIVE_WON", false);
+    completed.qty = 3;
+    completed.score = 500;
+    DebriefingStat failed("OBJECTIVE_LOST", false);
+    failed.qty = 1;
+    failed.score = -200;
+    DebriefingStat recovered("RECOVERED_ITEM", true);
+    recovered.qty = 4;
+    recovered.score = 40;
+    const std::vector<DebriefingStat *> stats{&completed, &failed, &recovered};
+
+    // Act
+    MissionCompletion::clearObjectiveAwards(stats, "OBJECTIVE_WON", "OBJECTIVE_LOST");
+
+    // Assert
+    REQUIRE(stats.size() == 3);
+    REQUIRE(completed.item == "OBJECTIVE_WON");
+    REQUIRE(completed.qty == 0);
+    REQUIRE(completed.score == 0);
+    REQUIRE_FALSE(completed.recovery);
+    REQUIRE(failed.item == "OBJECTIVE_LOST");
+    REQUIRE(failed.qty == 0);
+    REQUIRE(failed.score == 0);
+    REQUIRE_FALSE(failed.recovery);
+    REQUIRE(recovered.item == "RECOVERED_ITEM");
+    REQUIRE(recovered.qty == 4);
+    REQUIRE(recovered.score == 40);
+    REQUIRE(recovered.recovery);
+}
+
+TEST_CASE("MissionCompletion_EmptyOrMissingObjectiveLabels_PreservesStats", "[mission-completion]")
+{
+    // Arrange
+    const std::string label = GENERATE("", "MISSING_OBJECTIVE");
+    DebriefingStat unnamed("", false);
+    unnamed.qty = 1;
+    unnamed.score = 50;
+    DebriefingStat other("OTHER_STAT", false);
+    other.qty = 2;
+    other.score = 100;
+    const std::vector<DebriefingStat *> stats{&unnamed, &other};
+
+    // Act
+    MissionCompletion::clearObjectiveAwards(stats, label, label);
+
+    // Assert
+    REQUIRE(unnamed.qty == 1);
+    REQUIRE(unnamed.score == 50);
+    REQUIRE(other.qty == 2);
+    REQUIRE(other.score == 100);
+}
+
+TEST_CASE("MissionCompletion_OneConfiguredObjective_ClearsMatchingAward", "[mission-completion]")
+{
+    // Arrange
+    const bool success = GENERATE(false, true);
+    DebriefingStat objective("OBJECTIVE", false);
+    objective.qty = 1;
+    objective.score = success ? 500 : -200;
+    const std::vector<DebriefingStat *> stats{&objective};
+
+    // Act
+    MissionCompletion::clearObjectiveAwards(stats, success ? "OBJECTIVE" : "", success ? "" : "OBJECTIVE");
+
+    // Assert
+    REQUIRE(objective.qty == 0);
+    REQUIRE(objective.score == 0);
+}
+
+TEST_CASE("MissionCompletion_SharedObjectiveLabel_ClearsAwardIdempotently", "[mission-completion]")
+{
+    // Arrange
+    DebriefingStat objective("OBJECTIVE", false);
+    objective.qty = 2;
+    objective.score = 300;
+    const std::vector<DebriefingStat *> stats{&objective};
+
+    // Act
+    MissionCompletion::clearObjectiveAwards(stats, "OBJECTIVE", "OBJECTIVE");
+    MissionCompletion::clearObjectiveAwards(stats, "OBJECTIVE", "OBJECTIVE");
+
+    // Assert
+    REQUIRE(objective.item == "OBJECTIVE");
+    REQUIRE(objective.qty == 0);
+    REQUIRE(objective.score == 0);
 }
 
 TEST_CASE("MissionCompletion_LaterRequest_PreservesExplicitFinalResult", "[mission-completion]")
@@ -165,26 +281,22 @@ TEST_CASE("MissionCompletion_LaterRequest_PreservesExplicitFinalResult", "[missi
 
     // Act
     completion.setResult(success ? MissionCompletion::Result::Failure : MissionCompletion::Result::Success);
-    const auto outcome = MissionCompletion::getDebriefingOutcome(result, nullptr, "STR_UFO", 1, false);
+    const bool resolvedSuccess = MissionCompletion::resolveSuccess(!success, result, 1);
 
     // Assert
-    REQUIRE(outcome.success == success);
-    REQUIRE(outcome.title == (success ? "STR_UFO_IS_RECOVERED" : "STR_UFO_IS_NOT_RECOVERED"));
+    REQUIRE(resolvedSuccess == success);
 }
 
-TEST_CASE("MissionCompletion_SquadOrCraftLost_OverridesScriptVictory", "[mission-completion]")
+TEST_CASE("MissionCompletion_LostCraft_OverridesDefaultTargetTitle", "[mission-completion]")
 {
     // Arrange
-    const bool lostCraft = GENERATE(false, true);
-    const auto result = createScriptResult(true);
+    const std::string target = GENERATE("STR_BASE", "STR_UFO", "STR_ALIEN_BASE", "STR_MISSION_SITE");
 
     // Act
-    const auto outcome =
-        MissionCompletion::getDebriefingOutcome(result, nullptr, "STR_UFO", lostCraft ? 1 : 0, lostCraft);
+    const auto title = MissionCompletion::getDefaultDebriefingTitle(false, target, true);
 
     // Assert
-    REQUIRE_FALSE(outcome.success);
-    REQUIRE(outcome.title == (lostCraft ? "STR_CRAFT_IS_LOST" : "STR_UFO_IS_NOT_RECOVERED"));
+    REQUIRE(title == "STR_CRAFT_IS_LOST");
 }
 
 TEST_CASE("MissionCompletion_SaveRoundTrip_PreservesPendingResult", "[mission-completion][save]")

@@ -1,5 +1,6 @@
 #include "MissionCompletion.h"
 
+#include "../../Battlescape/DebriefingState.h"
 #include "../../Engine/Logger.h"
 
 namespace OpenXcom
@@ -69,6 +70,21 @@ namespace OpenXcom
                        << ", lostCraft=" << lostCraft << ".";
 
         return {};
+    }
+
+    void MissionCompletion::clearObjectiveAwards(const std::vector<DebriefingStat *> &stats,
+                                                 const std::string &objectiveCompleteText,
+                                                 const std::string &objectiveFailedText)
+    {
+        for (auto *stat : stats)
+        {
+            if ((!objectiveCompleteText.empty() && stat->item == objectiveCompleteText) ||
+                (!objectiveFailedText.empty() && stat->item == objectiveFailedText))
+            {
+                stat->qty = 0;
+                stat->score = 0;
+            }
+        }
     }
 
     void MissionCompletion::load(const YAML::YamlNodeReader &reader)

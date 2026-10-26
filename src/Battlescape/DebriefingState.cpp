@@ -1987,21 +1987,14 @@ void DebriefingState::prepareDebriefing()
 		
 		_txtTitle->setText(title.empty() ? "OF_ERROR_RESULT" : std::string(tr(title)));
 		
-		// Replace any native objective awards with the single resolved scripted award.
-		for (auto* stat : _stats)
-		{
-			if ((!objectiveCompleteText.empty() && stat->item == objectiveCompleteText)
-				|| (!objectiveFailedText.empty() && stat->item == objectiveFailedText))
-			{
-				stat->qty = 0;
-				stat->score = 0;
-			}
-		}
+		// Clear the native objective awards before adding the resolved scripted award.
+		MissionCompletion::clearObjectiveAwards(_stats, objectiveCompleteText, objectiveFailedText);
 		
 		const auto &objectiveText = success ? objectiveCompleteText : objectiveFailedText;
+		const auto &objectiveScore = success ? objectiveCompleteScore : objectiveFailedScore;
 		if (!objectiveText.empty())
 		{
-			addStat(objectiveText, 1, success ? objectiveCompleteScore : objectiveFailedScore);
+			addStat(objectiveText, 1, objectiveScore);
 		}
 	}
 	// End OF

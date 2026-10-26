@@ -1,11 +1,14 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "../../Engine/Yaml.h"
 
 namespace OpenXcom
 {
+    struct DebriefingStat;
+
     /// Saved manual-ending mode and pending script result.
     class MissionCompletion
     {
@@ -33,7 +36,10 @@ namespace OpenXcom
 
         static std::string getDefaultDebriefingTitle(bool success, const std::string &target, bool lostCraft);
 
-        // TODO - load / save code can be moved to the other class
+        static void clearObjectiveAwards(const std::vector<DebriefingStat *> &stats,
+                                         const std::string &objectiveCompleteText,
+                                         const std::string &objectiveFailedText);
+
         void load(const YAML::YamlNodeReader &reader);
         void save(YAML::YamlNodeWriter writer) const;
 
