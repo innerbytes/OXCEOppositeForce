@@ -231,12 +231,12 @@ terrains:
 The fragment name must match an existing terrain block. These example coordinates
 illustrate syntax; they are **not verified locations** in FOREST00.
 
-| Property | Default | Meaning |
-| --- | --- | --- |
-| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`. |
+| Property   | Default  | Meaning                                                                                          |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `position` | Required | Fragment-local `[x, y, z]`, zero-based, with ground at `z: 0`.                                   |
 | `unitSize` | Required | `1` for a 1×1 point or `2` for a dedicated 2×2 point. Each point accepts only its declared size. |
-| `rank` | `0` | OXCE node rank, from `0` through `8`; see below. |
-| `priority` | `1` | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank. |
+| `rank`     | `0`      | OXCE node rank, from `0` through `8`; see below.                                                 |
+| `priority` | `1`      | Spawn priority, from `1` through `255`; higher priorities are tried first within a rank.         |
 
 A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
 `[x, y+1]`, and `[x+1, y+1]` on the same floor. Its four tiles are reserved against
@@ -244,17 +244,17 @@ A 2×2 point extends toward increasing x and y, occupying `[x, y]`, `[x+1, y]`,
 is unaffected. Choose non-overlapping footprints inside the fragment with a
 walkable route to its ground-level exterior; upper floors can use stairs.
 
-| Rank | Spawn usage |
-| --- | --- |
-| `0` | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
-| `1` | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
-| `2` | AI opponent spawn category: Soldier. |
-| `3` | AI opponent spawn category: Navigator. |
-| `4` | AI opponent spawn category: Leader; preferred by both commanders and leaders. |
-| `5` | AI opponent spawn category: Engineer. |
-| `6` | AI opponent spawn category: Miscellaneous 1. |
-| `7` | AI opponent spawn category: Medic. |
-| `8` | AI opponent spawn category: Miscellaneous 2. |
+| Rank | Spawn usage                                                                                                                                          |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | Shared fallback for all AI opponent unit ranks, and the only rank used when deploying them outside a UFO. Neutral AI units also use this by default. |
+| `1`  | Player-controlled units when deployment uses terrain spawn nodes. Historically called “XCOM”; it does not mean units belonging to XCOM in every mod. |
+| `2`  | AI opponent spawn category: Soldier.                                                                                                                 |
+| `3`  | AI opponent spawn category: Navigator.                                                                                                               |
+| `4`  | AI opponent spawn category: Leader; preferred by both commanders and leaders.                                                                        |
+| `5`  | AI opponent spawn category: Engineer.                                                                                                                |
+| `6`  | AI opponent spawn category: Miscellaneous 1.                                                                                                         |
+| `7`  | AI opponent spawn category: Medic.                                                                                                                   |
+| `8`  | AI opponent spawn category: Miscellaneous 2.                                                                                                         |
 
 These are **location categories**, not faction IDs or deployment `alienRank`
 values. They use the same numbers as vanilla `.RMP` spawn nodes. There is no
@@ -313,10 +313,10 @@ units:
     canBeStunned: false
 ```
 
-| Property | Default | Effect |
-| --- | --- | --- |
-| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience. |
-| `canBeStunned` | `true` | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
+| Property             | Default | Effect                                                                                                                                            |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disableKillRecords` | `false` | Excludes this target from damage-related kill records, kill totals and attacker experience.                                                       |
+| `canBeStunned`       | `true`  | Set to `false` to prevent stun damage from weapons, explosions and smoke, including attacks that bypass `painImmune`. Other damage still applies. |
 
 With `disableKillRecords: true`, killing or stunning this unit grants no kill
 records, kill-based commendations or promotion credit. Damaging it grants no
@@ -333,16 +333,29 @@ for exploration objects. Omitting them keeps normal behavior.
 
 ## Script-controlled mission completion
 
-Use manual ending for missions whose result is determined by scripts. Enable it
-once at mission start:
+### Manual mission end
+
+Enable manual mission ending once at mission start:
 
 ```text
 battle_game.setMissionEndManual 1;
 ```
 
-The mission then continues after enemy elimination or completion of its ordinary
-objectives. Squad defeat, deployment timers (`turnLimit` / `chronoTrigger`) and
-player retreat retain their usual effects.
+- The default is `0`, which uses ordinary OXCE mission-ending conditions.
+- Set it to `1` to continue the mission after enemy elimination or completion of
+  ordinary objectives.
+- Squad defeat, deployment timers (`turnLimit` / `chronoTrigger`) and player
+  retreat retain their usual effects.
+- The setting persists through save/load.
+- Ordinary progression to a new stage resets the setting to its default.
+
+Restore ordinary mission-ending conditions with:
+
+```text
+battle_game.setMissionEndManual 0;
+```
+
+### Scripted mission result
 
 Request the mission result when your scripted objective is decided:
 
@@ -354,41 +367,40 @@ battle_game.completeMission 1;
 battle_game.completeMission 0;
 ```
 
-Use the appropriate command for the result. Each call replaces any earlier
-completion request. Both commands work with manual ending enabled or disabled.
-With manual ending disabled, ordinary mission-ending conditions already met when
-queued actions finish take priority and use the ordinary mission result. Otherwise,
-the requested script result applies before turn-ending effects. Squad defeat and
-an already-expired deployment timer take priority in either mode.
+#### Common behavior
 
-For a request made during your turn, press **Next Turn** to complete the mission
-before enemy actions. A request made during turn-ending explosions takes effect
-after those explosions resolve. Requests made during an enemy or civilian turn
-take effect at the next turn transition. Current actions and their queued
-consequences finish before mission completion. Squad defeat, a deployment timer or player
-retreat can finish the mission first and use their ordinary outcome rules.
+- `1` requests success and `0` requests failure.
+- The command works with manual ending enabled or disabled.
+- Each call replaces the previous pending result.
+- The pending result persists through save/load.
+- Current actions and queued consequences finish before the result applies.
+- During the player turn, the result applies when **Next Turn** is pressed, before
+  enemy actions. Results requested during explosions, enemy turns or civilian
+  turns apply at the next safe turn transition.
+- The requested scripted result is ignored when squad defeat, an expired
+  deployment timer or player retreat ends the mission; ordinary outcome rules
+  apply.
+- A scripted result ends the entire mission, including deployments with
+  `nextStage`.
 
-Both results finish the entire mission, including deployments with `nextStage`.
-Surviving soldiers return from their current positions with their equipment.
-After a scripted failure with a surviving squad, the craft returns to base.
-Total squad loss results in mission failure even when success was requested.
-Normal craft and base-loss rules apply.
+#### Mission outcome with the scripted result
 
-The manual mission completion result determines the success/failure titles,
-cutscenes, research, bounty rewards, counters and events instead of the ordinary
-success or failure of the mission objective would decide on them. The
-corresponding `objectiveComplete` or `objectiveFailed` scores are given once at
-their configured value.
+- Surviving soldiers return with their equipment. After scripted failure, a
+  surviving squad and its craft return to base. Normal craft and base-loss rules
+  apply, and total squad loss results in failure.
+- The scripted result determines the success or failure title, cutscene, research,
+  bounty rewards, counters and events in the same way as an ordinary objective
+  result. The configured `objectiveComplete` or `objectiveFailed` score is awarded
+  once.
 
-Restore ordinary OXCE mission-ending conditions with:
+#### When manual mission ending is enabled
 
-```text
-battle_game.setMissionEndManual 0;
-```
+- Enemy elimination and other ordinary OXCE completion conditions do not end the
+  mission. It continues until the script calls `completeMission`, unless squad
+  defeat, an expired deployment timer or player retreat ends it first.
 
-This is the default setting. Changing it restores ordinary mission-ending checks
-while keeping any queued completion request. An ordinary ending takes priority
-when already due; otherwise the queued result applies. Manual ending and queued
-results persist through save/load, including across enemy and civilian turns.
-A stage reached through ordinary mission progression starts with ordinary OXCE
-ending conditions.
+#### When manual mission ending is disabled
+
+- An ordinary objective or enemy-elimination ending that is already due takes
+  priority and uses the ordinary mission result.
+- When no ordinary ending is due, the pending scripted result applies normally.
