@@ -87,7 +87,7 @@ private:
 	std::vector<State*> _popups;
 	BattlescapeGame *_battleGame;
 
-	// OF - Carry a script result only until native finalization consumes it.
+	// OF - a dirty flag to carry a script result until native finalization consumes it.
 	MissionCompletion::Result _ofFinishResult = MissionCompletion::Result::None;
 
 	bool _firstInit, _paletteResetNeeded, _paletteResetRequested;

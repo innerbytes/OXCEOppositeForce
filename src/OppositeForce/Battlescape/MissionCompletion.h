@@ -39,9 +39,6 @@ namespace OpenXcom
 
         bool shouldSuppressAutomaticCompletion() const;
 
-        /// Discard queued requests and retain only an explicitly supplied script result.
-        Result prepareFinish(Result scriptResult, bool aborted, bool preview);
-
         static bool resolveSuccess(Result result, bool nativeSuccess, int survivors);
 
         // TODO - see if we need to control it from here

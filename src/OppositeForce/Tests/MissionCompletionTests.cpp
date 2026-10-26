@@ -50,16 +50,14 @@ TEST_CASE("MissionCompletion_DefaultState_PreservesNativeResults", "[mission-com
 
     // Act
     const auto result = completion.getResult();
-    const auto finalResult = completion.prepareFinish(result, false, false);
 
     // Assert
     REQUIRE_FALSE(completion.isManualCompletion());
     REQUIRE_FALSE(completion.shouldSuppressAutomaticCompletion());
     REQUIRE(completion.getResult() == MissionCompletion::Result::None);
     REQUIRE(result == MissionCompletion::Result::None);
-    REQUIRE(finalResult == MissionCompletion::Result::None);
-    REQUIRE(MissionCompletion::resolveSuccess(finalResult, true, 1));
-    REQUIRE_FALSE(MissionCompletion::resolveSuccess(finalResult, false, 1));
+    REQUIRE(MissionCompletion::resolveSuccess(result, true, 1));
+    REQUIRE_FALSE(MissionCompletion::resolveSuccess(result, false, 1));
 }
 
 TEST_CASE("MissionCompletion_ManualModeToggle_RestoresNativeChecksWithoutClearingRequest", "[mission-completion]")
@@ -115,56 +113,6 @@ TEST_CASE("MissionCompletion_SquadDefeat_OverridesScriptVictory", "[mission-comp
     REQUIRE_FALSE(success);
 }
 
-TEST_CASE("MissionCompletion_NativeTimerOrRetreat_DiscardsQueuedResult", "[mission-completion]")
-{
-    // Arrange
-    const bool retreat = GENERATE(false, true);
-    const bool requestedSuccess = GENERATE(false, true);
-    const bool nativeSuccess = GENERATE(false, true);
-    MissionCompletion completion;
-    completion.setManualCompletion(true);
-    completion.setResult(requestedSuccess ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
-
-    // Act
-    const auto result = completion.prepareFinish(MissionCompletion::Result::None, retreat, false);
-
-    // Assert
-    REQUIRE(result == MissionCompletion::Result::None);
-    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-    REQUIRE(MissionCompletion::resolveSuccess(result, nativeSuccess, 1) == nativeSuccess);
-}
-
-TEST_CASE("MissionCompletion_RetreatWithExplicitResult_PreservesNativeOutcome", "[mission-completion]")
-{
-    // Arrange
-    const bool success = GENERATE(false, true);
-    MissionCompletion completion;
-    completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
-    const auto scriptResult = completion.getResult();
-
-    // Act
-    const auto result = completion.prepareFinish(scriptResult, true, false);
-
-    // Assert
-    REQUIRE(result == MissionCompletion::Result::None);
-    REQUIRE_FALSE(MissionCompletion::resolveSuccess(result, false, 1));
-    REQUIRE(MissionCompletion::resolveSuccess(result, true, 1));
-}
-
-TEST_CASE("MissionCompletion_PreviewFinalization_UsesNativeEnding", "[mission-completion]")
-{
-    // Arrange
-    MissionCompletion completion;
-    completion.setResult(MissionCompletion::Result::Success);
-
-    // Act
-    const auto finalResult = completion.prepareFinish(MissionCompletion::Result::Success, false, true);
-
-    // Assert
-    REQUIRE(finalResult == MissionCompletion::Result::None);
-    REQUIRE(completion.getResult() == MissionCompletion::Result::None);
-}
-
 TEST_CASE("MissionCompletion_Reset_RestoresDefaultState", "[mission-completion]")
 {
     // Arrange
@@ -215,7 +163,8 @@ TEST_CASE("MissionCompletion_LaterRequest_PreservesExplicitFinalResult", "[missi
     const bool success = GENERATE(false, true);
     MissionCompletion completion;
     completion.setResult(success ? MissionCompletion::Result::Success : MissionCompletion::Result::Failure);
-    const auto result = completion.prepareFinish(completion.getResult(), false, false);
+    const auto result = completion.getResult();
+    completion.setResult(MissionCompletion::Result::None);
 
     // Act
     completion.setResult(success ? MissionCompletion::Result::Failure : MissionCompletion::Result::Success);

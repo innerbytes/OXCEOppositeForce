@@ -519,9 +519,7 @@ void BattlescapeGame::endTurn()
 		BattlescapeTally tally = tallyUnits();
 		if (tally.liveSoldiers > 0)
 		{
-			const auto result = _save->ofGetMissionCompletion().getResult();
-			_save->ofGetMissionCompletion().setResult(MissionCompletion::Result::None);
-			_parentState->ofFinishBattle(tally.liveSoldiers, result);
+			_parentState->ofFinishBattle(tally.liveSoldiers, _save->ofGetMissionCompletion().getResult());
 			return;
 		}
 	}

@@ -29,12 +29,6 @@ namespace OpenXcom
         return _isManualCompletion || getResult() != Result::None;
     }
 
-    MissionCompletion::Result MissionCompletion::prepareFinish(Result scriptResult, bool aborted, bool preview)
-    {
-        _pendingResult = Result::None;
-        return aborted || preview ? Result::None : scriptResult;
-    }
-
     void MissionCompletion::reset()
     {
         _isManualCompletion = false;

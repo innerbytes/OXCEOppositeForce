@@ -3521,9 +3521,9 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 	bool isPreview = _save->isPreview();
 
 	// OF - Consume the temporary result once; native endings discard queued requests.
-	auto scriptResult = _ofFinishResult;
+	auto scriptResult = (abort || _save->isAborted() || isPreview) ? MissionCompletion::Result::None : _ofFinishResult;
 	_ofFinishResult = MissionCompletion::Result::None;
-	scriptResult = _save->ofGetMissionCompletion().prepareFinish(scriptResult, abort || _save->isAborted(), isPreview);
+	_save->ofGetMissionCompletion().setResult(MissionCompletion::Result::None);
 	// End OF
 
 	while (!_game->isState(this))
